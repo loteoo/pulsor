@@ -1,5 +1,5 @@
 // Utils
-type HyperScript = (type: string, props?: VProps, ...children: VChildNode[]) => VDomElement;
+type HyperScript = (type: string, props?: VProps, ...children: VChildNode[]) => VNode;
 type JSXPragma = (type: string | Component, props?: VProps, ...children: VChildNode[]) => VChildNode;
 
 // Generic
@@ -41,30 +41,31 @@ type Action =
 
 type VProps = Record<string, any | Action>;
 
-type VTextElement = string | number | bigint;
+type TextElement = string | number | bigint;
 
-interface VDomElement {
+interface VNode {
   type?: string;
   props?: VProps;
   children?: VChildNode;
+  text?: TextElement;
   key?: string;
   init?: Action;
   listener?: Listener;
+  el?: Node;
 }
 
 type ListenerCleanupFn = () => void;
 type Listener = (emit: Emitter) => ListenerCleanupFn;
 
-type VElement =
-  | VTextElement
-  | VDomElement;
+
 
 type VChildNodeFn = ((state: State) => VChildNode)
 
 type VChildNode = // Maybe rename this "VChildNode"
-  | VElement
+  | VNode
   | VChildNodeFn
   | Array<VChildNode>
+  | TextElement
   | Falsy;
 
 type Component = (...args: any[]) => VChildNode;

@@ -1,10 +1,16 @@
-import { isVChildNodeFn, isRenderable } from './utils';
+import { isVChildNodeFn, isRenderable, isString } from './utils';
 
-const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VElement[] => {
+const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VNode[] => {
   const vNodes = Array.isArray(_vNodes) ? [..._vNodes] : [_vNodes];
 
   let i = 0;
   while (i < vNodes.length) {
+    if (isString(vNodes[i])) {
+      vNodes[i] = {
+        text: vNodes[i] as string
+      }
+      continue;
+    }
     if (isVChildNodeFn(vNodes[i])) {
       vNodes[i] = (vNodes[i] as VChildNodeFn)(cycle.state)
       continue;
@@ -20,7 +26,7 @@ const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VElement[] => {
     i++;
   }
 
-  return vNodes as VElement[];
+  return vNodes as VNode[];
 }
 
 export default flatten

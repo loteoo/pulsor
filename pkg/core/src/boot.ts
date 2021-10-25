@@ -11,7 +11,7 @@ export const boot = (app: VChildNode) => {
     dispatch(event.type, (this[event.type] as Action), event);
   }
 
-  const createEmitter = (eventsObject: Task | VDomElement): Emitter =>
+  const createEmitter = (eventsObject: Task | VNode): Emitter =>
     (eventName, payload) => {
       const handlerKey = `on${eventName}`;
 
@@ -23,7 +23,7 @@ export const boot = (app: VChildNode) => {
     }
 
   const dispatch: Dispatch = (eventName, handler, payload) => {
-    console.clear()
+    // console.clear()
     const action = typeof handler === 'function' ? handler(cycle.state, payload) : handler;
     cycle.state = reduce(cycle.state, action, cycle);
     console.log('dispatch', eventName, payload, (handler as (() => void)).name, cycle.state)
@@ -37,7 +37,7 @@ export const boot = (app: VChildNode) => {
     createEmitter,
   }
 
-  const oldVNode = hydrate(root) as VDomElement;
+  const oldVNode = hydrate(root) as VNode;
 
   const nextVNode = {
     ...oldVNode,
@@ -45,7 +45,7 @@ export const boot = (app: VChildNode) => {
   };
 
   const patch = () => {
-    patchElement(root, oldVNode, nextVNode, cycle);
+    patchElement(oldVNode, nextVNode, cycle);
     if (cycle.needsRerender) {
       console.log('re-rendering')
       cycle.needsRerender = false
