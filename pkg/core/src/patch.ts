@@ -60,7 +60,6 @@ function removeVNodes(
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
     if (ch != null) {
-      console.log('remove', vnodes, startIdx, endIdx, ch)
       parentElm.removeChild(ch.el!)
     }
   }

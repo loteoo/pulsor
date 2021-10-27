@@ -5,7 +5,7 @@ export const isString = (value?: any): boolean => ['string', 'number', 'bigint']
 
 export const isModuleNode = (vnode: VChildNode) => typeof vnode === 'object' && !!vnode && !Array.isArray(vnode) && (vnode as any).type === undefined;
 
-export const isRenderable = (value: any) => ![false, null, undefined].includes(value)
+export const isRenderable = (value: any) => ![true, false, null, undefined].includes(value)
 
 export const isTask = (action: Action): action is Task => typeof action === 'object' && !!action && typeof (action as Task).run === 'function';
 
