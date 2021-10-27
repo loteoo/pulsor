@@ -1,5 +1,5 @@
 
-export const isVChildNodeFn = (vnode: VChildNode): vnode is VChildNodeFn => typeof vnode === 'function';
+export const isVChildNodeFunction = (vnode: VChildNode): vnode is VChildNodeFunction => typeof vnode === 'function';
 
 export const isString = (value?: any): boolean => ['string', 'number', 'bigint'].includes(typeof value);
 

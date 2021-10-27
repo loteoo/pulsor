@@ -31,11 +31,12 @@ interface Task {
 
 type Action =
   | State
-  | ((state: State, payload?: any) => Action) // Nested action based on state
+  | ActionFunction // Nested action based on state
   | Array<Action> // Nested action
   | Task
   | Falsy
 
+type ActionFunction = (state: State, payload?: any) => Action;
 
 // Vdom
 
@@ -54,16 +55,14 @@ interface VNode {
   el?: Node;
 }
 
-type ListenerCleanupFn = () => void;
-type Listener = (emit: Emitter) => ListenerCleanupFn;
+type ListenerCleanupFunction = () => void;
+type Listener = (emit: Emitter) => ListenerCleanupFunction;
 
+type VChildNodeFunction = ((state: State) => VChildNode)
 
-
-type VChildNodeFn = ((state: State) => VChildNode)
-
-type VChildNode = // Maybe rename this "VChildNode"
+type VChildNode =
   | VNode
-  | VChildNodeFn
+  | VChildNodeFunction
   | Array<VChildNode>
   | TextElement
   | Falsy;

@@ -1,4 +1,4 @@
-import { isVChildNodeFn, isRenderable, isString } from './utils';
+import { isVChildNodeFunction, isRenderable, isString } from './utils';
 
 const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VNode[] => {
   const vNodes = Array.isArray(_vNodes) ? [..._vNodes] : [_vNodes];
@@ -11,8 +11,8 @@ const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VNode[] => {
       }
       continue;
     }
-    if (isVChildNodeFn(vNodes[i])) {
-      vNodes[i] = (vNodes[i] as VChildNodeFn)(cycle.state)
+    if (isVChildNodeFunction(vNodes[i])) {
+      vNodes[i] = (vNodes[i] as VChildNodeFunction)(cycle.state)
       continue;
     }
     if (Array.isArray(vNodes[i])) {
