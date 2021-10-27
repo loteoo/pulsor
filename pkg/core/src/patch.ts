@@ -113,36 +113,57 @@ const createElement = (vNode: VNode, cycle: Cycle): DomElement => {
 
 
 
-const patchProp = (el: HTMLElement, key: string, value: any, nextValue: any, cycle: Cycle) => {
+const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, cycle: Cycle) => {
   if (key.startsWith("on")) {
     const eventName = key.slice(2);
     //@ts-ignore
-    el[eventName] = nextValue;
-    if (!nextValue) {
+    el[eventName] = newValue;
+    if (!newValue) {
       el.removeEventListener(eventName, cycle.domEmitter);
-    } else if (!value) {
+    } else if (!oldValue) {
       el.addEventListener(eventName, cycle.domEmitter);
     }
     return;
   }
-  if (nextValue == null || nextValue === false) {
-    el.removeAttribute(key);
+
+
+  // Could be interesting? ex: <div id={state => state.foo} />
+  // if (typeof newValue === 'function') {
+  //   newValue = newValue(cycle.state)
+  // }
+
+  
+  if (key === 'class' && typeof newValue === "object") {
+    let cur: any;
+    let oldClass = oldValue ?? {};
+    for (key in oldClass) {
+      if (oldClass[key] && !Object.prototype.hasOwnProperty.call(newValue, key)) {
+        // was `true` and now not provided
+        el.classList.remove(key);
+      }
+    }
+    for (key in newValue) {
+      cur = newValue[key];
+      if (cur !== oldClass[key]) {
+        (el.classList as any)[cur ? "add" : "remove"](key);
+      }
+    }
     return;
   }
 
-  if (typeof nextValue === 'function') {
-    nextValue = nextValue(cycle.state)
+
+  if (newValue == null || newValue === false) {
+    el.removeAttribute(key);
+  } else {
+    el.setAttribute(key, newValue);
   }
 
-  el.setAttribute(key, nextValue);
 };
 
-const patchProps = (el: HTMLElement, props: any, nextProps: any, cycle: Cycle) => {
-  // console.log('patchProps', el, props, nextProps)
-  const mergedProps = { ...props, ...nextProps };
-  for (const key of Object.keys(mergedProps)) {
-    if (props[key] !== nextProps[key] && !['key', 'init', 'clear'].includes(key)) {
-      patchProp(el, key, props[key], nextProps[key], cycle);
+const patchProps = (el: HTMLElement, oldProps: any, newProps: any, cycle: Cycle) => {
+  for (const key in { ...oldProps, ...newProps }) {
+    if (oldProps[key] !== newProps[key] && !['key', 'init', 'clear'].includes(key)) {
+      patchProp(el, key, oldProps[key], newProps[key], cycle);
     }
   }
 };
