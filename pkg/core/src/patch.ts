@@ -4,12 +4,12 @@ import reduce from './reduce';
 import flatten from './flatten';
 
 
-const realCreateElement = document.createElement.bind(document)
-document.createElement = (name: any, props: any) => {
-  let el = realCreateElement(name, props)
-  console.log('Created element: ', el.tagName)
-  return el
-}
+// const realCreateElement = document.createElement.bind(document)
+// document.createElement = (name: any, props: any) => {
+//   let el = realCreateElement(name, props)
+//   console.log('Created element: ', el.tagName)
+//   return el
+// }
 
 
 // ====
@@ -45,7 +45,7 @@ function addVNodes(
   for (; startIdx <= endIdx; ++startIdx) {
     const ch = vnodes[startIdx];
     if (ch != null) {
-      parentElm.insertBefore(createElement(ch, cycle), before);
+      parentElm.insertBefore(createNode(ch, cycle), before);
     }
   }
 }
@@ -69,14 +69,22 @@ function removeVNodes(
 // ===
 
 
-const createElement = (vNode: VNode, cycle: Cycle): DomElement => {
-
+const createElm = (vNode: VNode): Node => {
   if (vNode.text != null) {
-    const el = document.createTextNode(String(vNode.text))
-    vNode.el = el;
-    return el
+    return document.createTextNode(String(vNode.text));
   }
 
+  if (isModuleNode(vNode)) {
+    return document.createComment('module');
+  }
+
+  return document.createElement(vNode.type!);
+}
+
+const createNode = (vNode: VNode, cycle: Cycle): Node => {
+
+  const el = createElm(vNode);
+  
   // TODO: Move this to patchProps
   if (vNode.init) {
     // @ts-ignore
@@ -85,7 +93,8 @@ const createElement = (vNode: VNode, cycle: Cycle): DomElement => {
     if (cycle.state !== nextState) {
       cycle.state = nextState
       cycle.needsRerender = true
-      console.log('state updated', cycle.state)
+      // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
+      // console.log('state updated', cycle.state)
     }
   }
 
@@ -94,18 +103,13 @@ const createElement = (vNode: VNode, cycle: Cycle): DomElement => {
     vNode.listener(cycle.createEmitter(vNode))
   }
 
-  if (isModuleNode(vNode)) {
-    const el = document.createComment('module')
-    vNode.el = el;
-    return el;
+  
+  if (vNode.type) {
+    patchProps(el as HTMLElement, {}, (vNode as VNode).props, cycle);
+    patchChildren(el, flatten((vNode as VNode).children, cycle), cycle);
   }
 
-  const el = document.createElement((vNode as VNode).type!);
-  patchProps(el, {}, (vNode as VNode).props, cycle);
-  patchChildren(el, flatten((vNode as VNode).children, cycle), cycle);
-  vNode.el = el;
-
-  return el
+  return vNode.el = el
 };
 
 
@@ -227,14 +231,14 @@ const patchChildren = (el: Node, newCh: VNode[], cycle: Cycle) => {
       if (idxInOld === undefined) {
         // New element
         el.insertBefore(
-          createElement(newStartVNode, cycle),
+          createNode(newStartVNode, cycle),
           oldStartVNode.el!
         );
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
           el.insertBefore(
-            createElement(newStartVNode, cycle),
+            createNode(newStartVNode, cycle),
             oldStartVNode.el!
           );
         } else {

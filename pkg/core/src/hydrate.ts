@@ -12,7 +12,7 @@ export const hydrate = (el: DomElement): VNode => {
   
   const vNode =  h(type, {}, children);
   vNode.el = el;
-  console.log('hydrated', el)
+  // console.log('hydrated', el)
 
   return vNode;
 };

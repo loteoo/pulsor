@@ -29,7 +29,7 @@ export const boot = (app: VChildNode) => {
     // console.clear()
     const action = typeof handler === 'function' ? handler(cycle.state, payload) : handler;
     cycle.state = reduce(cycle.state, action, cycle);
-    console.log('dispatch', eventName, payload, (handler as (() => void)).name, cycle.state)
+    // console.log('dispatch', eventName, payload, (handler as (() => void)).name, cycle.state)
     patch()
   }
 
@@ -50,7 +50,7 @@ export const boot = (app: VChildNode) => {
   const patch = () => {
     patchElement(oldVNode, nextVNode, cycle);
     if (cycle.needsRerender) {
-      console.log('re-rendering')
+      // console.log('re-rendering')
       cycle.needsRerender = false
       patch()
     }
