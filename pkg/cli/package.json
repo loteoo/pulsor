@@ -1,0 +1,17 @@
+{
+  "name": "@pulsor/cli",
+  "version": "0.0.1-rc.1",
+  "description": "",
+  "main": "cli.js",
+  "bin": {
+    "pulsor": "cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "vite": "^2.6.13"
+  }
+}
