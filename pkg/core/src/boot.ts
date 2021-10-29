@@ -11,14 +11,17 @@ export const boot = (app: VChildNode) => {
     dispatch(event.type, (this[event.type] as Action), event);
   }
 
-  const createEmitter = (eventsObject: Task | VNode): Emitter =>
+  const createEmitter = (eventsObject: Task & VNode): Emitter =>
     (eventName, payload) => {
       const handlerKey = `on${eventName}`;
 
       //@ts-ignore
       if (eventsObject[handlerKey]) {
         //@ts-ignore
-        dispatch(eventName, eventsObject[handlerKey] as Action, payload)
+
+        requestAnimationFrame(() => {
+          dispatch(eventName, eventsObject[handlerKey] as Action, payload)
+        })
       }
     }
 
