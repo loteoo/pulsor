@@ -5,7 +5,6 @@ type FragmentPragma = (props?: VProps, ...children: VChildNode[]) => VChildNode;
 
 // Generic
 type Falsy = false | null | undefined;
-type DomElement = HTMLElement | Text | Comment;
 
 // App
 type State = Record<string, any>;
@@ -55,6 +54,7 @@ interface VNode {
   cleanup?: Action;
   listener?: Listener | ListenerCleanupFunction;
   el?: Node;
+  mount?: Node;
   oldChildren?: VNode[];
 }
 

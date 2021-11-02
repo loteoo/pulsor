@@ -1,6 +1,6 @@
 import { h } from "./h";
 
-export const hydrate = (el: DomElement): VNode => {
+export const hydrate = (el: Node): VNode => {
   if (el.nodeType === 3) {
     return {
       text: String(el.nodeValue),

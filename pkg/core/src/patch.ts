@@ -132,28 +132,13 @@ const createElm = (vNode: VNode): Node => {
 }
 
 const createNode = (vNode: VNode, cycle: Cycle): Node => {
-
   const el = createElm(vNode);
-  
-  // TODO: Move this to patchProps
-  if (vNode.init) {
-    runViewBasedStateUpdate(vNode.init, cycle);
-  }
-
-  // TODO: Move this to patchProps
-  if (vNode.listener) {
-    vNode.listener = vNode.listener(cycle.createEmitter(vNode)) as ListenerCleanupFunction;
-  }
-
-  
-  if (vNode.type) {
-    patchProps(el as HTMLElement, {}, (vNode as VNode).props, cycle);
-  }
+  patchProps(el as HTMLElement, {}, vNode, cycle);
 
   const newCh = flatten((vNode as VNode).children, cycle);
   patchChildren(el, [], newCh, cycle);
   vNode.oldChildren = newCh;
-  
+
   return vNode.el = el
 };
 
@@ -162,7 +147,7 @@ const createNode = (vNode: VNode, cycle: Cycle): Node => {
 
 
 
-const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, cycle: Cycle) => {
+const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
   if (key.startsWith("on")) {
     const eventName = key.slice(2);
     //@ts-ignore
@@ -175,13 +160,29 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, c
     return;
   }
 
+  if (key === 'key') {
+    return;
+  }
+
+  if (key === 'init') {
+    if (newValue && oldValue == null) {
+      runViewBasedStateUpdate(newValue, cycle);
+    }
+    return;
+  }
+
+  if (key === 'listener') {
+    if (newValue && oldValue == null) {
+      oldVNode.listener = newVNode.listener = (newVNode.listener as Listener)(cycle.createEmitter(newVNode)) as ListenerCleanupFunction;
+    }
+    return;
+  }
 
   // Could be interesting? ex: <div id={state => state.foo} />
   // if (typeof newValue === 'function') {
   //   newValue = newValue(cycle.state)
   // }
 
-  
   if (key === 'class' && typeof newValue === "object") {
     let cur: any;
     let oldClass = oldValue ?? {};
@@ -209,10 +210,20 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, c
 
 };
 
-const patchProps = (el: HTMLElement, oldProps: any, newProps: any, cycle: Cycle) => {
+const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
+  const oldProps: any = {
+    ...oldVNode?.props,
+    init: oldVNode?.init,
+    listener: oldVNode?.listener,
+  };
+  const newProps: any = {
+    ...newVNode?.props,
+    init: newVNode?.init,
+    listener: newVNode?.listener,
+  };
   for (const key in { ...oldProps, ...newProps }) {
-    if (oldProps[key] !== newProps[key] && !['key', 'init', 'clear'].includes(key)) {
-      patchProp(el, key, oldProps[key], newProps[key], cycle);
+    if (oldProps[key] !== newProps[key]) {
+      patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
     }
   }
 };
@@ -318,13 +329,15 @@ const patchElement = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
 
   const el: Node = (newVNode.el = oldVNode.el!);
 
+  patchProps(el as HTMLElement, oldVNode, newVNode, cycle); // Needs to happen before flatten
+
   const oldCh: VNode[] = oldVNode.oldChildren!;
   const newCh = flatten(newVNode.children, cycle);
 
+  // TODO: De-tangle this
   if (newVNode.text == null) {
     if (oldCh != null && newCh != null) {
       if (oldCh !== newCh) {
-        patchProps(el as HTMLElement, oldVNode.props ?? {}, newVNode.props ?? {}, cycle)
         patchChildren(el, oldCh, newCh, cycle)
       };
     } else if (newCh != null) {
@@ -343,7 +356,7 @@ const patchElement = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
     }
     el.textContent = String(newVNode.text);
   }
-  
+
   oldVNode.oldChildren = newVNode.oldChildren = newCh;
 };
 

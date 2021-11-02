@@ -2,9 +2,7 @@ import { hydrate } from './hydrate'
 import reduce from './reduce';
 import patchElement from './patch';
 
-export const boot = (app: VChildNode) => {
-
-  const root = document.getElementById("root") as HTMLElement
+export const boot = (app: VNode) => {
 
   function domEmitter(event: any) {
     // @ts-ignore
@@ -40,13 +38,19 @@ export const boot = (app: VChildNode) => {
     createEmitter,
   }
 
-  const oldVNode = hydrate(root) as VNode;
+  
+  // if (!el) {
+  //   const root = document.createElement('div')
+  //   document.body.appendChild(root);
+  //   el = root;
+  // }
 
+  const oldVNode = hydrate(app.mount ?? document.body) as VNode;
   const nextVNode = {
     ...oldVNode,
     children: app
-  };
-
+  }
+  
   const patch = () => {
     patchElement(oldVNode, nextVNode, cycle);
     if (cycle.needsRerender) {
