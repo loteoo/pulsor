@@ -2,7 +2,7 @@ import { hydrate } from './hydrate'
 import reduce from './reduce';
 import patchElement from './patch';
 
-export const boot = (app: VNode) => {
+export const pulsor = (app: VNode) => {
 
   function domEmitter(event: any) {
     // @ts-ignore

@@ -1,8 +1,8 @@
 {
   "name": "@pulsor/core",
   "version": "0.0.1-rc.1",
-  "description": "Experimental web framework",
-  "main": "dist/index.js",
+  "private": false,
+  "description": "Virtual DOM unleashed",
   "scripts": {
     "build": "tsc",
     "prepublish": "tsc",
