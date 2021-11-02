@@ -53,7 +53,7 @@ interface VNode {
   key?: string;
   init?: Action;
   cleanup?: Action;
-  listener?: Listener;
+  listener?: Listener | ListenerCleanupFunction;
   el?: Node;
   oldChildren?: VNode[];
 }

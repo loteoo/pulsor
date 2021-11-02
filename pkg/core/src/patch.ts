@@ -83,6 +83,9 @@ function removeVNodes(
       if (ch.cleanup) {
         runViewBasedStateUpdate(ch.cleanup, cycle)
       }
+      if (ch.listener) {
+        (ch.listener as ListenerCleanupFunction)()
+      }
       if (ch.type || ch.text) {
         parentElm.removeChild(ch.el!)
       }
@@ -139,7 +142,7 @@ const createNode = (vNode: VNode, cycle: Cycle): Node => {
 
   // TODO: Move this to patchProps
   if (vNode.listener) {
-    vNode.listener(cycle.createEmitter(vNode))
+    vNode.listener = vNode.listener(cycle.createEmitter(vNode)) as ListenerCleanupFunction;
   }
 
   
