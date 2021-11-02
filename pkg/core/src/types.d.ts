@@ -1,6 +1,7 @@
 // Utils
 type HyperScript = (type: string, props?: VProps, ...children: VChildNode[]) => VNode;
 type JSXPragma = (type: string | Component, props?: VProps, ...children: VChildNode[]) => VChildNode;
+type FragmentPragma = (props?: VProps, ...children: VChildNode[]) => VChildNode;
 
 // Generic
 type Falsy = false | null | undefined;
@@ -51,8 +52,10 @@ interface VNode {
   text?: TextElement;
   key?: string;
   init?: Action;
+  cleanup?: Action;
   listener?: Listener;
   el?: Node;
+  oldChildren?: VNode[];
 }
 
 type ListenerCleanupFunction = () => void;
