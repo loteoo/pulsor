@@ -1,7 +1,7 @@
 const promtTask = {
   run: (emit) => {
-    const test = prompt('What\'s your name?')
-    emit('answer', test)
+    const answer = prompt('What\'s your name?')
+    emit('answer', answer)
   },
   onanswer: (state, answer) => ({
     ...state,
@@ -12,7 +12,7 @@ const promtTask = {
 const app = (
   <main init={promtTask}>
     <h1>Hello {state => state.answer}!</h1>
-    <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
+    <a href="https://pulsor.dev/" target="_blank">Documentation</a>
   </main>
 )
 

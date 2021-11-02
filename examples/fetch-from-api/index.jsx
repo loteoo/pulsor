@@ -2,7 +2,6 @@ const fetchData = [
   { characters: [] },
   {
     run: async (emit) => {
-      
       const response = await fetch(`https://rickandmortyapi.com/api/character`)
       const data = await response.json()
       const simplified = data.results.map((character) => ({
@@ -24,12 +23,11 @@ const fetchData = [
 
 const app = (
   <main init={fetchData}>
-    {console.log}
     <h1>Characters</h1>
     <ul>
-      {state => state.characters.map(char => (
+      {({ characters }) => characters.map((character) => (
         <li>
-          {char.name} - {char.species} - {char.status}
+          {character.name} - {character.species} - {character.status}
         </li>
       ))}
     </ul>
