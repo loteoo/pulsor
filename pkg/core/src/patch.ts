@@ -133,7 +133,7 @@ const createElm = (vNode: VNode): Node => {
 
 const createNode = (vNode: VNode, cycle: Cycle): Node => {
   const el = createElm(vNode);
-  vNode.el = el
+  vNode.el = el;
 
   patchElement(
     {
@@ -144,12 +144,7 @@ const createNode = (vNode: VNode, cycle: Cycle): Node => {
     },
     vNode,
     cycle
-  )
-
-  // patchProps(el as HTMLElement, {}, vNode, cycle); // Needs to happen before flatten in case child fn needs state from init
-  // const newCh = flatten((vNode as VNode).children, cycle);
-  // vNode.children = newCh;
-  // patchChildren(el, [], newCh, cycle);
+  );
 
   return el
 };
@@ -345,28 +340,12 @@ const patchElement = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
   const newCh = flatten(newVNode.children, cycle);
   oldVNode.children = newVNode.children = newCh;
 
-  // TODO: De-tangle this
-  if (newVNode.text == null) {
-    if (oldCh != null && newCh != null) {
-      if (oldCh !== newCh) {
-        patchChildren(el, oldCh, newCh, cycle)
-      };
-    } else if (newCh != null) {
-      if (oldVNode.text != null) {
-        el.textContent = '';
-      };
-      addVNodes(el, null, newCh, 0, newCh.length - 1, cycle);
-    } else if (oldCh != null) {
-      removeVNodes(el, oldCh, 0, oldCh.length - 1, cycle);
-    } else if (oldVNode.text != null) {
-      el.textContent = '';
-    }
-  } else if (oldVNode.text !== newVNode.text) {
-    if (oldCh != null) {
-      removeVNodes(el, oldCh, 0, oldCh.length - 1, cycle);
-    }
+  if (newVNode.text != null && oldVNode.text !== newVNode.text) {
     el.textContent = String(newVNode.text);
+    return;
   }
+  
+  patchChildren(el, oldCh, newCh, cycle);
 
 };
 
