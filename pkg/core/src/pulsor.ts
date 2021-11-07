@@ -54,12 +54,12 @@ export const pulsor = (app: VNode) => {
   // }
 
   const oldVNode = hydrate(app.mount ?? document.body) as VNode;
-  const nextVNode = {
-    ...oldVNode,
-    children: app
-  }
   
   const patch = () => {
+    const nextVNode = {
+      ...oldVNode,
+      children: app
+    }
     patchElement(oldVNode, nextVNode, cycle);
     if (cycle.needsRerender) {
       // console.log('re-rendering')

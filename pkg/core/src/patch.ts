@@ -21,7 +21,7 @@ const runViewBasedStateUpdate = (action: Action, payload: any, cycle: Cycle) => 
   // Sometimes, actions are just tasks with no state transformation
   if (cycle.state !== nextState) {
     cycle.state = nextState
-    cycle.needsRerender = true
+    // cycle.needsRerender = true
     // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
     // console.log('state updated', cycle.state)
   }
@@ -100,8 +100,8 @@ function moveVNode(
 ): void {
   if (vNode.type || vNode.text) {
     parentElm.insertBefore(vNode.el!, before!);
-  } else if (vNode.oldChildren) {
-    for (const ch of vNode.oldChildren) {
+  } else if (vNode.children) {
+    for (const ch of (vNode.children as VNode[])) {
       moveVNode(parentElm, ch, before)
     }
   }
@@ -110,8 +110,8 @@ function moveVNode(
 function nextSibling(vNode: VNode): Node | undefined {
   if (vNode.type || vNode.text) {
     return vNode.el!.nextSibling!;
-  } else if (vNode.oldChildren) {
-    return nextSibling(vNode.oldChildren[0]);
+  } else if (vNode.children) {
+    return nextSibling((vNode.children as VNode[])[0]);
   }
 }
 
@@ -133,13 +133,25 @@ const createElm = (vNode: VNode): Node => {
 
 const createNode = (vNode: VNode, cycle: Cycle): Node => {
   const el = createElm(vNode);
-  patchProps(el as HTMLElement, {}, vNode, cycle);
+  vNode.el = el
 
-  const newCh = flatten((vNode as VNode).children, cycle);
-  patchChildren(el, [], newCh, cycle);
-  vNode.oldChildren = newCh;
+  patchElement(
+    {
+      type: vNode.type,
+      text: vNode.text,
+      el: el,
+      children: [],
+    },
+    vNode,
+    cycle
+  )
 
-  return vNode.el = el
+  // patchProps(el as HTMLElement, {}, vNode, cycle); // Needs to happen before flatten in case child fn needs state from init
+  // const newCh = flatten((vNode as VNode).children, cycle);
+  // vNode.children = newCh;
+  // patchChildren(el, [], newCh, cycle);
+
+  return el
 };
 
 
@@ -328,10 +340,10 @@ const patchElement = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
 
   const el: Node = (newVNode.el = oldVNode.el!);
 
-  patchProps(el as HTMLElement, oldVNode, newVNode, cycle); // Needs to happen before flatten
-
-  const oldCh: VNode[] = oldVNode.oldChildren!;
+  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before flatten in case child fn needs state from init
+  const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = flatten(newVNode.children, cycle);
+  oldVNode.children = newVNode.children = newCh;
 
   // TODO: De-tangle this
   if (newVNode.text == null) {
@@ -356,7 +368,6 @@ const patchElement = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
     el.textContent = String(newVNode.text);
   }
 
-  oldVNode.oldChildren = newVNode.oldChildren = newCh;
 };
 
 

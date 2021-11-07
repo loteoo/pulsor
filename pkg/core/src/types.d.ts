@@ -55,7 +55,6 @@ interface VNode {
   listener?: Listener | ListenerCleanupFunction;
   el?: Node;
   mount?: Node;
-  oldChildren?: VNode[];
 }
 
 type ListenerCleanupFunction = () => void;

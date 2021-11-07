@@ -23,6 +23,11 @@ const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VNode[] => {
       vNodes.splice(i, 1);
       continue;
     }
+
+    vNodes[i] = {
+      ...(vNodes[i] as VNode)
+    }
+
     i++;
   }
 
