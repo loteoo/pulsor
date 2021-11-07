@@ -23,13 +23,18 @@ export const pulsor = (app: VNode) => {
       }
     }
 
-  const dispatch: Dispatch = (eventName, handler, payload) => {
+  const dispatch: Dispatch = (eventName, action, payload) => {
     // console.clear()
-    const action = typeof handler === 'function' ? handler(cycle.state, payload) : handler;
-    const nextState = reduce(cycle.state, action, cycle);
+    const nextState = reduce(cycle.state, action, payload, cycle);
     if (cycle.state !== nextState) {
-      cycle.state = nextState
-      console.log('dispatch', eventName, payload, (handler as (() => void)).name, cycle.state)
+      cycle.state = nextState;
+      // console.log({
+      //   eventName,
+      //   action: (action as (() => void)).name ?? 'Anonymous action',
+      //   payload,
+      //   state: cycle.state
+      // })
+      console.count('Dispatch')
       patch()
     }
   }

@@ -1,7 +1,7 @@
 import { isTask } from './utils';
 
 // TODO: maybe this should return the tasks instead?
-const reduce = (state: State, action: Action, cycle: Cycle): State => {
+const reduce = (state: State, action: Action, payload: any, cycle: Cycle): State => {
 
   // Ignore falsy values
   if (!action) {
@@ -11,14 +11,14 @@ const reduce = (state: State, action: Action, cycle: Cycle): State => {
   // Process arrays recurcively
   if (Array.isArray(action)) {
     return action.reduce(
-      (state: State, action: Action) => reduce(state, action, cycle),
+      (state: State, action: Action) => reduce(state, action, payload, cycle),
       {}
     )
   }
 
   // Handle subactions
   if (typeof action === "function") {
-    return reduce(state, action(state), cycle);
+    return reduce(state, action(state), payload, cycle);
   }
 
   // Run tasks

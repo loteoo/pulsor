@@ -15,9 +15,9 @@ import flatten from './flatten';
 
 // ====
 
-const runViewBasedStateUpdate = (action: Action, cycle: Cycle) => {
+const runViewBasedStateUpdate = (action: Action, payload: any, cycle: Cycle) => {
   // @ts-ignore
-  const nextState = reduce(cycle.state, action, cycle);
+  const nextState = reduce(cycle.state, action, payload, cycle);
   // Sometimes, actions are just tasks with no state transformation
   if (cycle.state !== nextState) {
     cycle.state = nextState
@@ -81,7 +81,7 @@ function removeVNodes(
     const ch = vNodes[startIdx];
     if (ch != null) {
       if (ch.cleanup) {
-        runViewBasedStateUpdate(ch.cleanup, cycle)
+        runViewBasedStateUpdate(ch.cleanup, ch.el, cycle)
       }
       if (ch.listener) {
         (ch.listener as ListenerCleanupFunction)()
@@ -166,7 +166,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 
   if (key === 'init') {
     if (newValue && oldValue == null) {
-      runViewBasedStateUpdate(newValue, cycle);
+      runViewBasedStateUpdate(newValue, el, cycle);
     }
     return;
   }
