@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import path from 'path';
 
 const appToCliPath = path.relative(process.cwd(), __dirname);
+const pathToPulsor = path.join(__dirname, '/../core/src/pulsor').replace(/\\/g, '/');
+const pathToJsx = path.join(__dirname, '/../core/src/jsx').replace(/\\/g, '/');
 
 const virtualFileId = '/main.ts'
 
@@ -27,9 +29,9 @@ const middleware = () => {
       if (id === virtualFileId) {
         return `import app from '${process.cwd().replace(/\\/g, '/')}';
 
-import { pulsor } from 'G:/loteoo/pulsor/pulsor/pkg/core/src/pulsor'
+import { pulsor } from '${pathToPulsor}';
 
-pulsor(app)
+pulsor(app);
         `
       }
     }
@@ -41,7 +43,7 @@ export default defineConfig({
   esbuild: {
     jsxFactory: 'jsx',
     jsxFragment: 'Fragment',
-    jsxInject: `import { jsx, Fragment } from 'G:/loteoo/pulsor/pulsor/pkg/core/src/jsx'`
+    jsxInject: `import { jsx, Fragment } from '${pathToJsx}'`
   },
   server: {
     fs: {
