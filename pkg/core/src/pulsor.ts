@@ -26,9 +26,12 @@ export const pulsor = (app: VNode) => {
   const dispatch: Dispatch = (eventName, handler, payload) => {
     // console.clear()
     const action = typeof handler === 'function' ? handler(cycle.state, payload) : handler;
-    cycle.state = reduce(cycle.state, action, cycle);
-    // console.log('dispatch', eventName, payload, (handler as (() => void)).name, cycle.state)
-    patch()
+    const nextState = reduce(cycle.state, action, cycle);
+    if (cycle.state !== nextState) {
+      cycle.state = nextState
+      console.log('dispatch', eventName, payload, (handler as (() => void)).name, cycle.state)
+      patch()
+    }
   }
 
   const cycle: Cycle = {
@@ -60,6 +63,6 @@ export const pulsor = (app: VNode) => {
     }
   }
 
-  dispatch('Init app', Object)
+  dispatch('Init app', {})
 
 }

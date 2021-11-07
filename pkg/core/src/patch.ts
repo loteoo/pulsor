@@ -21,7 +21,7 @@ const runViewBasedStateUpdate = (action: Action, cycle: Cycle) => {
   // Sometimes, actions are just tasks with no state transformation
   if (cycle.state !== nextState) {
     cycle.state = nextState
-    // cycle.needsRerender = true
+    cycle.needsRerender = true
     // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
     // console.log('state updated', cycle.state)
   }
@@ -178,10 +178,9 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
     return;
   }
 
-  // Could be interesting? ex: <div id={state => state.foo} />
-  // if (typeof newValue === 'function') {
-  //   newValue = newValue(cycle.state)
-  // }
+  if (typeof newValue === 'function') {
+    newValue = newValue(cycle.state)
+  }
 
   if (key === 'class' && typeof newValue === "object") {
     let cur: any;

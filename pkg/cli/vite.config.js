@@ -27,9 +27,9 @@ const middleware = () => {
       if (id === virtualFileId) {
         return `import app from '${process.cwd().replace(/\\/g, '/')}';
 
-import { boot } from 'G:/loteoo/pulsor/pulsor/pkg/core/src/boot'
+import { pulsor } from 'G:/loteoo/pulsor/pulsor/pkg/core/src/pulsor'
 
-boot(app)
+pulsor(app)
         `
       }
     }
