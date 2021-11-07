@@ -23,7 +23,7 @@ export const pulsor = (app: VNode) => {
       }
     }
 
-  const dispatch: Dispatch = (eventName, action, payload) => {
+  const dispatch: Dispatch = (eventName, action, payload, isFromView?: boolean) => {
     // console.clear()
     const nextState = reduce(cycle.state, action, payload, cycle);
     if (cycle.state !== nextState) {
@@ -35,7 +35,13 @@ export const pulsor = (app: VNode) => {
       //   state: cycle.state
       // })
       console.count('Dispatch')
-      patch()
+      if (isFromView) {
+        cycle.needsRerender = true;
+        // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
+        // console.log('state updated', cycle.state)
+      } else {
+        patch()
+      }
     }
   }
 
@@ -44,6 +50,7 @@ export const pulsor = (app: VNode) => {
     needsRerender: false,
     domEmitter,
     createEmitter,
+    dispatch,
   }
 
   
@@ -68,6 +75,6 @@ export const pulsor = (app: VNode) => {
     }
   }
 
-  dispatch('Init app', {})
+  dispatch('root init', {})
 
 }

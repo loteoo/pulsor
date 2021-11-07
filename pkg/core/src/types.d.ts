@@ -10,13 +10,14 @@ type Falsy = false | null | undefined;
 type State = Record<string, any>;
 type Selector = (state: State) => any;
 type Transform = (state: State) => State;
-type Dispatch = (eventName: string, handler: Action, payload?: any) => void;
+type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => void;
 
 interface Cycle {
   state: State,
   needsRerender: boolean;
   domEmitter: any;
   createEmitter: any;
+  dispatch: Dispatch;
 }
 
 // Actions

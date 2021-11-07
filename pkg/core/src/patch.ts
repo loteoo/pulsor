@@ -3,95 +3,7 @@ import { isSame } from './utils'
 import reduce from './reduce';
 import flatten from './flatten';
 
-
-// const realCreateElement = document.createElement.bind(document)
-// document.createElement = (name: any, props: any) => {
-//   let el = realCreateElement(name, props)
-//   console.log('Created element: ', el.tagName)
-//   return el
-// }
-
-
-
 // ====
-
-const runViewBasedStateUpdate = (action: Action, payload: any, cycle: Cycle) => {
-  // @ts-ignore
-  const nextState = reduce(cycle.state, action, payload, cycle);
-  // Sometimes, actions are just tasks with no state transformation
-  if (cycle.state !== nextState) {
-    cycle.state = nextState
-    // cycle.needsRerender = true
-    // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
-    // console.log('state updated', cycle.state)
-  }
-}
-
-
-// ====
-
-
-type KeyToIndexMap = { [key: string]: number };
-
-
-function createKeyToOldIdx(
-  children: VNode[],
-  beginIdx: number,
-  endIdx: number
-): KeyToIndexMap {
-  const map: KeyToIndexMap = {};
-  for (let i = beginIdx; i <= endIdx; ++i) {
-    const key = children[i]?.key;
-    if (key !== undefined) {
-      map[key as string] = i;
-    }
-  }
-  return map;
-}
-
-
-function addVNodes(
-  parentElm: Node,
-  before: Node | null,
-  vNodes: VNode[],
-  startIdx: number,
-  endIdx: number,
-  cycle: Cycle
-) {
-  for (; startIdx <= endIdx; ++startIdx) {
-    const ch = vNodes[startIdx];
-    if (ch != null) {
-      parentElm.insertBefore(createNode(ch, cycle), before);
-      if (!ch.type && ch.text == null) {
-        ch.el = parentElm;
-      }
-    }
-  }
-}
-
-
-function removeVNodes(
-  parentElm: Node,
-  vNodes: VNode[],
-  startIdx: number,
-  endIdx: number,
-  cycle: Cycle
-): void {
-  for (; startIdx <= endIdx; ++startIdx) {
-    const ch = vNodes[startIdx];
-    if (ch != null) {
-      if (ch.cleanup) {
-        runViewBasedStateUpdate(ch.cleanup, ch.el, cycle)
-      }
-      if (ch.listener) {
-        (ch.listener as ListenerCleanupFunction)()
-      }
-      if (ch.type || ch.text) {
-        parentElm.removeChild(ch.el!)
-      }
-    }
-  }
-}
 
 function moveVNode(
   parentElm: Node,
@@ -118,35 +30,32 @@ function nextSibling(vNode: VNode): Node | undefined {
 
 // ===
 
+const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle) => {
 
-const createElm = (vNode: VNode): Node => {
   if (vNode.text != null) {
-    return document.createTextNode(String(vNode.text));
+    vNode.el = document.createTextNode(String(vNode.text));
+  } else if (!vNode.type) {
+    vNode.el = document.createDocumentFragment();
+  } else {
+    vNode.el = document.createElement(vNode.type!);
   }
 
-  if (!vNode.type) {
-    return document.createDocumentFragment();
-  }
-
-  return document.createElement(vNode.type!);
-}
-
-const createNode = (vNode: VNode, cycle: Cycle): Node => {
-  const el = createElm(vNode);
-  vNode.el = el;
-
-  patchElement(
+  patchNode(
     {
       type: vNode.type,
       text: vNode.text,
-      el: el,
+      el: vNode.el,
       children: [],
     },
     vNode,
     cycle
   );
 
-  return el
+  parent.insertBefore(vNode.el, before)
+
+  if (!vNode.type && vNode.text == null) {
+    vNode.el = parent;
+  }
 };
 
 
@@ -173,7 +82,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 
   if (key === 'init') {
     if (newValue && oldValue == null) {
-      runViewBasedStateUpdate(newValue, el, cycle);
+      cycle.dispatch('init', newValue, el, true), true;
     }
     return;
   }
@@ -235,103 +144,7 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
 };
 
 
-
-const patchChildren = (el: Node, oldCh: VNode[], newCh: VNode[], cycle: Cycle) => {
-
-  let oldStartIdx = 0;
-  let newStartIdx = 0;
-  let oldEndIdx = oldCh.length - 1;
-  let oldStartVNode = oldCh[0];
-  let oldEndVNode = oldCh[oldEndIdx];
-  let newEndIdx = newCh.length - 1;
-  let newStartVNode = newCh[0];
-  let newEndVNode = newCh[newEndIdx];
-  let oldKeyToIdx: KeyToIndexMap | undefined;
-  let idxInOld: number;
-  let elmToMove: VNode;
-  let before: any;
-
-  while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
-    if (oldStartVNode == null) {
-      oldStartVNode = oldCh[++oldStartIdx]; // VNode might have been moved left
-    } else if (oldEndVNode == null) {
-      oldEndVNode = oldCh[--oldEndIdx];
-    } else if (newStartVNode == null) {
-      newStartVNode = newCh[++newStartIdx];
-    } else if (newEndVNode == null) {
-      newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldStartVNode, newStartVNode)) {
-      patchElement(oldStartVNode, newStartVNode, cycle);
-      oldStartVNode = oldCh[++oldStartIdx];
-      newStartVNode = newCh[++newStartIdx];
-    } else if (isSame(oldEndVNode, newEndVNode)) {
-      patchElement(oldEndVNode, newEndVNode, cycle);
-      oldEndVNode = oldCh[--oldEndIdx];
-      newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldStartVNode, newEndVNode)) {
-      // VNode moved right
-      patchElement(oldStartVNode, newEndVNode, cycle);
-      moveVNode(el, oldStartVNode, nextSibling(oldEndVNode));
-      oldStartVNode = oldCh[++oldStartIdx];
-      newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldEndVNode, newStartVNode)) {
-      // VNode moved left
-      patchElement(oldEndVNode, newStartVNode, cycle);
-      moveVNode(el, oldEndVNode, oldStartVNode.el!);
-      oldEndVNode = oldCh[--oldEndIdx];
-      newStartVNode = newCh[++newStartIdx];
-    } else {
-      if (oldKeyToIdx === undefined) {
-        oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
-      }
-      idxInOld = oldKeyToIdx[newStartVNode.key as string];
-      if (idxInOld === undefined) {
-        // New element
-        el.insertBefore(
-          createNode(newStartVNode, cycle),
-          oldStartVNode.el!
-        );
-        if (!newStartVNode.type && newStartVNode.text == null) {
-          newStartVNode.el = el;
-        }
-      } else {
-        elmToMove = oldCh[idxInOld];
-        if (elmToMove.type !== newStartVNode.type) {
-          el.insertBefore(
-            createNode(newStartVNode, cycle),
-            oldStartVNode.el!
-          );
-          if (!newStartVNode.type && newStartVNode.text == null) {
-            newStartVNode.el = el;
-          }
-        } else {
-          patchElement(elmToMove, newStartVNode, cycle);
-          oldCh[idxInOld] = undefined as any;
-          moveVNode(el, elmToMove, oldStartVNode.el!);
-        }
-      }
-      newStartVNode = newCh[++newStartIdx];
-    }
-  }
-  if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
-    if (oldStartIdx > oldEndIdx) {
-      before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].el;
-      addVNodes(
-        el,
-        before,
-        newCh,
-        newStartIdx,
-        newEndIdx,
-        cycle,
-      );
-    } else {
-      removeVNodes(el, oldCh, oldStartIdx, oldEndIdx, cycle);
-    }
-  }
-
-};
-
-const patchElement = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
+const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
 
   const el: Node = (newVNode.el = oldVNode.el!);
 
@@ -344,10 +157,100 @@ const patchElement = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
     el.textContent = String(newVNode.text);
     return;
   }
-  
-  patchChildren(el, oldCh, newCh, cycle);
 
+  let oldStartIdx = 0;
+  let newStartIdx = 0;
+  let oldEndIdx = oldCh.length - 1;
+  let oldStartVNode = oldCh[0];
+  let oldEndVNode = oldCh[oldEndIdx];
+  let newEndIdx = newCh.length - 1;
+  let newStartVNode = newCh[0];
+  let newEndVNode = newCh[newEndIdx];
+  let oldKeyToIdx: Record<string, number> | undefined;
+  let idxInOld: number;
+  let elmToMove: VNode;
+  let before: any;
+
+  while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+    if (oldStartVNode == null) {
+      oldStartVNode = oldCh[++oldStartIdx];
+    } else if (oldEndVNode == null) {
+      oldEndVNode = oldCh[--oldEndIdx];
+    } else if (newStartVNode == null) {
+      newStartVNode = newCh[++newStartIdx];
+    } else if (newEndVNode == null) {
+      newEndVNode = newCh[--newEndIdx];
+    } else if (isSame(oldStartVNode, newStartVNode)) {
+      patchNode(oldStartVNode, newStartVNode, cycle);
+      oldStartVNode = oldCh[++oldStartIdx];
+      newStartVNode = newCh[++newStartIdx];
+    } else if (isSame(oldEndVNode, newEndVNode)) {
+      patchNode(oldEndVNode, newEndVNode, cycle);
+      oldEndVNode = oldCh[--oldEndIdx];
+      newEndVNode = newCh[--newEndIdx];
+    } else if (isSame(oldStartVNode, newEndVNode)) {
+      patchNode(oldStartVNode, newEndVNode, cycle);
+      moveVNode(el, oldStartVNode, nextSibling(oldEndVNode));
+      oldStartVNode = oldCh[++oldStartIdx];
+      newEndVNode = newCh[--newEndIdx];
+    } else if (isSame(oldEndVNode, newStartVNode)) {
+      patchNode(oldEndVNode, newStartVNode, cycle);
+      moveVNode(el, oldEndVNode, oldStartVNode.el!);
+      oldEndVNode = oldCh[--oldEndIdx];
+      newStartVNode = newCh[++newStartIdx];
+    } else {
+      if (oldKeyToIdx === undefined) {
+        oldKeyToIdx = {};
+        for (let i = oldStartIdx; i <= oldEndIdx; ++i) {
+          const key = oldCh[i]?.key;
+          if (key !== undefined) {
+            oldKeyToIdx[key as string] = i;
+          }
+        }
+      }
+      idxInOld = oldKeyToIdx[newStartVNode.key as string];
+      if (idxInOld === undefined) {
+        createNode(newStartVNode, el, oldStartVNode.el!, cycle);
+      } else {
+        elmToMove = oldCh[idxInOld];
+        if (elmToMove.type !== newStartVNode.type) {
+          createNode(newStartVNode, el, oldStartVNode.el!, cycle);
+        } else {
+          patchNode(elmToMove, newStartVNode, cycle);
+          oldCh[idxInOld] = undefined as any;
+          moveVNode(el, elmToMove, oldStartVNode.el!);
+        }
+      }
+      newStartVNode = newCh[++newStartIdx];
+    }
+  }
+  if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
+    if (oldStartIdx > oldEndIdx) {
+      before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].el;
+      for (let i = newStartIdx; i <= newEndIdx; i++) {
+        const ch = newCh[i];
+        if (ch != null) {
+          createNode(ch, el, before, cycle)
+        }
+      }
+    } else {
+      for (let i = oldStartIdx; i <= oldEndIdx; i++) {
+        const ch = oldCh[i];
+        if (ch != null) {
+          if (ch.cleanup) {
+            cycle.dispatch('cleanup', ch.cleanup, ch.el, true)
+          }
+          if (ch.listener) {
+            (ch.listener as ListenerCleanupFunction)()
+          }
+          if (ch.type || ch.text) {
+            el.removeChild(ch.el!)
+          }
+        }
+      }
+    }
+  }
 };
 
 
-export default patchElement
+export default patchNode
