@@ -1,6 +1,5 @@
 
 import { isSame } from './utils'
-import reduce from './reduce';
 import flatten from './flatten';
 
 // ====
@@ -10,7 +9,7 @@ function moveVNode(
   vNode: VNode,
   before?: Node,
 ): void {
-  if (vNode.type || vNode.text) {
+  if (vNode.type || vNode.text != null) {
     parentElm.insertBefore(vNode.el!, before!);
   } else if (vNode.children) {
     for (const ch of (vNode.children as VNode[])) {
@@ -20,7 +19,7 @@ function moveVNode(
 }
 
 function nextSibling(vNode: VNode): Node | undefined {
-  if (vNode.type || vNode.text) {
+  if (vNode.type || vNode.text != null) {
     return vNode.el!.nextSibling!;
   } else if (vNode.children) {
     return nextSibling((vNode.children as VNode[])[0]);
@@ -82,7 +81,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 
   if (key === 'init') {
     if (newValue && oldValue == null) {
-      cycle.dispatch('init', newValue, el, true), true;
+      cycle.dispatch('init', newValue, el, true);
     }
     return;
   }
@@ -145,18 +144,23 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
 
 
 const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
-
+  
   const el: Node = (newVNode.el = oldVNode.el!);
 
   patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before flatten in case child fn needs state from init
+  
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = flatten(newVNode.children, cycle);
+
   oldVNode.children = newVNode.children = newCh;
 
-  if (newVNode.text != null && oldVNode.text !== newVNode.text) {
-    el.textContent = String(newVNode.text);
-    return;
-  }
+  // ATM this is un needed as the isSame function checks for a.text === b.text
+  // which and handles the diff via createTextNode
+  // TODO: compare perf of both approaches
+  // if (newVNode.text != null && oldVNode.text !== newVNode.text) {
+  //   el.textContent = String(newVNode.text);
+  //   return;
+  // }
 
   let oldStartIdx = 0;
   let newStartIdx = 0;
@@ -243,7 +247,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
           if (ch.listener) {
             (ch.listener as ListenerCleanupFunction)()
           }
-          if (ch.type || ch.text) {
+          if (ch.type || ch.text != null) {
             el.removeChild(ch.el!)
           }
         }

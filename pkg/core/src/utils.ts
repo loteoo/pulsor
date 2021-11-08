@@ -10,5 +10,5 @@ export const isRenderable = (value: any) => ![true, false, null, undefined].incl
 export const isTask = (action: Action): action is Task => typeof action === 'object' && !!action && typeof (action as Task).run === 'function';
 
 export const isSame = (a: any, b: any) => {
-  return a?.key === b?.key && a?.type === b?.type;
+  return a?.key === b?.key && a?.type === b?.type && a?.text === b?.text;
 }

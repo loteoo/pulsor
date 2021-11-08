@@ -18,7 +18,7 @@ const reduce = (state: State, action: Action, payload: any, cycle: Cycle): State
 
   // Handle subactions
   if (typeof action === "function") {
-    return reduce(state, action(state), payload, cycle);
+    return reduce(state, action(state, payload), payload, cycle);
   }
 
   // Run tasks

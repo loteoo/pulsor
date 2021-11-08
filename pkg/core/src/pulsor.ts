@@ -28,13 +28,14 @@ export const pulsor = (app: VNode) => {
     const nextState = reduce(cycle.state, action, payload, cycle);
     if (cycle.state !== nextState) {
       cycle.state = nextState;
+      // console.count('Dispatch')
       // console.log({
       //   eventName,
-      //   action: (action as (() => void)).name ?? 'Anonymous action',
+      //   // action: (action as (() => void)).name ?? 'Anonymous action',
+      //   action,
       //   payload,
       //   state: cycle.state
       // })
-      console.count('Dispatch')
       if (isFromView) {
         cycle.needsRerender = true;
         // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
@@ -61,7 +62,7 @@ export const pulsor = (app: VNode) => {
   // }
 
   const oldVNode = hydrate(app.mount ?? document.body) as VNode;
-  
+    
   const patch = () => {
     const nextVNode = {
       ...oldVNode,
