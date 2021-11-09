@@ -18,11 +18,11 @@ function moveVNode(
   }
 }
 
-function nextSibling(vNode: VNode): Node | undefined {
+function getFragmentEl(vNode: VNode): Node | undefined {
   if (vNode.type || vNode.text != null) {
-    return vNode.el!.nextSibling!;
+    return vNode.el!;
   } else if (vNode.children) {
-    return nextSibling((vNode.children as VNode[])[0]);
+    return getFragmentEl((vNode.children as VNode[])[0]);
   }
 }
 
@@ -136,7 +136,10 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
     listener: newVNode?.listener,
   };
   for (const key in { ...oldProps, ...newProps }) {
-    if (oldProps[key] !== newProps[key]) {
+      if (
+        ['value', 'selected', 'checked'].includes(key)
+        || oldProps[key] !== newProps[key]
+    ) {
       patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
     }
   }
@@ -194,7 +197,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
       patchNode(oldStartVNode, newEndVNode, cycle);
-      moveVNode(el, oldStartVNode, nextSibling(oldEndVNode));
+      moveVNode(el, oldStartVNode, getFragmentEl(oldEndVNode)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
@@ -230,7 +233,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
   }
   if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
     if (oldStartIdx > oldEndIdx) {
-      before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].el;
+      before = newCh[newEndIdx + 1] == null ? null : getFragmentEl(newCh[newEndIdx + 1]);
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {

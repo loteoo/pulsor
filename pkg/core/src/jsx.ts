@@ -5,10 +5,4 @@ export const jsx: JSXPragma = (type, props, ...children) =>
     ? type(props ?? {}, children)
     : h(type, props, children);
 
-export const Fragment: FragmentPragma = (props, children) => ({
-  props,
-  children,
-  key: props?.key,
-  init: props?.init,
-  listener: props?.listener,
-})
+export const Fragment: FragmentPragma = (_: any, children) => children
