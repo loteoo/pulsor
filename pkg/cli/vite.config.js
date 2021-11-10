@@ -27,11 +27,28 @@ const middleware = () => {
     load(id) {
 
       if (id === virtualFileId) {
-        return `import app from '${process.cwd().replace(/\\/g, '/')}';
+        return `import initialAppModule from '${process.cwd().replace(/\\/g, '/')}';
 
 import { pulsor } from '${pathToPulsor}';
 
-pulsor(app);
+let app = initialAppModule;
+
+const rootApp = [
+  () => app,
+  {
+    listener: (emit) => {
+      if (import.meta.hot) {
+        import.meta.hot.accept('./index', (newModule) => {
+          app = newModule.default
+          emit('hrmupdate')
+        })
+      }
+    },
+    onhrmupdate: (state) => ({ ...state })
+  },
+];
+
+pulsor(rootApp);
         `
       }
     }
