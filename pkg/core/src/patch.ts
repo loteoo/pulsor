@@ -217,11 +217,11 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, el, oldStartVNode.el!, cycle);
+        createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, el, oldStartVNode.el!, cycle);
+          createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle);
         } else {
           patchNode(elmToMove, newStartVNode, cycle);
           oldCh[idxInOld] = undefined as any;
@@ -244,14 +244,15 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
       for (let i = oldStartIdx; i <= oldEndIdx; i++) {
         const ch = oldCh[i];
         if (ch != null) {
+          const chEl = getFragmentEl(ch)
           if (ch.cleanup) {
-            cycle.dispatch('cleanup', ch.cleanup, ch.el, true)
+            cycle.dispatch('cleanup', ch.cleanup, chEl, true)
           }
           if (ch.listener) {
             (ch.listener as ListenerCleanupFunction)()
           }
-          if (ch.type || ch.text != null) {
-            el.removeChild(ch.el!)
+          if (chEl) {
+            el.removeChild(chEl)
           }
         }
       }
