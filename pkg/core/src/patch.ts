@@ -1,6 +1,6 @@
 
 import { isSame } from './utils'
-import flatten from './flatten';
+import normalize from './normalize';
 
 // ====
 
@@ -150,10 +150,10 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
   
   const el: Node = (newVNode.el = oldVNode.el!);
 
-  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before flatten in case child fn needs state from init
+  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before normalize in case child fn needs state from init
   
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
-  const newCh = flatten(newVNode.children, cycle);
+  const newCh = normalize(newVNode.children, cycle);
 
   oldVNode.children = newVNode.children = newCh;
 

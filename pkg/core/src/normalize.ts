@@ -1,6 +1,6 @@
 import { isVChildNodeFunction, isRenderable, isString } from './utils';
 
-const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VNode[] => {
+const normalize = (_vNodes: VChildNode = [], cycle: Cycle): VNode[] => {
   const vNodes = Array.isArray(_vNodes) ? [..._vNodes] : [_vNodes];
 
   let i = 0;
@@ -34,4 +34,4 @@ const flatten = (_vNodes: VChildNode = [], cycle: Cycle): VNode[] => {
   return vNodes as VNode[];
 }
 
-export default flatten
+export default normalize
