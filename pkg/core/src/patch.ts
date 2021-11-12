@@ -202,7 +202,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
       patchNode(oldEndVNode, newStartVNode, cycle);
-      moveVNode(el, oldEndVNode, oldStartVNode.el!);
+      moveVNode(el, oldEndVNode, getFragmentEl(oldStartVNode)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -225,7 +225,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
         } else {
           patchNode(elmToMove, newStartVNode, cycle);
           oldCh[idxInOld] = undefined as any;
-          moveVNode(el, elmToMove, oldStartVNode.el!);
+          moveVNode(el, elmToMove, getFragmentEl(oldStartVNode)!);
         }
       }
       newStartVNode = newCh[++newStartIdx];
