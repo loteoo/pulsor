@@ -75,24 +75,6 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
     return;
   }
 
-  if (key === 'key') {
-    return;
-  }
-
-  if (key === 'init') {
-    if (newValue && oldValue == null) {
-      cycle.dispatch('init', newValue, el, true);
-    }
-    return;
-  }
-
-  if (key === 'listener') {
-    if (newValue && oldValue == null) {
-      oldVNode.listener = newVNode.listener = (newVNode.listener as Listener)(cycle.createEmitter(newVNode)) as ListenerCleanupFunction;
-    }
-    return;
-  }
-
   if (typeof newValue === 'function') {
     newValue = newValue(cycle.state)
   }
@@ -119,27 +101,35 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
   if (newValue == null || newValue === false) {
     el.removeAttribute(key);
   } else {
-    el.setAttribute(key, newValue);
+    if (['value', 'selected', 'checked'].includes(key)) {
+      // @ts-ignore
+      el[key] = newValue
+    } else {
+      el.setAttribute(key, newValue);
+    }
   }
 
 };
 
 const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
+
+  if (newVNode?.init && oldVNode?.init == null) {
+    cycle.dispatch('init', newVNode?.init, el, true);
+  }
+
+  if (newVNode?.listener && oldVNode?.listener == null) {
+    oldVNode.listener = newVNode.listener = (newVNode.listener as Listener)(cycle.createEmitter(newVNode)) as ListenerCleanupFunction;
+  }
+
   const oldProps: any = {
     ...oldVNode?.props,
-    init: oldVNode?.init,
-    listener: oldVNode?.listener,
   };
   const newProps: any = {
     ...newVNode?.props,
-    init: newVNode?.init,
-    listener: newVNode?.listener,
   };
   for (const key in { ...oldProps, ...newProps }) {
-      if (
-        ['value', 'selected', 'checked'].includes(key)
-        || oldProps[key] !== newProps[key]
-    ) {
+    const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldProps[key];
+      if (oldVal !== newProps[key] && !['key', 'init', 'listener'].includes(key)) {
       patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
     }
   }
@@ -147,11 +137,11 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
 
 
 const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
-  
+
   const el: Node = (newVNode.el = oldVNode.el!);
 
   patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before normalize in case child fn needs state from init
-  
+
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle);
 
