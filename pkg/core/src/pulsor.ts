@@ -54,7 +54,6 @@ export const pulsor = (app: VNode) => {
     dispatch,
   }
 
-  
   // if (!el) {
   //   const root = document.createElement('div')
   //   document.body.appendChild(root);
@@ -62,7 +61,7 @@ export const pulsor = (app: VNode) => {
   // }
 
   const oldVNode = hydrate(app.mount ?? document.body) as VNode;
-    
+
   const patch = () => {
     const nextVNode = {
       ...oldVNode,

@@ -36,15 +36,17 @@ let app = initialAppModule;
 const rootApp = [
   () => app,
   {
-    listener: (emit) => {
-      if (import.meta.hot) {
-        import.meta.hot.accept('./index', (newModule) => {
-          app = newModule.default
-          emit('hrmupdate')
-        })
-      }
-    },
-    onhrmupdate: (state) => ({ ...state })
+    subscription: {
+      subscribe: (emit) => {
+        if (import.meta.hot) {
+          import.meta.hot.accept('./index', (newModule) => {
+            app = newModule.default
+            emit('hrmupdate')
+          })
+        }
+      },
+      onhrmupdate: (state) => ({ ...state })
+    }
   },
 ];
 

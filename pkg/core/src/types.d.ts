@@ -41,6 +41,14 @@ type ActionFunction = (state: State, payload?: any) => Action;
 
 // Vdom
 
+type ListenerCleanupFunction = () => void;
+type Listener = (emit: Emitter, payload?: any) => ListenerCleanupFunction;
+
+interface Subscription {
+  subscribe: Listener;
+  [x: string]: any; // in reality, EventHandler;
+}
+
 type VProps = Record<string, any | Action>;
 
 type TextElement = string | number | bigint;
@@ -53,13 +61,10 @@ interface VNode {
   key?: string;
   init?: Action;
   clear?: Action;
-  listener?: Listener | ListenerCleanupFunction;
+  subscription?: Subscription;
   el?: Node;
   mount?: Node;
 }
-
-type ListenerCleanupFunction = () => void;
-type Listener = (emit: Emitter) => ListenerCleanupFunction;
 
 type VChildNodeFunction = ((state: State) => VChildNode)
 

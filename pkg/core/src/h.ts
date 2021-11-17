@@ -4,5 +4,6 @@ export const h: HyperScript = (type, props, ...children) => ({
   children,
   key: props?.key,
   init: props?.init,
-  listener: props?.listener,
+  clear: props?.clear,
+  subscription: props?.subscription,
 })

@@ -117,8 +117,13 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
     cycle.dispatch('init', newVNode?.init, el, true);
   }
 
-  if (newVNode?.listener && oldVNode?.listener == null) {
-    oldVNode.listener = newVNode.listener = (newVNode.listener as Listener)(cycle.createEmitter(newVNode)) as ListenerCleanupFunction;
+  if (newVNode?.subscription && oldVNode?.subscription == null) {
+    const cleanup = (newVNode.subscription.subscribe as Listener)(cycle.createEmitter(newVNode.subscription), el) as ListenerCleanupFunction
+    const clear = [
+      newVNode.clear,
+      { run: cleanup }
+    ]
+    oldVNode.clear = newVNode.clear = clear
   }
 
   const oldProps: any = {
@@ -129,7 +134,7 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
   };
   for (const key in { ...oldProps, ...newProps }) {
     const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldProps[key];
-      if (oldVal !== newProps[key] && !['key', 'init', 'listener'].includes(key)) {
+      if (oldVal !== newProps[key] && !['key', 'init', 'subscription'].includes(key)) {
       patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
     }
   }
@@ -140,7 +145,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
 
   const el: Node = (newVNode.el = oldVNode.el!);
 
-  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before normalize in case child fn needs state from init
+  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before normalize in case child can rely on state from init
 
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle);
@@ -237,9 +242,6 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
           const chEl = getFragmentEl(ch)
           if (ch.clear) {
             cycle.dispatch('clear', ch.clear, chEl, true)
-          }
-          if (ch.listener) {
-            (ch.listener as ListenerCleanupFunction)()
           }
           if (chEl) {
             el.removeChild(chEl)
