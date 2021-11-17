@@ -52,7 +52,7 @@ interface VNode {
   text?: TextElement;
   key?: string;
   init?: Action;
-  cleanup?: Action;
+  clear?: Action;
   listener?: Listener | ListenerCleanupFunction;
   el?: Node;
   mount?: Node;

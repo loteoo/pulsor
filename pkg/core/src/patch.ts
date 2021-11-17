@@ -245,8 +245,8 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
         const ch = oldCh[i];
         if (ch != null) {
           const chEl = getFragmentEl(ch)
-          if (ch.cleanup) {
-            cycle.dispatch('cleanup', ch.cleanup, chEl, true)
+          if (ch.clear) {
+            cycle.dispatch('clear', ch.clear, chEl, true)
           }
           if (ch.listener) {
             (ch.listener as ListenerCleanupFunction)()
