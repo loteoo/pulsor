@@ -67,7 +67,7 @@ export const pulsor = (app: VNode) => {
       ...oldVNode,
       children: app
     }
-    patchElement(oldVNode, nextVNode, cycle);
+    patchElement(oldVNode, nextVNode, cycle, {});
     if (cycle.needsRerender) {
       // console.log('re-rendering')
       cycle.needsRerender = false

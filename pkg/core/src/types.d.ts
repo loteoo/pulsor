@@ -62,11 +62,12 @@ interface VNode {
   init?: Action;
   clear?: Action;
   subscription?: Subscription;
+  ctx?: any | ((ctx: any) => any);
   el?: Node;
   mount?: Node;
 }
 
-type VChildNodeFunction = ((state: State) => VChildNode)
+type VChildNodeFunction = ((state: State, ctx: any) => VChildNode)
 
 type VChildNode =
   | VNode

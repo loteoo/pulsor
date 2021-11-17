@@ -29,7 +29,7 @@ function getFragmentEl(vNode: VNode): Node | undefined {
 
 // ===
 
-const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle) => {
+const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx: any) => {
 
   if (vNode.text != null) {
     vNode.el = document.createTextNode(String(vNode.text));
@@ -47,7 +47,8 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle) => {
       children: [],
     },
     vNode,
-    cycle
+    cycle,
+    ctx,
   );
 
   parent.insertBefore(vNode.el, before)
@@ -113,6 +114,25 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 
 const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
 
+  const oldProps: any = {
+    ...oldVNode?.props,
+  };
+  const newProps: any = {
+    ...newVNode?.props,
+  };
+  for (const key in { ...oldProps, ...newProps }) {
+    const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldProps[key];
+      if (oldVal !== newProps[key] && !['key', 'init', 'clear', 'subscription', 'ctx'].includes(key)) {
+      patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
+    }
+  }
+};
+
+
+const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
+
+  const el: Node = (newVNode.el = oldVNode.el!);
+
   if (newVNode?.init && oldVNode?.init == null) {
     cycle.dispatch('init', newVNode?.init, el, true);
   }
@@ -124,29 +144,17 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
   }
   newVNode.clear = oldVNode.clear
 
-  const oldProps: any = {
-    ...oldVNode?.props,
-  };
-  const newProps: any = {
-    ...newVNode?.props,
-  };
-  for (const key in { ...oldProps, ...newProps }) {
-    const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldProps[key];
-      if (oldVal !== newProps[key] && !['key', 'init', 'subscription'].includes(key)) {
-      patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
-    }
+
+  if (newVNode?.ctx) {
+    ctx = typeof newVNode.ctx === 'function'
+      ? newVNode.ctx(oldVNode.ctx)
+      : newVNode.ctx
   }
-};
-
-
-const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
-
-  const el: Node = (newVNode.el = oldVNode.el!);
 
   patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before normalize in case child can rely on state from init
 
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
-  const newCh = normalize(newVNode.children, cycle);
+  const newCh = normalize(newVNode.children, cycle, ctx);
 
   oldVNode.children = newVNode.children = newCh;
 
@@ -181,20 +189,20 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
     } else if (newEndVNode == null) {
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newStartVNode)) {
-      patchNode(oldStartVNode, newStartVNode, cycle);
+      patchNode(oldStartVNode, newStartVNode, cycle, ctx);
       oldStartVNode = oldCh[++oldStartIdx];
       newStartVNode = newCh[++newStartIdx];
     } else if (isSame(oldEndVNode, newEndVNode)) {
-      patchNode(oldEndVNode, newEndVNode, cycle);
+      patchNode(oldEndVNode, newEndVNode, cycle, ctx);
       oldEndVNode = oldCh[--oldEndIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
-      patchNode(oldStartVNode, newEndVNode, cycle);
+      patchNode(oldStartVNode, newEndVNode, cycle, ctx);
       moveVNode(el, oldStartVNode, getFragmentEl(oldEndVNode)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
-      patchNode(oldEndVNode, newStartVNode, cycle);
+      patchNode(oldEndVNode, newStartVNode, cycle, ctx);
       moveVNode(el, oldEndVNode, getFragmentEl(oldStartVNode)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
@@ -210,13 +218,13 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle);
+        createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle, ctx);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle);
+          createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle, ctx);
         } else {
-          patchNode(elmToMove, newStartVNode, cycle);
+          patchNode(elmToMove, newStartVNode, cycle, ctx);
           oldCh[idxInOld] = undefined as any;
           moveVNode(el, elmToMove, getFragmentEl(oldStartVNode)!);
         }
@@ -230,7 +238,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
-          createNode(ch, el, before, cycle)
+          createNode(ch, el, before, cycle, ctx)
         }
       }
     } else {
