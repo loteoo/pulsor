@@ -12,7 +12,7 @@ const reduce = (state: State, action: Action, payload: any, cycle: Cycle): State
   if (Array.isArray(action)) {
     return action.reduce(
       (state: State, action: Action) => reduce(state, action, payload, cycle),
-      {}
+      state,
     )
   }
 
