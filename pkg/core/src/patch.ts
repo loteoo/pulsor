@@ -119,12 +119,10 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
 
   if (newVNode?.subscription && oldVNode?.subscription == null) {
     const cleanup = (newVNode.subscription.subscribe as Listener)(cycle.createEmitter(newVNode.subscription), el) as ListenerCleanupFunction
-    const clear = [
-      newVNode.clear,
-      { run: cleanup }
-    ]
-    oldVNode.clear = newVNode.clear = clear
+    const fx = { run: () => cleanup() };
+    oldVNode.clear = [newVNode.clear, fx]
   }
+  newVNode.clear = oldVNode.clear
 
   const oldProps: any = {
     ...oldVNode?.props,
