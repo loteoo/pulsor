@@ -22,7 +22,7 @@ interface Cycle {
 
 // Actions
 type Emitter = (eventName: string, payload?: any) => void;
-type TaskRunner = (emit: Emitter) => void;
+type TaskRunner = (emit: Emitter, payload?: any) => void;
 type EventKey = string;
 
 interface Task {

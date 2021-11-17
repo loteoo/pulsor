@@ -23,7 +23,7 @@ const reduce = (state: State, action: Action, payload: any, cycle: Cycle): State
 
   // Run tasks
   if (isTask(action)) {
-    action.run(cycle.createEmitter(action))
+    action.run(cycle.createEmitter(action), payload)
     return state
   }
 
