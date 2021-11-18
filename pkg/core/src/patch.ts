@@ -99,7 +99,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
   }
 
 
-  if (newValue == null || newValue === false) {
+  if (newValue == null) {
     el.removeAttribute(key);
   } else {
     if (['value', 'selected', 'checked'].includes(key)) {
@@ -151,7 +151,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       : newVNode.ctx
   }
 
-  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);  // Needs to happen before normalize in case child can rely on state from init
+  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);
 
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle, ctx);

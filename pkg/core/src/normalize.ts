@@ -26,12 +26,12 @@ const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] =>
 
     const vNode = vNodes[i] as VNode;
     vNodes[i] = {
-      ...vNode,
       key: vNode.props?.key,
       init: vNode.props?.init,
       clear: vNode.props?.clear,
       subscription: vNode.props?.subscription,
       ctx: vNode.props?.ctx,
+      ...vNode,
     }
 
     i++;
