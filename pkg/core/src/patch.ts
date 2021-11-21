@@ -98,6 +98,19 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
     return;
   }
 
+  if (key === 'style' && typeof newValue === "object") {
+    for (const k in newValue) {
+      const val = newValue[k] ?? '';
+      if (k.startsWith('--')) {
+        el[key].setProperty(k, val)
+      } else {
+        // @ts-ignore
+        el[key][k] = val
+      }
+    }
+    return
+  }
+
   // Handle "method" properties ex: value, selected, checked, open, innerHTML, innerText, etc
   if (key in el) {
     if (newValue == null) {
@@ -149,7 +162,6 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
     const fx = { run: () => cleanup() };
     oldVNode.clear = [newVNode.clear, fx]
   }
-  newVNode.clear = oldVNode.clear
 
 
   if (newVNode?.ctx) {
@@ -253,6 +265,8 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
         const ch = oldCh[i];
         if (ch != null) {
           const chEl = getFragmentEl(ch)
+
+          // TODO: recursively call all clear props on all sub-nodes
           if (ch.clear) {
             cycle.dispatch('clear', ch.clear, chEl, true)
           }
