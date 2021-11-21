@@ -98,16 +98,23 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
     return;
   }
 
-
-  if (newValue == null) {
-    el.removeAttribute(key);
-  } else {
-    if (['value', 'selected', 'checked'].includes(key)) {
+  // Handle "method" properties ex: value, selected, checked, open, innerHTML, innerText, etc
+  if (key in el) {
+    if (newValue == null) {
+      // @ts-ignore
+      el[key] = ''
+    } else {
       // @ts-ignore
       el[key] = newValue
-    } else {
-      el.setAttribute(key, newValue);
     }
+    return
+  }
+
+  // Handle the rest as attributes (visible in the DOM)
+  if (newValue == null || newValue === false) {
+    el.removeAttribute(key);
+  } else {
+    el.setAttribute(key, newValue);
   }
 
 };
