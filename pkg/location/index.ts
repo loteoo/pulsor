@@ -15,9 +15,22 @@ const parseUrl = (url: string) => {
 }
 
 
-const HandleRouteChange: ActionFunction = ({ location: _, ...state }, route) => {
+const HandleRouteChange: ActionFunction = ({ location, ...state }, route) => {
   return {
-    location: parseUrl(route),
+    location: {
+      ...location,
+      ...parseUrl(route)
+    },
+    ...state,
+  }
+}
+
+const SetMatchParams = (params: any): Action => ({ location, ...state }) => {
+  return {
+    location: {
+      ...location,
+      params,
+    },
     ...state,
   }
 }
@@ -37,7 +50,7 @@ const TrackRouteChange: Listener = (emit) => {
 
 
 
-export const createNavigateTask = (href: string) => ({
+export const navigate = (href: string) => ({
   run: () => {
     history.pushState(null, '', href)
     setTimeout(() => {
@@ -56,7 +69,42 @@ export const Link = ({ href, ...rest }: LinkProps, children: VChildNode) =>
     'a',
     {
       ...rest,
-      onclick: createNavigateTask(href)
+      onclick: navigate(href)
+    },
+    children
+  )
+
+
+export const EnhanceLinkClicks = (state: any, ev: any) => ({
+  run: (emit: any) => {
+    let target: HTMLElement | null = ev.target as HTMLElement;
+
+    // Crawl up dom tree, look if click landed inside a <a /> tag
+    while (target && target.tagName !== 'A') {
+      target = target.parentElement;
+    }
+
+    // If <a /> tag found
+    if (target) {
+
+      const href = target.getAttribute('href');
+
+      if (href && href.startsWith('/')) {
+        ev.preventDefault();
+        history.pushState(null, '', href)
+        setTimeout(() => {
+          dispatchEvent(new CustomEvent("pushstate"))
+        })
+      }
+    }
+  }
+})
+
+export const LinkEnhancer = (_: any, children: VChildNode) =>
+  h(
+    'div',
+    {
+      onclick: EnhanceLinkClicks
     },
     children
   )
@@ -73,30 +121,26 @@ export const createRouter = ({ routes }: Options) => {
     matchers[route] = match(route)
   }
 
-
-  const Router: Component = () => {
-    return ({
-      type: 'div', // TODO: support no type
-      init: (state) => HandleRouteChange(state, window.location.pathname + window.location.search),
-      listener: TrackRouteChange,
+  const Router: Component = () => ({
+    init: (state) => HandleRouteChange(state, window.location.pathname + window.location.search),
+    subscription: {
+      subscribe: TrackRouteChange,
       onroutechange: HandleRouteChange,
-      children: [
-        (state: any) => {
-          for (const route of Object.keys(routes)) {
-            const maybeMatch = matchers[route](state.location.path)
-            if (maybeMatch) {
-              return {
-                type: 'div',
-                key: route,
-                children: routes[route],
-              }
-            }
+    },
+    children: (state: any) => {
+      for (const route of Object.keys(routes)) {
+        const maybeMatch = matchers[route](state.location.path)
+        if (maybeMatch) {
+          return {
+            key: route,
+            init: SetMatchParams(maybeMatch.params),
+            children: routes[route],
           }
-          return
         }
-      ]
-    })
-  }
+      }
+      return
+    }
+  })
 
 
   return Router
