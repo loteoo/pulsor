@@ -7,7 +7,7 @@ type FragmentPragma = (props?: VProps, ...children: VChildNode[]) => VChildNode;
 type Falsy = false | null | undefined;
 
 // App
-type State = Record<string, any>;
+interface State {}
 type Selector = (state: State) => any;
 type Transform = (state: State) => State;
 type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => void;
@@ -53,10 +53,10 @@ type VProps = Record<string, any | Action>;
 
 type TextElement = string | number | bigint;
 
-interface VNode {
+interface VNode<S extends State = State> {
   type?: string;
   props?: VProps;
-  children?: VChildNode;
+  children?: VChildNode<S>;
   text?: TextElement;
   key?: string;
   init?: Action;
@@ -67,20 +67,20 @@ interface VNode {
   mount?: Node;
 }
 
-type VChildNodeFunction = ((state: State, ctx: any) => VChildNode)
+type VChildNodeFunction<S extends State> = ((state: S, ctx: any) => VChildNode<S>)
 
-type VChildNode =
-  | VNode
-  | VChildNodeFunction
-  | Array<VChildNode>
+type VChildNode<S extends State = State> =
+  | VNode<S>
+  | VChildNodeFunction<S>
+  | Array<VChildNode<S>>
   | TextElement
   | Falsy;
 
 type Component = (...args: any[]) => VChildNode;
 
-type CSSProperties = Partial<CSSStyleDeclaration>;
+type CSSProperties = Record<keyof CSSStyleDeclaration, string | number>;
 
-type CSSProp = string | CSSProperties;
+type CSSProp = string | Partial<CSSProperties>;
 
 type ClassObject = Record<string, boolean>;
 
@@ -91,17 +91,26 @@ type ClassProp = string | ClassObject;
 
 declare namespace JSX {
 
-  interface HTMLAttributesOverrides {
+
+  type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
+
+
+  type EventNames = keyof HTMLElementEventMap;
+
+  type OnEventNames = `on${EventNames}`
+
+
+  type HTMLAttributesOverrides<T extends EventTarget> = {
     init: Action;
     clear: Action;
     style: CSSProp;
     class: ClassProp;
     children: VChildNode;
-  }
+  } & Record<OnEventNames, Action>
 
-  type OverridesEnum = keyof HTMLAttributesOverrides;
+  type OverridesEnum<T extends EventTarget> = keyof HTMLAttributesOverrides<T>;
 
-  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<T, OverridesEnum>> & Partial<HTMLAttributesOverrides>
+  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum<T>>> & Partial<HTMLAttributesOverrides<T>>
 
   type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
 
