@@ -11,21 +11,47 @@ function moveVNode(
 ): void {
   if (vNode.type || vNode.text != null) {
     parentElm.insertBefore(vNode.el!, before!);
-  } else if (vNode.children) {
+    // @ts-ignore
+  } else if (vNode.children?.length) {
     for (const ch of (vNode.children as VNode[])) {
       moveVNode(parentElm, ch, before)
     }
   }
 }
 
-function getFragmentEl(vNode: VNode): Node | undefined {
-  if (vNode == null) {
-    return
-  } else if (vNode.type || vNode.text != null) {
-    return vNode.el!;
-  } else if (vNode.children) {
-    return getFragmentEl((vNode.children as VNode[])[0]);
+function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boolean): Node | null {
+  const endIdx = chArray.length - 1;
+  let idx = initialIdx;
+
+  let el = null;
+
+  while (idx <= endIdx) {
+
+    const vNode = chArray[idx];
+
+    if (vNode.type || vNode.text != null) {
+      el = vNode.el;
+      break;
+    }
+
+    // @ts-ignore
+    if (vNode.children?.length) {
+      const checkInside = getFragmentEl((vNode.children as VNode[]), 0);
+      if (checkInside) {
+        el = checkInside;
+        break;
+      }
+    }
+
+    if (ignoreSibling) {
+      break
+    }
+
+    idx++;
   }
+
+  return el as Node | null;
+
 }
 
 
@@ -53,7 +79,7 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     ctx,
   );
 
-  parent.insertBefore(vNode.el, before)
+  parent.insertBefore(vNode.el, before);
 
   if (!vNode.type && vNode.text == null) {
     vNode.el = parent;
@@ -166,20 +192,18 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       : newVNode.ctx
   }
 
+  // Patch text nodes
+  if (newVNode.text != null && oldVNode.text !== newVNode.text) {
+    el.textContent = String(newVNode.text);
+    return;
+  }
+
   patchProps(el as HTMLElement, oldVNode, newVNode, cycle);
 
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle, ctx);
 
   oldVNode.children = newVNode.children = newCh;
-
-  // ATM this is un needed as the isSame function checks for a.text === b.text
-  // which and handles the diff via createTextNode
-  // TODO: compare perf of both approaches
-  // if (newVNode.text != null && oldVNode.text !== newVNode.text) {
-  //   el.textContent = String(newVNode.text);
-  //   return;
-  // }
 
   let oldStartIdx = 0;
   let newStartIdx = 0;
@@ -213,12 +237,12 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
       patchNode(oldStartVNode, newEndVNode, cycle, ctx);
-      moveVNode(el, oldStartVNode, getFragmentEl(oldEndVNode)?.nextSibling!);
+      moveVNode(el, oldStartVNode, getFragmentEl(oldCh, oldEndIdx)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
       patchNode(oldEndVNode, newStartVNode, cycle, ctx);
-      moveVNode(el, oldEndVNode, getFragmentEl(oldStartVNode)!);
+      moveVNode(el, oldEndVNode, getFragmentEl(oldCh, oldStartIdx)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -233,15 +257,15 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle, ctx);
+        createNode(newStartVNode, el, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, el, getFragmentEl(oldStartVNode)!, cycle, ctx);
+          createNode(newStartVNode, el, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
         } else {
           patchNode(elmToMove, newStartVNode, cycle, ctx);
           oldCh[idxInOld] = undefined as any;
-          moveVNode(el, elmToMove, getFragmentEl(oldStartVNode)!);
+          moveVNode(el, elmToMove, getFragmentEl(oldCh, oldStartIdx)!);
         }
       }
       newStartVNode = newCh[++newStartIdx];
@@ -249,7 +273,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
   }
   if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
     if (oldStartIdx > oldEndIdx) {
-      before = newCh[newEndIdx + 1] == null ? null : getFragmentEl(newCh[newEndIdx + 1]);
+      before = newCh[newEndIdx + 1] == null ? null : getFragmentEl(newCh, newEndIdx + 1);
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
@@ -260,8 +284,8 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       for (let i = oldStartIdx; i <= oldEndIdx; i++) {
         const ch = oldCh[i];
         if (ch != null) {
-          const chEl = getFragmentEl(ch)
-
+          const chEl = getFragmentEl(oldCh, i, true);
+          
           // TODO: recursively call all clear props on all sub-nodes
           if (ch.clear) {
             cycle.dispatch('clear', ch.clear, chEl, true)

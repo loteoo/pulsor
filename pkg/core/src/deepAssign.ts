@@ -5,8 +5,10 @@ const deepAssign = (source: any, update: any) => {
   for (const key of Object.keys(update)) {
 
     // Delete "undefined" keys
+
+    // TODO: fix this, as it doesn't work rn. (because we first merge the batched actions, there is nothing to delete, the undefined update key is lost)
     if (update[key] === undefined) {
-      if (source[key]) {
+      if (key in source) {
         delete source[key]
       }
     
