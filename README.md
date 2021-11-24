@@ -1,6 +1,9 @@
 # pulsor
-[experimental]
 > The next ~~evolution~~ simplification in declarative, state-driven UIs.
+
+[under heavy development]
+
+experimental - unversioned - unreleased
 
 Pulsor is an all-in-one DOM rendering and state management solution in a tiny ~3kb "self rendering" virtual dom. It aims to be a more productive simplification of React + Redux by implementing the state management directly in the VDOM engine and event system. This approach allows us to design a much more declarative, simpler and symetrical API for managing application state.
 

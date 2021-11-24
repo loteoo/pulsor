@@ -19,7 +19,9 @@ function moveVNode(
 }
 
 function getFragmentEl(vNode: VNode): Node | undefined {
-  if (vNode.type || vNode.text != null) {
+  if (vNode == null) {
+    return
+  } else if (vNode.type || vNode.text != null) {
     return vNode.el!;
   } else if (vNode.children) {
     return getFragmentEl((vNode.children as VNode[])[0]);

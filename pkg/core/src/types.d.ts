@@ -30,8 +30,10 @@ interface Task {
   [x: string]: any; // in reality, EventHandler;
 }
 
+type Update = Record<string, any>
+
 type Action =
-  | State
+  | Update
   | ActionFunction // Nested action based on state
   | Array<Action> // Nested action
   | Task

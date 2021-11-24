@@ -1,26 +1,30 @@
-import get from 'lodash-es/get'
-import set from 'lodash-es/set'
 import { h } from "../core/src/h";
 
 
 // ======== Shared =========
 
-const InitField = (name: string, defaultValue: any): Action => (state) =>
-  set(
-    state,
-    name,
-    defaultValue,
-  )
+const SetField = (name: string, value: any, scope?: string): Action => {
+  const update = {
+    [name]: value
+  }
+  return scope ? { [scope]: update } : update
+}
 
 const PreventDefault = {
   run: (_: any, ev: any) => ev.preventDefault()
 }
 
-const getFieldName = (name: string, scope?: string) => scope ? `${scope}.${name}` : name;
+const selectField = (name: string, scope?: string) => (state: any) => {
+  if (scope) {
+    return state[scope][name];
+  }
+  return state[name];
+}
 
 // ======== Form =========
 
 interface FormProps extends Partial<HTMLFormElement> {
+  defaultValue?: any;
 }
 
 export const Form = (props: FormProps, children: VChildNode) => {
@@ -29,7 +33,7 @@ export const Form = (props: FormProps, children: VChildNode) => {
   }
   if (props.name) {
     propsOverrides.ctx = (ctx: any) => ({ ...ctx, scope: props.name })
-    propsOverrides.init = InitField(props.name, {})
+    propsOverrides.init = SetField(props.name, props.defaultValue ?? {})
   }
   propsOverrides.onsubmit = [
     PreventDefault,
@@ -53,27 +57,22 @@ interface InputProps extends Partial<HTMLInputElement> {
   format?: (value: string) => string
 }
 
-const HandleInput = (name: string, format?: any) => (state: any, ev: any): Action => ({
-  ...set(
-    state,
-    name,
-    format ? format(ev.target.value) : ev.target.value,
-  )
-})
+const HandleInput = (name: string, scope?: any, format?: any) => (_: any, ev: any): Action =>
+  SetField(name, format ? format(ev.target.value) : ev.target.value, scope)
+
 
 export const Input = ({
   defaultValue = '',
   ...props
 }: InputProps) => (_: any, { scope }: any) => {
   const type = props.type ?? 'text';
-  const name = getFieldName(props.name, scope);
   return h(
     'input',
     {
       type,
-      init: InitField(name, defaultValue),
-      oninput: HandleInput(name, props.format),
-      value: (state: any) => get(state, name),
+      init: SetField(props.name, defaultValue, scope),
+      oninput: HandleInput(props.name, props.format, scope),
+      value: selectField(props.name, scope),
       ...props,
     }
   )
@@ -93,27 +92,22 @@ export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
 
 // ======== Checkbox =========
 
-const HandleCheckbox = (name: string) => (state: any, ev: any): Action => ({
-  ...set(
-    state,
-    name,
-    ev.target.checked,
-  )
-})
+
+const HandleCheckbox = (name: string, scope?: any) => (_: any, ev: any): Action =>
+  SetField(name, ev.target.checked, scope)
 
 interface CheckboxProps extends Partial<HTMLInputElement> {
   name: string;
 }
 
 export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => (_: any, { scope }: any) => {
-  const name = getFieldName(props.name, scope);
   return h(
     'input',
     {
       type: 'checkbox',
-      init: InitField(name, Boolean(defaultChecked)),
-      oninput: HandleCheckbox(name),
-      checked: (state: any) => Boolean(get(state, name)),
+      init: SetField(props.name, Boolean(defaultChecked), scope),
+      oninput: HandleCheckbox(props.name, scope),
+      checked: (state: any) => Boolean(selectField(props.name, scope)(state)),
       ...props,
     }
   )
@@ -123,27 +117,21 @@ export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => (_: any
 
 // ======== Radio =========
 
-const HandleRadio = (name: string) => (state: any, ev: any): Action => ({
-  ...set(
-    state,
-    name,
-    ev.target.value,
-  )
-})
+const HandleRadio = (name: string, scope?: any) => (_: any, ev: any): Action =>
+  SetField(name, ev.target.value, scope)
 
 interface RadioProps extends Partial<HTMLInputElement> {
   name: string;
 }
 
 export const Radio = ({ defaultChecked, ...props }: RadioProps) => (_: any, { scope }: any) => {
-  const name = getFieldName(props.name, scope);
   return h(
     'input',
     {
       type: 'radio',
-      init: defaultChecked ? InitField(name, props.value) : undefined,
-      oninput: HandleRadio(name),
-      checked: (state: any) => get(state, name) === props.value,
+      init: defaultChecked ? SetField(props.name, props.value, scope) : undefined,
+      oninput: HandleRadio(props.name, scope),
+      checked: (state: any) => selectField(props.name, scope)(state) === props.value,
       ...props,
     }
   )
@@ -153,13 +141,9 @@ export const Radio = ({ defaultChecked, ...props }: RadioProps) => (_: any, { sc
 
 // ======== Select =========
 
-const HandleSelect = (name: string) => (state: any, ev: any): Action => ({
-  ...set(
-    state,
-    name,
-    ev.target.value,
-  )
-})
+
+const HandleSelect = (name: string, scope?: any) => (_: any, ev: any): Action =>
+  SetField(name, ev.target.value, scope)
 
 
 interface OptionProps extends Partial<HTMLOptionElement> {
@@ -177,17 +161,16 @@ export const Select = ({
   defaultValue = '',
   ...props
 }: SelectProps) => (_: any, { scope }: any) => {
-  const name = getFieldName(props.name, scope);
   return h(
     'select',
     {
-      init: InitField(name, defaultValue),
-      oninput: HandleSelect(name),
-      value: (state: any) => get(state, name),
+      init: SetField(props.name, defaultValue, scope),
+      oninput: HandleSelect(props.name, scope),
+      value: selectField(props.name, scope),
       ...props,
     },
     (state) => {
-      const selectedValue = get(state, name);
+      const selectedValue = selectField(props.name, scope)(state);
       return options.map((option) => h(
         'option',
         {
