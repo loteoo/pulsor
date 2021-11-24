@@ -71,7 +71,7 @@ export const Input = ({
     {
       type,
       init: SetField(props.name, defaultValue, scope),
-      oninput: HandleInput(props.name, props.format, scope),
+      oninput: HandleInput(props.name, scope, props.format),
       value: selectField(props.name, scope),
       ...props,
     }
@@ -85,6 +85,7 @@ export const Input = ({
 export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
   const vNode = Input(props)(state, ctx);
   vNode.type = 'textarea';
+  delete vNode.props?.type;
   return vNode;
 }
 

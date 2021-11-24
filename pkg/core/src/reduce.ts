@@ -1,57 +1,58 @@
+import deepAssign from './deepAssign';
 import { isTask } from './utils';
 
-const isObj = (val: any) => val instanceof Object && !Array.isArray(val)
-
-const deepAssign = (source: any, update: any) => {
-  for (const key of Object.keys(update)) {
-
-    // Delete "undefined" keys
-    if (update[key] === undefined) {
-      if (source[key]) {
-        delete source[key]
-      }
-    
-    // Recursive apply on sub objects
-    } else if (isObj(update[key])) {
-      if (!isObj(source[key])) {
-        source[key] = {}
-      }
-      deepAssign(source[key], update[key])
-    
-    // Apply everything else
-    } else {
-      source[key] = update[key]
-    }
-  }
+interface Result {
+  update: Update;
+  tasks: Task[];
 }
 
-const reduce = (state: State, action: Action, payload: any, cycle: Cycle): void => {
+/**
+ * Reduces an action object into a single update "result" and an array of tasks
+ */
+const reduce = (action: Action, payload: any, cycle: Cycle): Result => {
 
-  // Ignore falsy values
-  if (!action) {
-    return
+  const result: Result = {
+    update: {},
+    tasks: [],
   }
 
-  // Process arrays recurcively
-  if (Array.isArray(action)) {
-    for (const act of action) {
-      reduce(state, act, payload, cycle)
+  const items = Array.isArray(action) ? action : [action];
+
+  let i = 0;
+  while (i < items.length) {
+
+    // Ignore falsy values
+    if (!items[i]) {
+      i++;
+      continue;
     }
+
+    // Flatten arrays
+    if (Array.isArray(items[i])) {
+      items.splice(i, 1, ...(items[i] as Action[]));
+      continue;
+    }
+
+    // Handle subactions
+    if (typeof items[i] === "function") {
+      items[i] = (items[i] as ActionFunction)(cycle.state, payload)
+      continue;
+    }
+
+    // Push tasks in task array
+    if (isTask(items[i])) {
+      const task = items[i] as Task;
+      task.payload = payload;
+      result.tasks.push(task);
+    } else {
+      deepAssign(result.update, items[i])
+    }
+
+    i++;
+
   }
 
-  // Handle subactions
-  if (typeof action === "function") {
-    reduce(state, action(state, payload), payload, cycle);
-  }
-
-  // Run tasks
-  if (isTask(action)) {
-    action.run(cycle.createEmitter(action), payload)
-  }
-
-  // Action is now a state result
-  deepAssign(cycle.state, action)
-
+  return result
 };
 
 export default reduce

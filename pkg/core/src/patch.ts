@@ -144,7 +144,7 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
   };
   for (const key in { ...oldProps, ...newProps }) {
     const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldProps[key];
-      if (oldVal !== newProps[key] && !['key', 'init', 'clear', 'subscription', 'ctx'].includes(key)) {
+      if (oldVal !== newProps[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
       patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
     }
   }
@@ -156,15 +156,9 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
   const el: Node = (newVNode.el = oldVNode.el!);
 
   if (newVNode?.init && oldVNode?.init == null) {
-    cycle.dispatch('init', newVNode?.init, el, true);
+    oldVNode.clearTasks = cycle.dispatch('init', newVNode?.init, el, true);
   }
-
-  if (newVNode?.subscription && oldVNode?.subscription == null) {
-    const cleanup = (newVNode.subscription.subscribe as Listener)(cycle.createEmitter(newVNode.subscription), el) as ListenerCleanupFunction
-    const fx = { run: () => cleanup() };
-    oldVNode.clear = [newVNode.clear, fx]
-  }
-
+  newVNode.clearTasks = oldVNode.clearTasks // ?? why is this needed?!!
 
   if (newVNode?.ctx) {
     ctx = typeof newVNode.ctx === 'function'
@@ -271,6 +265,9 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
           // TODO: recursively call all clear props on all sub-nodes
           if (ch.clear) {
             cycle.dispatch('clear', ch.clear, chEl, true)
+          }
+          if (ch.clearTasks) {
+            ch.clearTasks.forEach(cleanup => cleanup())
           }
           if (chEl) {
             el.removeChild(chEl)

@@ -22,7 +22,7 @@ const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] =>
       vNodes[i] = (vNodes[i] as VChildNodeFunction)(cycle.state, ctx)
       continue;
     }
-    
+
     if (Array.isArray(vNodes[i])) {
       vNodes.splice(i, 1, ...(vNodes[i] as VChildNode[]));
       continue;
@@ -33,7 +33,6 @@ const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] =>
       key: vNode.props?.key,
       init: vNode.props?.init,
       clear: vNode.props?.clear,
-      subscription: vNode.props?.subscription,
       ctx: vNode.props?.ctx,
       ...vNode,
     }
