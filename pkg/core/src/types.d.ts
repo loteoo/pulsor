@@ -7,7 +7,7 @@ type FragmentPragma = (props?: VProps, ...children: VChildNode[]) => VChildNode;
 type Falsy = false | null | undefined;
 
 // App
-interface State {}
+type State = Record<string, any>
 type Selector = (state: State) => any;
 type Transform = (state: State) => State;
 type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => void;
@@ -67,7 +67,7 @@ interface VNode<S extends State = State> {
   mount?: Node;
 }
 
-type VChildNodeFunction<S extends State> = ((state: S, ctx: any) => VChildNode<S>)
+type VChildNodeFunction<S extends State = State> = ((state: S, ctx: any) => VChildNode<S>)
 
 type VChildNode<S extends State = State> =
   | VNode<S>
