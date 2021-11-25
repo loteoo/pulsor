@@ -1,4 +1,4 @@
-import { hydrate } from './hydrate'
+// import { hydrate } from './hydrate'
 import reduce from './reduce';
 import patchElement from './patch';
 import deepAssign from './deepAssign';
@@ -88,7 +88,7 @@ export const pulsor = (app: VNode) => {
     //   state: cycle.state
     // })
 
-    
+
     if (isFromView) {
       cycle.needsRerender = true;
       // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
@@ -99,8 +99,10 @@ export const pulsor = (app: VNode) => {
 
 
     // Run Tasks
-    const cleanups = runTasks(result.tasks, cycle);
-    return cleanups
+    if (result.tasks.length) {
+      const cleanups = runTasks(result.tasks, cycle);
+      return cleanups
+    }
 
   }
 
@@ -118,11 +120,16 @@ export const pulsor = (app: VNode) => {
   //   el = root;
   // }
 
-  const oldVNode = hydrate(app.mount ?? document.body) as VNode;
+  // const oldVNode = hydrate(mount ?? document.body) as VNode;
+
+  const oldVNode = {
+    el: document.body,
+  }
+
+  // window.oldVNode = oldVNode
 
   const patch = () => {
     const nextVNode = {
-      ...oldVNode,
       children: app
     }
     patchElement(oldVNode, nextVNode, cycle, {});

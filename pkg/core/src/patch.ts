@@ -63,6 +63,7 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     vNode.el = document.createTextNode(String(vNode.text));
   } else if (!vNode.type) {
     vNode.el = document.createDocumentFragment();
+    // vNode.mount = parent;
   } else {
     vNode.el = document.createElement(vNode.type!);
   }
@@ -179,7 +180,9 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
 
 const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
 
-  const el: Node = (newVNode.el = oldVNode.el!);
+  newVNode.el = oldVNode.el!;
+
+  const el = oldVNode.el;
 
   if (newVNode?.init && oldVNode?.init == null) {
     oldVNode.clearTasks = cycle.dispatch('init', newVNode?.init, el, true);
@@ -192,13 +195,24 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       : newVNode.ctx
   }
 
-  // Patch text nodes
-  if (newVNode.text != null && oldVNode.text !== newVNode.text) {
-    el.textContent = String(newVNode.text);
-    return;
+  if (el) {
+    // Patch text nodes
+    if (newVNode.text != null && oldVNode.text !== newVNode.text) {
+      el.textContent = String(newVNode.text);
+      return;
+    }
+
+    patchProps(el as HTMLElement, oldVNode, newVNode, cycle);
   }
 
-  patchProps(el as HTMLElement, oldVNode, newVNode, cycle);
+  // if (newVNode.mount) {
+  //   oldVNode.mount = newVNode.mount
+  // }
+
+  // newVNode.mount = oldVNode.mount
+
+  const parent = oldVNode.el!;
+
 
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle, ctx);
@@ -237,12 +251,12 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
       patchNode(oldStartVNode, newEndVNode, cycle, ctx);
-      moveVNode(el, oldStartVNode, getFragmentEl(oldCh, oldEndIdx)?.nextSibling!);
+      moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
       patchNode(oldEndVNode, newStartVNode, cycle, ctx);
-      moveVNode(el, oldEndVNode, getFragmentEl(oldCh, oldStartIdx)!);
+      moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -257,15 +271,15 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, el, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
+        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, el, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
+          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
         } else {
           patchNode(elmToMove, newStartVNode, cycle, ctx);
           oldCh[idxInOld] = undefined as any;
-          moveVNode(el, elmToMove, getFragmentEl(oldCh, oldStartIdx)!);
+          moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx)!);
         }
       }
       newStartVNode = newCh[++newStartIdx];
@@ -277,7 +291,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
-          createNode(ch, el, before, cycle, ctx)
+          createNode(ch, parent, before, cycle, ctx)
         }
       }
     } else {
@@ -285,7 +299,9 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
         const ch = oldCh[i];
         if (ch != null) {
           const chEl = getFragmentEl(oldCh, i, true);
-          
+
+          // console.log('remove', ch)
+
           // TODO: recursively call all clear props on all sub-nodes
           if (ch.clear) {
             cycle.dispatch('clear', ch.clear, chEl, true)
@@ -294,7 +310,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
             ch.clearTasks.forEach(cleanup => cleanup())
           }
           if (chEl) {
-            el.removeChild(chEl)
+            parent.removeChild(chEl)
           }
         }
       }

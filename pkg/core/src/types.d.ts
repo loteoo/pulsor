@@ -10,7 +10,7 @@ type Falsy = false | null | undefined;
 type State = Record<string, any>
 type Selector = (state: State) => any;
 type Transform = (state: State) => State;
-type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => TaskCleanupFunction[];
+type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => undefined | TaskCleanupFunction[];
 
 interface Cycle {
   state: State,
@@ -60,7 +60,8 @@ interface VNode<S extends State = State> {
   clearTasks?: TaskCleanupFunction[];
   ctx?: any | ((ctx: any) => any);
   el?: Node;
-  mount?: Node;
+
+  // mount?: Node; /* Node on which to mount child elements onto */
 }
 
 type VChildNodeFunction<S extends State = State> = ((state: S, ctx: any) => VChildNode<S>)
