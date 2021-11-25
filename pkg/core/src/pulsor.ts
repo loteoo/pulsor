@@ -4,6 +4,51 @@ import patchElement from './patch';
 import deepAssign from './deepAssign';
 import runTasks from './runTasks';
 
+// function stato(path: string | string[], value?: any) {
+
+//   if (typeof path == 'string') {
+//     path = path.split('.');
+//   }
+
+//   if (!Array.isArray(path)) {
+//     throw new Error('path must be a string or an array');
+//   }
+
+//   let ref = stato;
+//   let curr;
+
+//   while (path.length) {
+//     curr = path.shift();
+//     ref = (ref as any)[(curr as string)];
+//     if (ref === undefined) {
+//       return ref;
+//     }
+//   }
+
+//   if (value) {
+//     ref = value
+//     return stato
+//   }
+
+//   return ref;
+// }
+
+
+// const stato2 = {}
+
+// const handler = {
+//   get: function (target: any, prop: any, receiver: any) {
+//     if (typeof target[prop] === "function") {
+//       return target[prop](target)
+//     }
+//     // @ts-ignore
+//     return Reflect.get(...arguments);
+//   },
+// };
+
+// const stateWithSelectors = new Proxy(stato2, handler);
+
+
 export const pulsor = (app: VNode) => {
 
   function domEmitter(event: any) {
