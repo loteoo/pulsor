@@ -1,125 +1,82 @@
-import styles from './app.module.css'
-
-import Foo from './foo'
-
-const init = {
+const Init = {
   count: 0
 }
 
-const increment = state => ({
-  ...state,
+const Increment = state => ({
   count: state.count + 1
 })
 
-const decrement = state => ({
-  ...state,
+const Decrement = state => ({
   count: state.count - 1
 })
 
-const fooModule = {
-  // type: 'p',
-  key: 'foo-module',
-  init: (s) => ({ ...s, tes: 'yes' }),
-  clear: (s) => ({ ...s, tes: 'no' }),
-  children: (s) => ({
-    children: {
-      children: <>
-        <a href="#">toto - {s.count}</a>
-        <input />
-      </>
-    }
-  }),
-}
-
-const keyboardSubscription = {
-  subscribe: (emit) => {
-
-    const logKey = (e) => {
-      console.log(e.code)
-    }
-
-    document.addEventListener('keydown', logKey);
-
-    return () => document.removeEventListener('keydown', logKey)
-  }
-
-}
-
-
-const initTracking = {
+const TrackTask = {
   run: (emit) => {
     const logKey = (e) => {
       emit('keydown', e.code)
     }
-    console.log('Adding event listener')
     document.addEventListener('keydown', logKey)
     return () => {
-      console.log('Removing event listener')
       document.removeEventListener('keydown', logKey)
     }
   },
-  onkeydown: (state, key) => ({ ...state, key })
+  onkeydown: (state, key) => [{ ...state, key }, { run: () => { console.log(key) } }]
 }
 
-const clearTracking = {
-  run: () => {
-    console.log('Removing event listener')
-    document.removeEventListener('keydown', logKey)
-  }
-}
-
-const createTracker = () => {
-  const keyboardTracker = {
-    type: 'button',
-    key: 'foo',
-    init: initTracking,
-    clear: clearTracking,
-    children: { text: 'TRACK' }
-  }
-  return keyboardTracker
-}
-
-
+const createTracker = () => ({
+  init: [{ inited: 'yes' }, TrackTask],
+  clear: { cleared: 'yes', inited: undefined },
+})
 
 const app = {
-  // el: document.body,
-  // type: 'div',
-  // mount: document.querySelector('#root'),
-  // listener,
-  children: (state) => ({
-    init,
-    children: (
-      <main class={styles.app}>
-        <h1>{state.count}</h1>
-        <h2>key: {state.key}</h2>
-        <button onclick={decrement}>-</button>
-        <button onclick={increment}>+</button>
-        {state.count > 10 && createTracker}
-        <br />
-        {/* {console.log} */}
-        <br />
-        {/* {state.count <= 2 && fooModule} */}
-        <p>a</p>
-        {state.count > 6 && (
-          <input key="foo" />
-        )}
-        <p>b</p>
-        {state.count <= 6 && (
-          <input key="foo" />
-        )}
-        <p>c</p>
-        {/* {state.count > 2 && fooModule} */}
-        <p>d</p>
-        <p><Foo /></p>
-        <button onclick={[]}>test</button>
-        {/* {{
-          mount: document.head,
-          children: <title>Hello {state => state.count}!</title>
-        }} */}
-      </main>
-    )
-  })
+  init: Init,
+  children: state => [
+    <main>
+      {{
+        children: {
+          type:'button',
+          key: state.count,
+          init: {
+            run: () => {
+              // console.log('count changed!')
+            }
+          },
+        }
+      }}
+      <p>fobas</p>
+      <h1>{state.count}</h1>
+      <button key="btn-1" onclick={Decrement}>-</button>
+      <button key="btn-2" onclick={Increment}>+</button>
+      {state.count >= 3 && createTracker()}
+      {state.count >= 6 && {
+        init: { fooclear: 'init' },
+        clear: { fooclear: 'done' },
+      }}
+      {{
+        // mount: document.head,
+        // type: 'div',
+        children: <span>Hello {state => state.count}!</span>
+      }}
+      <pre>
+        <code>
+          {s => JSON.stringify(s, null, 2)}
+        </code>
+      </pre>
+    </main>,
+    <style>{css}</style>
+  ]
 }
 
+
+const css = /* CSS */ `
+  body {
+    font-family: sans-serif;
+    font-size: 1.25em;
+    line-height: 1.75;
+    max-width: 70ch;
+    padding: 3em 1em;
+    margin: auto;
+  }
+`
 
 export default app

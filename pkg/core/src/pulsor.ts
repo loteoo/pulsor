@@ -1,6 +1,53 @@
-import { hydrate } from './hydrate'
+// import { hydrate } from './hydrate'
 import reduce from './reduce';
 import patchElement from './patch';
+import deepAssign from './deepAssign';
+import runTasks from './runTasks';
+
+// function stato(path: string | string[], value?: any) {
+
+//   if (typeof path == 'string') {
+//     path = path.split('.');
+//   }
+
+//   if (!Array.isArray(path)) {
+//     throw new Error('path must be a string or an array');
+//   }
+
+//   let ref = stato;
+//   let curr;
+
+//   while (path.length) {
+//     curr = path.shift();
+//     ref = (ref as any)[(curr as string)];
+//     if (ref === undefined) {
+//       return ref;
+//     }
+//   }
+
+//   if (value) {
+//     ref = value
+//     return stato
+//   }
+
+//   return ref;
+// }
+
+
+// const stato2 = {}
+
+// const handler = {
+//   get: function (target: any, prop: any, receiver: any) {
+//     if (typeof target[prop] === "function") {
+//       return target[prop](target)
+//     }
+//     // @ts-ignore
+//     return Reflect.get(...arguments);
+//   },
+// };
+
+// const stateWithSelectors = new Proxy(stato2, handler);
+
 
 export const pulsor = (app: VNode) => {
 
@@ -25,25 +72,38 @@ export const pulsor = (app: VNode) => {
 
   const dispatch: Dispatch = (eventName, action, payload, isFromView?: boolean) => {
     // console.clear()
-    const nextState = reduce(cycle.state, action, payload, cycle);
-    if (cycle.state !== nextState) {
-      cycle.state = nextState;
-      // console.count('Dispatch')
-      // console.log({
-      //   eventName,
-      //   // action: (action as (() => void)).name ?? 'Anonymous action',
-      //   action,
-      //   payload,
-      //   state: cycle.state
-      // })
-      if (isFromView) {
-        cycle.needsRerender = true;
-        // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
-        // console.log('state updated', cycle.state)
-      } else {
-        patch()
-      }
+
+    // Reduce action
+    const result = reduce(action, payload, cycle);
+
+    // Update state
+    deepAssign(cycle.state, result.update);
+
+    // console.count('Dispatch')
+    // console.log({
+    //   eventName,
+    //   // action: (action as (() => void)).name ?? 'Anonymous action',
+    //   action,
+    //   payload,
+    //   state: cycle.state
+    // })
+
+
+    if (isFromView) {
+      cycle.needsRerender = true;
+      // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
+      // console.log('state updated', cycle.state)
+    } else {
+      patch();
     }
+
+
+    // Run Tasks
+    if (result.tasks.length) {
+      const cleanups = runTasks(result.tasks, cycle);
+      return cleanups
+    }
+
   }
 
   const cycle: Cycle = {
@@ -60,11 +120,16 @@ export const pulsor = (app: VNode) => {
   //   el = root;
   // }
 
-  const oldVNode = hydrate(app.mount ?? document.body) as VNode;
+  // const oldVNode = hydrate(mount ?? document.body) as VNode;
+
+  const oldVNode = {
+    el: document.body,
+  }
+
+  // window.oldVNode = oldVNode
 
   const patch = () => {
     const nextVNode = {
-      ...oldVNode,
       children: app
     }
     patchElement(oldVNode, nextVNode, cycle, {});

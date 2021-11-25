@@ -11,15 +11,12 @@ const init = {
   toDoCounter: 1,
 }
 
-
-
 const sortByEarliest = (state) => {
   const sortedList = state.list.sort((a, b) => {
     return a.createdAt - b.createdAt;
   });
-  
+
   return {
-    ...state,
     list: [...sortedList],
   };
 }
@@ -28,9 +25,8 @@ const sortByLatest = (state) => {
   const sortedList = state.list.sort((a, b) => {
     return b.createdAt - a.createdAt;
   });
-  
+
   return {
-    ...state,
     list: [...sortedList],
   };
 }
@@ -42,9 +38,8 @@ const addToEnd = (state) => {
     ...state.list,
     {id: nextId, createdAt: date},
   ];
-  
+
   return {
-    ...state,
     list: newList,
     toDoCounter: nextId,
   };
@@ -57,9 +52,8 @@ const addToStart = (state) => {
     {id: nextId, createdAt: date},
     ...state.list,
   ];
-  
+
   return {
-    ...state,
     list: newList,
     toDoCounter: nextId,
   };

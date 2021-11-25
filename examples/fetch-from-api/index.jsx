@@ -11,11 +11,10 @@ const fetchData = [
         species: character.species,
         status: character.status,
       }))
-  
+
       emit('complete', simplified)
     },
     oncomplete: (state, characters) => ({
-      ...state,
       characters
     })
   }

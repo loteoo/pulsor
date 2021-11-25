@@ -4,7 +4,6 @@ const promtTask = {
     emit('answer', answer)
   },
   onanswer: (state, answer) => ({
-    ...state,
     answer
   })
 }

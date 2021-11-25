@@ -1,34 +1,58 @@
+import deepAssign from './deepAssign';
 import { isTask } from './utils';
 
-// TODO: maybe this should return the tasks instead?
-const reduce = (state: State, action: Action, payload: any, cycle: Cycle): State => {
+interface Result {
+  update: Update;
+  tasks: Task[];
+}
 
-  // Ignore falsy values
-  if (!action) {
-    return state
+/**
+ * Reduces an action object into a single update "result" and an array of tasks
+ */
+const reduce = (action: Action, payload: any, cycle: Cycle): Result => {
+
+  const result: Result = {
+    update: {},
+    tasks: [],
   }
 
-  // Process arrays recurcively
-  if (Array.isArray(action)) {
-    return action.reduce(
-      (state: State, action: Action) => reduce(state, action, payload, cycle),
-      state,
-    )
+  const items = Array.isArray(action) ? action : [action];
+
+  let i = 0;
+  while (i < items.length) {
+
+    // Ignore falsy values
+    if (!items[i]) {
+      i++;
+      continue;
+    }
+
+    // Flatten arrays
+    if (Array.isArray(items[i])) {
+      items.splice(i, 1, ...(items[i] as Action[]));
+      continue;
+    }
+
+    // Handle subactions
+    if (typeof items[i] === "function") {
+      items[i] = (items[i] as ActionFunction)(cycle.state, payload)
+      continue;
+    }
+
+    // Push tasks in task array
+    if (isTask(items[i])) {
+      const task = items[i] as Task;
+      task.payload = payload;
+      result.tasks.push(task);
+    } else {
+      deepAssign(result.update, items[i])
+    }
+
+    i++;
+
   }
 
-  // Handle subactions
-  if (typeof action === "function") {
-    return reduce(state, action(state, payload), payload, cycle);
-  }
-
-  // Run tasks
-  if (isTask(action)) {
-    action.run(cycle.createEmitter(action), payload)
-    return state
-  }
-
-  // Action is now a state result
-  return action;
+  return result
 };
 
 export default reduce

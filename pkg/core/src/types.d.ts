@@ -7,10 +7,10 @@ type FragmentPragma = (props?: VProps, ...children: VChildNode[]) => VChildNode;
 type Falsy = false | null | undefined;
 
 // App
-interface State {}
+type State = Record<string, any>
 type Selector = (state: State) => any;
 type Transform = (state: State) => State;
-type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => void;
+type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => undefined | TaskCleanupFunction[];
 
 interface Cycle {
   state: State,
@@ -22,16 +22,20 @@ interface Cycle {
 
 // Actions
 type Emitter = (eventName: string, payload?: any) => void;
-type TaskRunner = (emit: Emitter, payload?: any) => void;
+type TaskCleanupFunction = () => void;
+type TaskRunner = (emit: Emitter, payload?: any) => TaskCleanupFunction | void;
 type EventKey = string;
 
 interface Task {
+  payload: any;
   run: TaskRunner;
   [x: string]: any; // in reality, EventHandler;
 }
 
+type Update = Record<string, any>
+
 type Action =
-  | State
+  | Update
   | ActionFunction // Nested action based on state
   | Array<Action> // Nested action
   | Task
@@ -40,14 +44,6 @@ type Action =
 type ActionFunction = (state: State, payload?: any) => Action;
 
 // Vdom
-
-type ListenerCleanupFunction = () => void;
-type Listener = (emit: Emitter, payload?: any) => ListenerCleanupFunction;
-
-interface Subscription {
-  subscribe: Listener;
-  [x: string]: any; // in reality, EventHandler;
-}
 
 type VProps = Record<string, any | Action>;
 
@@ -61,13 +57,14 @@ interface VNode<S extends State = State> {
   key?: string;
   init?: Action;
   clear?: Action;
-  subscription?: Subscription;
+  clearTasks?: TaskCleanupFunction[];
   ctx?: any | ((ctx: any) => any);
   el?: Node;
-  mount?: Node;
+
+  // mount?: Node; /* Node on which to mount child elements onto */
 }
 
-type VChildNodeFunction<S extends State> = ((state: S, ctx: any) => VChildNode<S>)
+type VChildNodeFunction<S extends State = State> = ((state: S, ctx: any) => VChildNode<S>)
 
 type VChildNode<S extends State = State> =
   | VNode<S>
