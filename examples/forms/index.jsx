@@ -68,7 +68,7 @@ const app = (
           One
         </label>
         <label>
-          <Radio type="radio" name="picked" value="Two" />
+          <Radio type="radio" name="picked" value="Two" defaultChecked />
           Two
         </label>
         <label>

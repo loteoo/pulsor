@@ -24,24 +24,24 @@ const TrackTask = {
 }
 
 const createTracker = () => ({
-  type: 'p',
   init: [{ inited: 'yes' }, TrackTask],
   clear: { cleared: 'yes', inited: undefined },
 })
 
 const app = {
-  // type: 'div',
-  mount: document.querySelector('#root'),
   init: Init,
   children: state => [
     <main>
       {{
-        key: state.count,
-        init: {
-          run: () => {
-            console.log('count changed!')
-          }
-        },
+        children: {
+          type:'button',
+          key: state.count,
+          init: {
+            run: () => {
+              // console.log('count changed!')
+            }
+          },
+        }
       }}
       <p>fobas</p>
       <h1>{state.count}</h1>
@@ -52,10 +52,11 @@ const app = {
         init: { fooclear: 'init' },
         clear: { fooclear: 'done' },
       }}
-      {/* {{
-        mount: document.head,
-        children: <title>Hello {state => state.count}!</title>
-      }} */}
+      {{
+        // mount: document.head,
+        // type: 'div',
+        children: <span>Hello {state => state.count}!</span>
+      }}
       <pre>
         <code>
           {s => JSON.stringify(s, null, 2)}
