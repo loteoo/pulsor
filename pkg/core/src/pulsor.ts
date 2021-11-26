@@ -74,10 +74,7 @@ export const pulsor = (app: VNode) => {
     // console.clear()
 
     // Reduce action
-    const result = reduce(action, payload, cycle);
-
-    // Update state
-    deepAssign(cycle.state, result.update);
+    const tasks = reduce(action, payload, cycle);
 
     // console.count('Dispatch')
     // console.log({
@@ -99,8 +96,8 @@ export const pulsor = (app: VNode) => {
 
 
     // Run Tasks
-    if (result.tasks.length) {
-      const cleanups = runTasks(result.tasks, cycle);
+    if (tasks.length) {
+      const cleanups = runTasks(tasks, cycle);
       return cleanups
     }
 

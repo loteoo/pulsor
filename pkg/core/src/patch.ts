@@ -51,7 +51,26 @@ function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boo
   }
 
   return el as Node | null;
+}
 
+function runClearTasks(vNode: VNode, cycle: Cycle) {
+  if (vNode.clear) {
+    cycle.dispatch('clear', vNode.clear, undefined, true)
+  }
+  if (vNode.clearTasks) {
+    vNode.clearTasks.forEach(cleanup => {
+      if (typeof cleanup === 'function') {
+        cleanup()
+      }
+    })
+  }
+
+  //@ts-ignore
+  if (vNode.children?.length) {
+    for (const ch of (vNode.children as VNode[])) {
+      runClearTasks(ch, cycle)
+    }
+  }
 }
 
 
@@ -298,17 +317,10 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       for (let i = oldStartIdx; i <= oldEndIdx; i++) {
         const ch = oldCh[i];
         if (ch != null) {
+          runClearTasks(ch, cycle);
+
           const chEl = getFragmentEl(oldCh, i, true);
 
-          // console.log('remove', ch)
-
-          // TODO: recursively call all clear props on all sub-nodes
-          if (ch.clear) {
-            cycle.dispatch('clear', ch.clear, chEl, true)
-          }
-          if (ch.clearTasks) {
-            ch.clearTasks.forEach(cleanup => cleanup())
-          }
           if (chEl) {
             parent.removeChild(chEl)
           }

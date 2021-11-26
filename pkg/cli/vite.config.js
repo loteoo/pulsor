@@ -36,8 +36,8 @@ let app = initialAppModule;
 const rootApp = [
   () => app,
   {
-    subscription: {
-      subscribe: (emit) => {
+    init: {
+      run: (emit) => {
         if (import.meta.hot) {
           import.meta.hot.accept('./index', (newModule) => {
             app = newModule.default

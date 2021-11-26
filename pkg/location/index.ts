@@ -6,46 +6,51 @@ const parseQueryString = (qs?: string) => {
   return qs ? Object.fromEntries(new URLSearchParams(qs)) : {}
 }
 
-const parseUrl = (url: string) => {
-  const [path, queryString] = url.split('?')
-  return {
-    path,
-    query: parseQueryString(queryString),
-  }
-}
-
-
-const HandleRouteChange: ActionFunction = ({ location, ...state }, route) => {
-  return {
-    location: {
-      ...location,
-      ...parseUrl(route)
+const HandleRouteChange: ActionFunction = (_, url) => {
+  const [rest, hash] = url.split('#')
+  const [path, queryString] = rest.split('?')
+  return [
+    {
+      location: {
+        path,
+        query: parseQueryString(queryString),
+        hash,
+      }
     },
-    ...state,
-  }
+    hash && {
+      run: (emit) => {
+        setTimeout(() => {
+          const el = document.getElementById(hash);
+          if (el) {
+            el.scrollIntoView();
+          }
+          emit('scrolled')
+        })
+      },
+    }
+  ]
 }
 
-const SetMatchParams = (params: any): Action => ({ location, ...state }) => {
-  return {
-    location: {
-      ...location,
-      params,
-    },
-    ...state,
-  }
-}
+const InitRoute = (params: any): Action => (state) => ({
+  location: {
+    params,
+  },
+})
 
-const TrackRouteChange: Listener = (emit) => {
-  const handleLocationChange = () => {
-    emit('routechange', window.location.pathname + window.location.search)
-  }
+const TrackRouteChange = {
+  run: (emit: any) => {
+    const handleLocationChange = () => {
+      emit('routechange', window.location.pathname + window.location.search + window.location.hash)
+    }
 
-  addEventListener('pushstate', handleLocationChange)
-  addEventListener('popstate', handleLocationChange)
-  return () => {
-    removeEventListener('pushstate', handleLocationChange)
-    removeEventListener('popstate', handleLocationChange)
-  }
+    addEventListener('pushstate', handleLocationChange)
+    addEventListener('popstate', handleLocationChange)
+    return () => {
+      removeEventListener('pushstate', handleLocationChange)
+      removeEventListener('popstate', handleLocationChange)
+    }
+  },
+  onroutechange: HandleRouteChange,
 }
 
 
@@ -53,9 +58,7 @@ const TrackRouteChange: Listener = (emit) => {
 export const navigate = (href: string) => ({
   run: () => {
     history.pushState(null, '', href)
-    setTimeout(() => {
-      dispatchEvent(new CustomEvent("pushstate"))
-    })
+    dispatchEvent(new CustomEvent("pushstate"))
   }
 })
 
@@ -92,12 +95,10 @@ export const EnhanceLinkClicks = (state: any, ev: any) => ({
       if (href && href.startsWith('/')) {
         ev.preventDefault();
         history.pushState(null, '', href)
-        setTimeout(() => {
-          dispatchEvent(new CustomEvent("pushstate"))
-        })
+        dispatchEvent(new CustomEvent("pushstate"))
       }
     }
-  }
+  },
 })
 
 export const LinkEnhancer = (_: any, children: VChildNode) =>
@@ -122,18 +123,17 @@ export const createRouter = ({ routes }: Options) => {
   }
 
   const Router: Component = () => ({
-    init: (state) => HandleRouteChange(state, window.location.pathname + window.location.search),
-    subscription: {
-      subscribe: TrackRouteChange,
-      onroutechange: HandleRouteChange,
-    },
+    init: (state) => [
+      HandleRouteChange(state, window.location.pathname + window.location.search + window.location.hash),
+      TrackRouteChange
+    ],
     children: (state: any) => {
       for (const route of Object.keys(routes)) {
         const maybeMatch = matchers[route](state.location.path)
         if (maybeMatch) {
           return {
             key: route,
-            init: SetMatchParams(maybeMatch.params),
+            init: InitRoute(maybeMatch.params),
             children: routes[route],
           }
         }

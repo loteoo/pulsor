@@ -52,9 +52,10 @@ export const Form = (props: FormProps, children: VChildNode) => {
 
 // ======== Input =========
 
-interface InputProps extends Partial<HTMLInputElement> {
+interface InputProps extends Partial<Omit<HTMLInputElement, 'value'>> {
   name: string;
-  format?: (value: string) => string
+  parse?: (value: any) => string;
+  format?: (value: string) => any;
 }
 
 const HandleInput = (name: string, scope?: any, format?: any) => (_: any, ev: any): Action =>
@@ -63,17 +64,26 @@ const HandleInput = (name: string, scope?: any, format?: any) => (_: any, ev: an
 
 export const Input = ({
   defaultValue = '',
+  format,
+  parse,
   ...props
 }: InputProps) => (_: any, { scope }: any) => {
   const type = props.type ?? 'text';
+
   return h(
     'input',
     {
+      ...props,
       type,
       init: SetField(props.name, defaultValue, scope),
-      oninput: HandleInput(props.name, scope, props.format),
-      value: selectField(props.name, scope),
-      ...props,
+      value: (state: any) => {
+        let value = selectField(props.name, scope)(state);
+        if (parse) {
+          value = parse(value)
+        }
+        return value
+      },
+      oninput: HandleInput(props.name, scope, format),
     }
   )
 }
@@ -95,9 +105,9 @@ export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
 
 
 const HandleCheckbox = (name: string, scope?: any) => (_: any, ev: any): Action =>
-  SetField(name, ev.target.checked, scope)
+  SetField(name, !ev.target.checked, scope)
 
-interface CheckboxProps extends Partial<HTMLInputElement> {
+interface CheckboxProps extends Partial<Omit<HTMLInputElement, 'type' | 'checked'>> {
   name: string;
 }
 
@@ -105,11 +115,11 @@ export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => (_: any
   return h(
     'input',
     {
+      ...props,
       type: 'checkbox',
       init: SetField(props.name, Boolean(defaultChecked), scope),
-      oninput: HandleCheckbox(props.name, scope),
       checked: (state: any) => Boolean(selectField(props.name, scope)(state)),
-      ...props,
+      oninput: HandleCheckbox(props.name, scope),
     }
   )
 }
@@ -121,7 +131,7 @@ export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => (_: any
 const HandleRadio = (name: string, scope?: any) => (_: any, ev: any): Action =>
   SetField(name, ev.target.value, scope)
 
-interface RadioProps extends Partial<HTMLInputElement> {
+interface RadioProps extends Partial<Omit<HTMLInputElement, 'type' | 'checked'>> {
   name: string;
 }
 
@@ -129,11 +139,11 @@ export const Radio = ({ defaultChecked, ...props }: RadioProps) => (_: any, { sc
   return h(
     'input',
     {
+      ...props,
       type: 'radio',
       init: defaultChecked ? SetField(props.name, props.value, scope) : undefined,
       oninput: HandleRadio(props.name, scope),
       checked: (state: any) => selectField(props.name, scope)(state) === props.value,
-      ...props,
     }
   )
 }
@@ -151,7 +161,7 @@ interface OptionProps extends Partial<HTMLOptionElement> {
 
 }
 
-interface SelectProps extends Partial<Omit<HTMLSelectElement, 'options'>> {
+interface SelectProps extends Partial<Omit<HTMLSelectElement, 'options' | 'value'>> {
   name: string;
   defaultValue?: string;
   options?: OptionProps[];
@@ -165,10 +175,10 @@ export const Select = ({
   return h(
     'select',
     {
+      ...props,
       init: SetField(props.name, defaultValue, scope),
       oninput: HandleSelect(props.name, scope),
       value: selectField(props.name, scope),
-      ...props,
     },
     (state) => {
       const selectedValue = selectField(props.name, scope)(state);

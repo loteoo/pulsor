@@ -2,19 +2,14 @@ import deepAssign from './deepAssign';
 import { isTask } from './utils';
 
 interface Result {
-  update: Update;
-  tasks: Task[];
 }
 
 /**
  * Reduces an action object into a single update "result" and an array of tasks
  */
-const reduce = (action: Action, payload: any, cycle: Cycle): Result => {
+const reduce = (action: Action, payload: any, cycle: Cycle): Task[] => {
 
-  const result: Result = {
-    update: {},
-    tasks: [],
-  }
+  const tasks: Task[] = [];
 
   const items = Array.isArray(action) ? action : [action];
 
@@ -43,16 +38,16 @@ const reduce = (action: Action, payload: any, cycle: Cycle): Result => {
     if (isTask(items[i])) {
       const task = items[i] as Task;
       task.payload = payload;
-      result.tasks.push(task);
+      tasks.push(task);
     } else {
-      deepAssign(result.update, items[i])
+      deepAssign(cycle.state, items[i])
     }
 
     i++;
 
   }
 
-  return result
+  return tasks
 };
 
 export default reduce

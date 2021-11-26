@@ -8,9 +8,9 @@ export const hydrate = (el: Node): VNode => {
     };
   }
   const type = el.nodeName.toLowerCase();
-  const children = [].map.call(el.childNodes, hydrate) as VChildNode[];
-  
-  const vNode =  h(type, {}, ...children);
+  // const children = [].map.call(el.childNodes, hydrate) as VChildNode[];
+
+  const vNode =  h(type, {});
   vNode.el = el;
   // console.log('hydrated', el)
 
