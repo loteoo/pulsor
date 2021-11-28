@@ -64,19 +64,45 @@ export const pulsor = (app: VNode) => {
       if (eventsObject[handlerKey]) {
         //@ts-ignore
 
-        requestAnimationFrame(() => {
-          dispatch(eventName, eventsObject[handlerKey] as Action, payload)
-        })
+        dispatch(eventName, eventsObject[handlerKey] as Action, payload)
       }
     }
 
-  const dispatch: Dispatch = (eventName, action, payload, isFromView?: boolean) => {
-    // console.clear()
+  const oldVNode: VNode = {
+    el: document.body,
+  }
 
-    // Reduce action
+
+  const dispatch: Dispatch = (eventName, action, payload) => {
+
+    // console.clear()
+    // console.count('Dispatch')
+
+    // Apply state updates
     const tasks = reduce(action, payload, cycle);
 
-    // console.count('Dispatch')
+    cycle.needsRerender = true;
+    
+    cycle.tasks.push(...tasks);
+
+    while (cycle.needsRerender) {
+      cycle.needsRerender = false;
+
+      const nextVNode = {
+        children: app
+      }
+      oldVNode.children = patchElement(oldVNode, nextVNode, cycle, {});
+    }
+
+    // Run Tasks
+    if (cycle.tasks.length) {
+      setTimeout(() => {
+        runTasks(cycle.tasks, cycle);
+        cycle.tasks = [];
+      })
+    }
+    
+
     // console.log({
     //   eventName,
     //   // action: (action as (() => void)).name ?? 'Anonymous action',
@@ -84,31 +110,6 @@ export const pulsor = (app: VNode) => {
     //   payload,
     //   state: cycle.state
     // })
-
-
-    if (isFromView) {
-      cycle.needsRerender = true;
-      // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
-      // console.log('state updated', cycle.state)
-    } else {
-      patch();
-    }
-
-
-    // Run Tasks
-    if (tasks.length) {
-      const cleanups = runTasks(tasks, cycle);
-      return cleanups
-    }
-
-  }
-
-  const cycle: Cycle = {
-    state: {},
-    needsRerender: false,
-    domEmitter,
-    createEmitter,
-    dispatch,
   }
 
   // if (!el) {
@@ -119,23 +120,18 @@ export const pulsor = (app: VNode) => {
 
   // const oldVNode = hydrate(mount ?? document.body) as VNode;
 
-  const oldVNode = {
-    el: document.body,
+  const cycle: Cycle = {
+    state: {},
+    needsRerender: false,
+    domEmitter,
+    createEmitter,
+    tasks: [],
   }
 
-  // window.oldVNode = oldVNode
 
-  const patch = () => {
-    const nextVNode = {
-      children: app
-    }
-    patchElement(oldVNode, nextVNode, cycle, {});
-    if (cycle.needsRerender) {
-      // console.log('re-rendering')
-      cycle.needsRerender = false
-      patch()
-    }
-  }
+  window.oldVNode = oldVNode
+
+  window.nextVNode = app
 
   dispatch('root init', {})
 

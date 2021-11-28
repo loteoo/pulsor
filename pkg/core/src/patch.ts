@@ -1,8 +1,15 @@
 
 import { isSame } from './utils'
 import normalize from './normalize';
+import reduce from './reduce';
 
 // ====
+
+function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: VNode) {
+  const tasks = reduce(action, payload, cycle, vNode);
+  cycle.needsRerender = true;
+  cycle.tasks.push(...tasks);
+}
 
 function moveVNode(
   parentElm: Node,
@@ -55,7 +62,7 @@ function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boo
 
 function runClearTasks(vNode: VNode, cycle: Cycle) {
   if (vNode.clear) {
-    cycle.dispatch('clear', vNode.clear, undefined, true)
+    handleInlineAction(vNode.clear, vNode.el, cycle, vNode)
   }
   if (vNode.clearTasks) {
     vNode.clearTasks.forEach(cleanup => {
@@ -199,14 +206,15 @@ const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cy
 
 const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
 
+  // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
+  newVNode.clearTasks = oldVNode.clearTasks!;
 
   const el = oldVNode.el;
 
   if (newVNode?.init && oldVNode?.init == null) {
-    oldVNode.clearTasks = cycle.dispatch('init', newVNode?.init, el, true);
+    handleInlineAction(newVNode?.init, el, cycle, newVNode);
   }
-  newVNode.clearTasks = oldVNode.clearTasks // ?? why is this needed?!!
 
   if (newVNode?.ctx) {
     ctx = typeof newVNode.ctx === 'function'
@@ -231,13 +239,11 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
   // newVNode.mount = oldVNode.mount
 
   const parent = oldVNode.el!;
-
-
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle, ctx);
 
   oldVNode.children = newVNode.children = newCh;
-
+  
   let oldStartIdx = 0;
   let newStartIdx = 0;
   let oldEndIdx = oldCh.length - 1;
@@ -318,9 +324,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
         const ch = oldCh[i];
         if (ch != null) {
           runClearTasks(ch, cycle);
-
           const chEl = getFragmentEl(oldCh, i, true);
-
           if (chEl) {
             parent.removeChild(chEl)
           }
@@ -328,6 +332,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       }
     }
   }
+  return newCh
 };
 
 

@@ -10,14 +10,14 @@ type Falsy = false | null | undefined;
 type State = Record<string, any>
 type Selector = (state: State) => any;
 type Transform = (state: State) => State;
-type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => undefined | TaskCleanupFunction[];
+type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => void;
 
 interface Cycle {
   state: State,
   needsRerender: boolean;
   domEmitter: any;
   createEmitter: any;
-  dispatch: Dispatch;
+  tasks: Task[];
 }
 
 // Actions
@@ -27,7 +27,8 @@ type TaskRunner = (emit: Emitter, payload?: any) => TaskCleanupFunction | void;
 type EventKey = string;
 
 interface Task {
-  payload: any;
+  vNode?: VNode;
+  payload?: any;
   run: TaskRunner;
   [x: string]: any; // in reality, EventHandler;
 }

@@ -1,13 +1,10 @@
 import deepAssign from './deepAssign';
 import { isTask } from './utils';
 
-interface Result {
-}
-
 /**
  * Reduces an action object into a single update "result" and an array of tasks
  */
-const reduce = (action: Action, payload: any, cycle: Cycle): Task[] => {
+const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode): Task[] => {
 
   const tasks: Task[] = [];
 
@@ -38,6 +35,7 @@ const reduce = (action: Action, payload: any, cycle: Cycle): Task[] => {
     if (isTask(items[i])) {
       const task = items[i] as Task;
       task.payload = payload;
+      task.vNode = vNode;
       tasks.push(task);
     } else {
       deepAssign(cycle.state, items[i])
