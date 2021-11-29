@@ -1,6 +1,6 @@
 // import { hydrate } from './hydrate'
 import reduce from './reduce';
-import patchElement from './patch';
+import patch from './patch';
 import deepAssign from './deepAssign';
 import runTasks from './runTasks';
 
@@ -64,7 +64,9 @@ export const pulsor = (app: VNode) => {
       if (eventsObject[handlerKey]) {
         //@ts-ignore
 
-        dispatch(eventName, eventsObject[handlerKey] as Action, payload)
+        setTimeout(() => {
+          dispatch(eventName, eventsObject[handlerKey] as Action, payload)
+        })
       }
     }
 
@@ -75,41 +77,36 @@ export const pulsor = (app: VNode) => {
 
   const dispatch: Dispatch = (eventName, action, payload) => {
 
-    // console.clear()
-    // console.count('Dispatch')
+    console.groupCollapsed(`New cycle: ${eventName}`)
 
     // Apply state updates
-    const tasks = reduce(action, payload, cycle);
-
+    reduce(action, payload, cycle, undefined, eventName);
     cycle.needsRerender = true;
-    
-    cycle.tasks.push(...tasks);
 
+    console.group(`diff`);
     while (cycle.needsRerender) {
       cycle.needsRerender = false;
 
       const nextVNode = {
         children: app
       }
-      oldVNode.children = patchElement(oldVNode, nextVNode, cycle, {});
+      patch(oldVNode, nextVNode, cycle, {});
     }
+    console.groupEnd();
+
+
+    console.log('Resulting state', cycle.state)
 
     // Run Tasks
-    if (cycle.tasks.length) {
-      setTimeout(() => {
-        runTasks(cycle.tasks, cycle);
-        cycle.tasks = [];
-      })
+    if (cycle.tasks.length > 0) {
+      console.log(`Running ${cycle.tasks.length} tasks`)
+      runTasks(cycle.tasks, cycle);
+      cycle.tasks = [];
+    } else {
+      console.log('No tasks')
     }
-    
 
-    // console.log({
-    //   eventName,
-    //   // action: (action as (() => void)).name ?? 'Anonymous action',
-    //   action,
-    //   payload,
-    //   state: cycle.state
-    // })
+    console.groupEnd();
   }
 
   // if (!el) {
@@ -120,6 +117,8 @@ export const pulsor = (app: VNode) => {
 
   // const oldVNode = hydrate(mount ?? document.body) as VNode;
 
+  window.oldVNode = oldVNode
+
   const cycle: Cycle = {
     state: {},
     needsRerender: false,
@@ -128,11 +127,5 @@ export const pulsor = (app: VNode) => {
     tasks: [],
   }
 
-
-  window.oldVNode = oldVNode
-
-  window.nextVNode = app
-
   dispatch('root init', {})
-
 }

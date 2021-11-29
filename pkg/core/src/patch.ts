@@ -5,23 +5,22 @@ import reduce from './reduce';
 
 // ====
 
-function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: VNode) {
-  const tasks = reduce(action, payload, cycle, vNode);
-  cycle.needsRerender = true;
-  cycle.tasks.push(...tasks);
+function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: VNode, eventName: string) {
+  if (action) {
+    // console.group(eventName);
+    reduce(action, payload, cycle, vNode, eventName);
+    // console.groupEnd();
+    cycle.needsRerender = true;
+  }
 }
 
-function moveVNode(
-  parentElm: Node,
-  vNode: VNode,
-  before?: Node,
-): void {
+function moveVNode(parent: Node, vNode: VNode, before?: Node) {
   if (vNode.type || vNode.text != null) {
-    parentElm.insertBefore(vNode.el!, before!);
+    parent.insertBefore(vNode.el!, before!);
     // @ts-ignore
   } else if (vNode.children?.length) {
     for (const ch of (vNode.children as VNode[])) {
-      moveVNode(parentElm, ch, before)
+      moveVNode(parent, ch, before)
     }
   }
 }
@@ -29,18 +28,13 @@ function moveVNode(
 function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boolean): Node | null {
   const endIdx = chArray.length - 1;
   let idx = initialIdx;
-
   let el = null;
-
   while (idx <= endIdx) {
-
     const vNode = chArray[idx];
-
     if (vNode.type || vNode.text != null) {
       el = vNode.el;
       break;
     }
-
     // @ts-ignore
     if (vNode.children?.length) {
       const checkInside = getFragmentEl((vNode.children as VNode[]), 0);
@@ -49,11 +43,9 @@ function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boo
         break;
       }
     }
-
     if (ignoreSibling) {
       break
     }
-
     idx++;
   }
 
@@ -61,9 +53,9 @@ function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boo
 }
 
 function runClearTasks(vNode: VNode, cycle: Cycle) {
-  if (vNode.clear) {
-    handleInlineAction(vNode.clear, vNode.el, cycle, vNode)
-  }
+
+  handleInlineAction(vNode.clear, vNode.el, cycle, vNode, 'clear');
+
   if (vNode.clearTasks) {
     vNode.clearTasks.forEach(cleanup => {
       if (typeof cleanup === 'function') {
@@ -178,28 +170,11 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
     return
   }
 
-  // Handle the rest as attributes (visible in the DOM)
+  // Handle the rest as html attributes
   if (newValue == null || newValue === false) {
     el.removeAttribute(key);
   } else {
     el.setAttribute(key, newValue);
-  }
-
-};
-
-const patchProps = (el: HTMLElement, oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
-
-  const oldProps: any = {
-    ...oldVNode?.props,
-  };
-  const newProps: any = {
-    ...newVNode?.props,
-  };
-  for (const key in { ...oldProps, ...newProps }) {
-    const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldProps[key];
-      if (oldVal !== newProps[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
-      patchProp(el, key, oldProps[key], newProps[key], oldVNode, newVNode, cycle);
-    }
   }
 };
 
@@ -208,12 +183,12 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
 
   // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
-  newVNode.clearTasks = oldVNode.clearTasks!;
+  newVNode.clearTasks = oldVNode.clearTasks;
 
   const el = oldVNode.el;
 
   if (newVNode?.init && oldVNode?.init == null) {
-    handleInlineAction(newVNode?.init, el, cycle, newVNode);
+    handleInlineAction(newVNode?.init, el, cycle, oldVNode, 'init');
   }
 
   if (newVNode?.ctx) {
@@ -228,8 +203,12 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       el.textContent = String(newVNode.text);
       return;
     }
-
-    patchProps(el as HTMLElement, oldVNode, newVNode, cycle);
+    for (const key in { ...oldVNode?.props, ...newVNode?.props }) {
+      const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode?.props?.[key];
+      if (oldVal !== newVNode?.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
+        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], oldVNode, newVNode, cycle);
+      }
+    }
   }
 
   // if (newVNode.mount) {
@@ -332,7 +311,6 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       }
     }
   }
-  return newCh
 };
 
 

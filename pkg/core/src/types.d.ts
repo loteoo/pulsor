@@ -22,7 +22,7 @@ interface Cycle {
 
 // Actions
 type Emitter = (eventName: string, payload?: any) => void;
-type TaskCleanupFunction = () => void;
+type TaskCleanupFunction = () => void | Promise<void>;
 type TaskRunner = (emit: Emitter, payload?: any) => TaskCleanupFunction | void;
 type EventKey = string;
 
