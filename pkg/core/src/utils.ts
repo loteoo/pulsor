@@ -1,5 +1,5 @@
 
-export const isVChildNodeFunction = (vnode: VChildNode): vnode is VChildNodeFunction => typeof vnode === 'function';
+export const isVChildNodeFunction = (vnode: VChildNode): vnode is VChildNodeFunction => typeof vnode === 'function' && !(vnode as any).key;
 
 export const isString = (value?: any): boolean => ['string', 'number', 'bigint'].includes(typeof value);
 
@@ -10,5 +10,5 @@ export const isRenderable = (value: any) => ![true, false, null, undefined].incl
 export const isTask = (action: Action): action is Task => typeof action === 'object' && !!action && typeof (action as Task).run === 'function';
 
 export const isSame = (a: any, b: any) => {
-  return a?.type === b?.type && a?.key === b?.key;
+  return (a?.type === b?.type && a?.key === b?.key) || a.key === b.toString();
 }

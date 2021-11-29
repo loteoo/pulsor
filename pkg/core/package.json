@@ -22,5 +22,8 @@
   "homepage": "https://github.com/loteoo/pulsor#readme",
   "devDependencies": {
     "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "proxy-memoize": "^0.3.7"
   }
 }

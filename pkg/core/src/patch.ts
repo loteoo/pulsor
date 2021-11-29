@@ -1,5 +1,5 @@
-
-import { isSame } from './utils'
+import memoize from 'proxy-memoize';
+import { isRenderable, isSame, isString, isVChildNodeFunction } from './utils'
 import normalize from './normalize';
 import reduce from './reduce';
 
@@ -76,10 +76,34 @@ function runClearTasks(vNode: VNode, cycle: Cycle) {
   }
 }
 
+function renderChildFn(vNodeOrFn: any, cycle: Cycle, ctx: any): any {
+  if (isVChildNodeFunction(vNodeOrFn)) {
+    const key = vNodeOrFn.toString();
+    vNodeOrFn = vNodeOrFn(cycle.state, ctx);
+    if (vNodeOrFn) {
+      vNodeOrFn.key = key;
+    }
+    return renderChildFn(vNodeOrFn, cycle, ctx);
+  }
+  if (Array.isArray(vNodeOrFn)) {
+    return {
+      children: normalize(vNodeOrFn, cycle, ctx)
+    }
+  }
+  if (isString(vNodeOrFn)) {
+    return {
+      text: vNodeOrFn
+    }
+  }
+  return vNodeOrFn;
+}
 
 // ===
 
-const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx: any) => {
+const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx: any, parentOldCh: VNode[], idx: number) => {
+
+  vNode = renderChildFn(vNode, cycle, ctx);
+  parentOldCh[idx] = vNode;
 
   if (vNode.text != null) {
     vNode.el = document.createTextNode(String(vNode.text));
@@ -103,8 +127,13 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     vNode,
     cycle,
     ctx,
+    parentOldCh,
+    idx
   );
 
+  // console.log('insertBefore', {
+  //   parent, vNode, before
+  // })
   parent.insertBefore(vNode.el, before);
 };
 
@@ -113,7 +142,7 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
 
 
 
-const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
+const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, cycle: Cycle) => {
   if (key.startsWith("on")) {
     const eventName = key.slice(2);
     //@ts-ignore
@@ -182,7 +211,11 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 };
 
 
-const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
+const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, parentOldCh: VNode[], idxInParent: number) => {
+
+  if (isVChildNodeFunction(newVNode)) {
+    parentOldCh[idxInParent] = oldVNode = newVNode = renderChildFn(newVNode, cycle, ctx);
+  }
 
   // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
@@ -210,7 +243,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
     for (const key in { ...oldVNode?.props, ...newVNode?.props }) {
       const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode?.props?.[key];
       if (oldVal !== newVNode?.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
-        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], oldVNode, newVNode, cycle);
+        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], cycle);
       }
     }
   }
@@ -220,6 +253,9 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
   const newCh = normalize(newVNode.children, cycle, ctx);
 
   oldVNode.children = newVNode.children = newCh;
+  if (parentOldCh) {
+    parentOldCh[idxInParent].children = oldVNode.children;
+  }
   
   let oldStartIdx = 0;
   let newStartIdx = 0;
@@ -244,20 +280,20 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
     } else if (newEndVNode == null) {
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newStartVNode)) {
-      patchNode(oldStartVNode, newStartVNode, cycle, ctx);
+      patchNode(oldStartVNode, newStartVNode, cycle, ctx, oldCh, oldStartIdx);
       oldStartVNode = oldCh[++oldStartIdx];
       newStartVNode = newCh[++newStartIdx];
     } else if (isSame(oldEndVNode, newEndVNode)) {
-      patchNode(oldEndVNode, newEndVNode, cycle, ctx);
+      patchNode(oldEndVNode, newEndVNode, cycle, ctx, oldCh, oldEndIdx);
       oldEndVNode = oldCh[--oldEndIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
-      patchNode(oldStartVNode, newEndVNode, cycle, ctx);
+      patchNode(oldStartVNode, newEndVNode, cycle, ctx, oldCh, oldStartIdx);
       moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx, parent)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
-      patchNode(oldEndVNode, newStartVNode, cycle, ctx);
+      patchNode(oldEndVNode, newStartVNode, cycle, ctx, oldCh, oldEndIdx);
       moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx, parent)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
@@ -273,13 +309,13 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx);
+        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, oldCh, newStartIdx);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx);
+          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, oldCh, newStartIdx);
         } else {
-          patchNode(elmToMove, newStartVNode, cycle, ctx);
+          patchNode(elmToMove, newStartVNode, cycle, ctx, oldCh, idxInOld);
           oldCh[idxInOld] = undefined as any;
           moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx, parent)!);
         }
@@ -293,7 +329,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
-          createNode(ch, parent, before, cycle, ctx)
+          createNode(ch, parent, before, cycle, ctx, oldCh, i)
         }
       }
     } else {
