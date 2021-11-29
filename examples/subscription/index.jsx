@@ -24,6 +24,7 @@ const TrackTask = {
 }
 
 const createTracker = () => ({
+  key: 'tracker',
   init: [{ inited: 'yes' }, TrackTask],
   clear: { cleared: 'yes', inited: undefined },
 })
@@ -33,8 +34,8 @@ const app = {
   children: state => [
     <main>
       {{
+        type:'button',
         children: {
-          type:'button',
           key: state.count,
           init: {
             run: () => {
@@ -51,11 +52,6 @@ const app = {
       {state.count >= 6 && {
         init: { fooclear: 'init' },
         clear: { fooclear: 'done' },
-      }}
-      {{
-        // mount: document.head,
-        // type: 'div',
-        children: <span>Hello {state => state.count}!</span>
       }}
       <pre>
         <code>

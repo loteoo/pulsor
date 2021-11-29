@@ -5,8 +5,6 @@ const appToCliPath = path.relative(process.cwd(), __dirname);
 const pathToPulsor = path.join(__dirname, '/../core/src/pulsor').replace(/\\/g, '/');
 const pathToJsx = path.join(__dirname, '/../core/src/jsx').replace(/\\/g, '/');
 
-const virtualFileId = '/main.ts'
-
 
 const middleware = () => {
   return {
@@ -20,13 +18,19 @@ const middleware = () => {
             req.url = `/${appToCliPath}/index.html`
           }
 
+          // if (req.url === "/favicon.ico") {
+          //   req.url = `/${appToCliPath}/favicon.ico`
+          // }
+          
+          // console.log('test', req.url)
+
           next();
         });
       };
     },
     load(id) {
 
-      if (id === virtualFileId) {
+      if (id === '/main.ts') {
         return `import initialAppModule from '${process.cwd().replace(/\\/g, '/')}';
 
 import { pulsor } from '${pathToPulsor}';
@@ -50,7 +54,7 @@ const rootApp = [
   },
 ];
 
-pulsor(rootApp);
+pulsor(initialAppModule);
         `
       }
     }

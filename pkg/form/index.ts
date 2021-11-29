@@ -105,7 +105,7 @@ export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
 
 
 const HandleCheckbox = (name: string, scope?: any) => (_: any, ev: any): Action =>
-  SetField(name, !ev.target.checked, scope)
+  SetField(name, ev.target.checked, scope)
 
 interface CheckboxProps extends Partial<Omit<HTMLInputElement, 'type' | 'checked'>> {
   name: string;

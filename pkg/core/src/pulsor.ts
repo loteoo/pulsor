@@ -1,6 +1,6 @@
 // import { hydrate } from './hydrate'
 import reduce from './reduce';
-import patchElement from './patch';
+import patch from './patch';
 import deepAssign from './deepAssign';
 import runTasks from './runTasks';
 
@@ -64,51 +64,49 @@ export const pulsor = (app: VNode) => {
       if (eventsObject[handlerKey]) {
         //@ts-ignore
 
-        requestAnimationFrame(() => {
+        setTimeout(() => {
           dispatch(eventName, eventsObject[handlerKey] as Action, payload)
         })
       }
     }
 
-  const dispatch: Dispatch = (eventName, action, payload, isFromView?: boolean) => {
-    // console.clear()
-
-    // Reduce action
-    const tasks = reduce(action, payload, cycle);
-
-    // console.count('Dispatch')
-    // console.log({
-    //   eventName,
-    //   // action: (action as (() => void)).name ?? 'Anonymous action',
-    //   action,
-    //   payload,
-    //   state: cycle.state
-    // })
-
-
-    if (isFromView) {
-      cycle.needsRerender = true;
-      // TODO: Figure out a way to end the current patch cycle and let the next one continue (bc now the child nodes get patched twice)
-      // console.log('state updated', cycle.state)
-    } else {
-      patch();
-    }
-
-
-    // Run Tasks
-    if (tasks.length) {
-      const cleanups = runTasks(tasks, cycle);
-      return cleanups
-    }
-
+  const oldVNode: VNode = {
+    el: document.body,
   }
 
-  const cycle: Cycle = {
-    state: {},
-    needsRerender: false,
-    domEmitter,
-    createEmitter,
-    dispatch,
+
+  const dispatch: Dispatch = (eventName, action, payload) => {
+
+    console.groupCollapsed(`New cycle: ${eventName}`)
+
+    // Apply state updates
+    reduce(action, payload, cycle, undefined, eventName);
+    cycle.needsRerender = true;
+
+    console.group(`diff`);
+    while (cycle.needsRerender) {
+      cycle.needsRerender = false;
+
+      const nextVNode = {
+        children: app
+      }
+      patch(oldVNode, nextVNode, cycle, {});
+    }
+    console.groupEnd();
+
+
+    console.log('Resulting state', cycle.state)
+
+    // Run Tasks
+    if (cycle.tasks.length > 0) {
+      console.log(`Running ${cycle.tasks.length} tasks`)
+      runTasks(cycle.tasks, cycle);
+      cycle.tasks = [];
+    } else {
+      console.log('No tasks')
+    }
+
+    console.groupEnd();
   }
 
   // if (!el) {
@@ -119,24 +117,15 @@ export const pulsor = (app: VNode) => {
 
   // const oldVNode = hydrate(mount ?? document.body) as VNode;
 
-  const oldVNode = {
-    el: document.body,
-  }
+  window.oldVNode = oldVNode
 
-  // window.oldVNode = oldVNode
-
-  const patch = () => {
-    const nextVNode = {
-      children: app
-    }
-    patchElement(oldVNode, nextVNode, cycle, {});
-    if (cycle.needsRerender) {
-      // console.log('re-rendering')
-      cycle.needsRerender = false
-      patch()
-    }
+  const cycle: Cycle = {
+    state: {},
+    needsRerender: false,
+    domEmitter,
+    createEmitter,
+    tasks: [],
   }
 
   dispatch('root init', {})
-
 }

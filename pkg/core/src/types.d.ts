@@ -10,24 +10,25 @@ type Falsy = false | null | undefined;
 type State = Record<string, any>
 type Selector = (state: State) => any;
 type Transform = (state: State) => State;
-type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => undefined | TaskCleanupFunction[];
+type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => void;
 
 interface Cycle {
   state: State,
   needsRerender: boolean;
   domEmitter: any;
   createEmitter: any;
-  dispatch: Dispatch;
+  tasks: Task[];
 }
 
 // Actions
 type Emitter = (eventName: string, payload?: any) => void;
-type TaskCleanupFunction = () => void;
+type TaskCleanupFunction = () => void | Promise<void>;
 type TaskRunner = (emit: Emitter, payload?: any) => TaskCleanupFunction | void;
 type EventKey = string;
 
 interface Task {
-  payload: any;
+  vNode?: VNode;
+  payload?: any;
   run: TaskRunner;
   [x: string]: any; // in reality, EventHandler;
 }
@@ -61,7 +62,7 @@ interface VNode<S extends State = State> {
   ctx?: any | ((ctx: any) => any);
   el?: Node;
 
-  // mount?: Node; /* Node on which to mount child elements onto */
+  mount?: Node; /* Node on which to mount child elements onto */
 }
 
 type VChildNodeFunction<S extends State = State> = ((state: S, ctx: any) => VChildNode<S>)

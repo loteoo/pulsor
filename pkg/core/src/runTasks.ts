@@ -1,7 +1,16 @@
-const runTasks = (tasks: Task[], cycle: Cycle): TaskCleanupFunction[] =>
-    tasks.map((task) =>
-        task.run(cycle.createEmitter(task), task.payload)
-    )
-    .filter(Boolean) as TaskCleanupFunction[];
+const runTasks = (tasks: Task[], cycle: Cycle): void =>
+    tasks.forEach((task) => {
+        console.log('task', task)
+        const cleanup = task.run(cycle.createEmitter(task), task.payload)
+        if (cleanup) {
+            // @ts-ignore
+            if (!task.vNode.el?.clearTasks) {
+                // @ts-ignore
+                task.vNode.el.clearTasks = [];
+            }
+            // @ts-ignore
+            task.vNode.el?.clearTasks?.push(cleanup)
+        }
+    });
 
 export default runTasks;
