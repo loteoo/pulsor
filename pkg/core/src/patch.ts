@@ -25,7 +25,7 @@ function moveVNode(parent: Node, vNode: VNode, before?: Node) {
   }
 }
 
-function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boolean): Node | null {
+function getFragmentEl(chArray: VNode[], initialIdx: number, parent: Node, ignoreSibling?: boolean): Node | null {
   const endIdx = chArray.length - 1;
   let idx = initialIdx;
   let el = null;
@@ -37,10 +37,12 @@ function getFragmentEl(chArray: VNode[], initialIdx: number, ignoreSibling?: boo
     }
     // @ts-ignore
     if (vNode.children?.length) {
-      const checkInside = getFragmentEl((vNode.children as VNode[]), 0);
+      const checkInside = getFragmentEl((vNode.children as VNode[]), 0, parent);
       if (checkInside) {
-        el = checkInside;
-        break;
+        if (checkInside.parentNode === parent) {
+          el = checkInside;
+          break;
+        }
       }
     }
     if (ignoreSibling) {
@@ -56,8 +58,10 @@ function runClearTasks(vNode: VNode, cycle: Cycle) {
 
   handleInlineAction(vNode.clear, vNode.el, cycle, vNode, 'clear');
 
-  if (vNode.clearTasks) {
-    vNode.clearTasks.forEach(cleanup => {
+  // @ts-ignore
+  if (vNode.el.clearTasks) {
+    // @ts-ignore
+    vNode.el.clearTasks.forEach(cleanup => {
       if (typeof cleanup === 'function') {
         cleanup()
       }
@@ -81,7 +85,9 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     vNode.el = document.createTextNode(String(vNode.text));
   } else if (!vNode.type) {
     vNode.el = document.createDocumentFragment();
-    // vNode.mount = parent;
+    if (!vNode.mount) {
+      vNode.mount = parent;
+    }
   } else {
     vNode.el = document.createElement(vNode.type!);
   }
@@ -91,6 +97,7 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
       type: vNode.type,
       text: vNode.text,
       el: vNode.el,
+      mount: vNode.mount,
       children: [],
     },
     vNode,
@@ -99,10 +106,6 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
   );
 
   parent.insertBefore(vNode.el, before);
-
-  if (!vNode.type && vNode.text == null) {
-    vNode.el = parent;
-  }
 };
 
 
@@ -183,13 +186,14 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
 
   // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
-  newVNode.clearTasks = oldVNode.clearTasks;
+  newVNode.mount = oldVNode.mount!;
 
   const el = oldVNode.el;
 
   if (newVNode?.init && oldVNode?.init == null) {
     handleInlineAction(newVNode?.init, el, cycle, oldVNode, 'init');
   }
+  newVNode.clearTasks = oldVNode.clearTasks;
 
   if (newVNode?.ctx) {
     ctx = typeof newVNode.ctx === 'function'
@@ -211,13 +215,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
     }
   }
 
-  // if (newVNode.mount) {
-  //   oldVNode.mount = newVNode.mount
-  // }
-
-  // newVNode.mount = oldVNode.mount
-
-  const parent = oldVNode.el!;
+  const parent = oldVNode.mount ?? oldVNode.el!;
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle, ctx);
 
@@ -255,12 +253,12 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
       patchNode(oldStartVNode, newEndVNode, cycle, ctx);
-      moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx)?.nextSibling!);
+      moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx, parent)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
       patchNode(oldEndVNode, newStartVNode, cycle, ctx);
-      moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx)!);
+      moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx, parent)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -275,15 +273,15 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
+        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx)!, cycle, ctx);
+          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx);
         } else {
           patchNode(elmToMove, newStartVNode, cycle, ctx);
           oldCh[idxInOld] = undefined as any;
-          moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx)!);
+          moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx, parent)!);
         }
       }
       newStartVNode = newCh[++newStartIdx];
@@ -291,7 +289,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
   }
   if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
     if (oldStartIdx > oldEndIdx) {
-      before = newCh[newEndIdx + 1] == null ? null : getFragmentEl(newCh, newEndIdx + 1);
+      before = newCh[newEndIdx + 1] == null ? null : getFragmentEl(newCh, newEndIdx + 1, parent);
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
@@ -303,7 +301,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
         const ch = oldCh[i];
         if (ch != null) {
           runClearTasks(ch, cycle);
-          const chEl = getFragmentEl(oldCh, i, true);
+          const chEl = getFragmentEl(oldCh, i, parent, true);
           if (chEl) {
             parent.removeChild(chEl)
           }

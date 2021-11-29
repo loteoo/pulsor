@@ -3,11 +3,13 @@ const runTasks = (tasks: Task[], cycle: Cycle): void =>
         console.log('task', task)
         const cleanup = task.run(cycle.createEmitter(task), task.payload)
         if (cleanup) {
-            if (!task.vNode?.clearTasks) {
+            // @ts-ignore
+            if (!task.vNode.el?.clearTasks) {
                 // @ts-ignore
-                task.vNode.clearTasks = [];
+                task.vNode.el.clearTasks = [];
             }
-            task.vNode?.clearTasks?.push(cleanup)
+            // @ts-ignore
+            task.vNode.el?.clearTasks?.push(cleanup)
         }
     });
 

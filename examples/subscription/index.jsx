@@ -53,11 +53,6 @@ const app = {
         init: { fooclear: 'init' },
         clear: { fooclear: 'done' },
       }}
-      {{
-        // mount: document.head,
-        // type: 'div',
-        children: <span>Hello {state => state.count}!</span>
-      }}
       <pre>
         <code>
           {s => JSON.stringify(s, null, 2)}

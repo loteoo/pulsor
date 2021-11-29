@@ -62,7 +62,7 @@ interface VNode<S extends State = State> {
   ctx?: any | ((ctx: any) => any);
   el?: Node;
 
-  // mount?: Node; /* Node on which to mount child elements onto */
+  mount?: Node; /* Node on which to mount child elements onto */
 }
 
 type VChildNodeFunction<S extends State = State> = ((state: S, ctx: any) => VChildNode<S>)
