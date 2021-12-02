@@ -10,7 +10,7 @@ declare namespace JSX {
 
   type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
 
-  type Element = VNode;
+  type Element = VNode & TextElement;
 
   type ElementChildrenAttribute = {
     children: VChildNode;
