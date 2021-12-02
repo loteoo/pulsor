@@ -43,8 +43,8 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
     return;
   }
 
-  console.log(action)
   deepAssign(cycle.state, action);
+  cycle.needsRerender = true;
 };
 
 export default reduce

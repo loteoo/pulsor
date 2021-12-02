@@ -79,18 +79,15 @@ export const Link = ({ href, ...rest }: LinkProps, children: VChildNode) =>
 
 
 export const EnhanceLinkClicks = (state: any, ev: any) => ({
-  run: (emit: any) => {
-    let target: HTMLElement | null = ev.target as HTMLElement;
+  run: () => {
+    let clicked: HTMLElement | null = ev.target as HTMLElement;
 
     // Crawl up dom tree, look if click landed inside a <a /> tag
-    while (target && target.tagName !== 'A') {
-      target = target.parentElement;
-    }
+    const anchor = clicked.closest('a')
 
     // If <a /> tag found
-    if (target) {
-
-      const href = target.getAttribute('href');
+    if (anchor) {
+      const href = anchor.getAttribute('href');
 
       if (href && href.startsWith('/')) {
         ev.preventDefault();

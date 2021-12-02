@@ -77,25 +77,29 @@ export const pulsor = (app: VNode) => {
 
   const dispatch: Dispatch = (eventName, action, payload) => {
 
-    console.groupCollapsed(`New cycle: ${eventName}`)
+    console.groupCollapsed(`Dispatch: ${eventName}`)
 
     // Apply state updates
     reduce(action, payload, cycle, undefined, eventName);
-    cycle.needsRerender = true;
 
-    console.group(`diff`);
-    while (cycle.needsRerender) {
-      cycle.needsRerender = false;
+    if (cycle.needsRerender) {
+      console.group(`diff`);
 
-      const nextVNode = {
-        children: app
+      while (cycle.needsRerender) {
+        cycle.needsRerender = false;
+  
+        const nextVNode = {
+          children: app
+        }
+        patch(oldVNode, nextVNode, cycle, {});
       }
-      patch(oldVNode, nextVNode, cycle, {});
+
+      console.groupEnd();
+
+      console.log('Resulting state', cycle.state)
+    } else {
+      console.log('No state updates')
     }
-    console.groupEnd();
-
-
-    console.log('Resulting state', cycle.state)
 
     // Run Tasks
     if (cycle.tasks.length > 0) {

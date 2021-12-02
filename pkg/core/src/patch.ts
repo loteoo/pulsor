@@ -10,7 +10,6 @@ function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: V
     // console.group(eventName);
     reduce(action, payload, cycle, vNode, eventName);
     // console.groupEnd();
-    cycle.needsRerender = true;
   }
 }
 
