@@ -1,118 +1,16 @@
-// Utils
-type HyperScript = (type: string, props?: VProps, ...children: VChildNode[]) => VNode;
-type JSXPragma = (type: string | Component, props?: VProps, ...children: VChildNode[]) => VChildNode;
-type FragmentPragma = (props?: VProps, ...children: VChildNode[]) => VChildNode;
-
-// Generic
-type Falsy = false | null | undefined;
-
-// App
-type State = Record<string, any>
-type Selector = (state: State) => any;
-type Transform = (state: State) => State;
-type Dispatch = (eventName: string, handler: Action, payload?: any, isFromView?: boolean) => void;
-
-interface Cycle {
-  state: State,
-  needsRerender: boolean;
-  domEmitter: any;
-  createEmitter: any;
-  tasks: Task[];
-}
-
-// Actions
-type Emitter = (eventName: string, payload?: any) => void;
-type TaskCleanupFunction = () => void | Promise<void>;
-type TaskRunner = (emit: Emitter, payload?: any) => TaskCleanupFunction | void;
-type EventKey = string;
-
-interface Task {
-  vNode?: VNode;
-  payload?: any;
-  run: TaskRunner;
-  [x: string]: any; // in reality, EventHandler;
-}
-
-type Update = Record<string, any>
-
-type Action =
-  | Update
-  | ActionFunction // Nested action based on state
-  | Array<Action> // Nested action
-  | Task
-  | Falsy
-
-type ActionFunction = (state: State, payload?: any) => Action;
-
-// Vdom
-
-type VProps = Record<string, any | Action>;
-
-type TextElement = string | number | bigint;
-
-interface VNode<S extends State = State> {
-  type?: string;
-  props?: VProps;
-  children?: VChildNode<S>;
-  text?: TextElement;
-  key?: string;
-  init?: Action;
-  clear?: Action;
-  clearTasks?: TaskCleanupFunction[];
-  ctx?: any | ((ctx: any) => any);
-  el?: Node;
-
-  mount?: Node; /* Node on which to mount child elements onto */
-}
-
-type VChildNodeFunction<S extends State = State> = ((state: S, ctx: any) => VChildNode<S>)
-
-type VChildNode<S extends State = State> =
-  | VNode<S>
-  | VChildNodeFunction<S>
-  | Array<VChildNode<S>>
-  | TextElement
-  | Falsy;
-
-type Component = (...args: any[]) => VChildNode;
-
-type CSSProperties = Record<keyof CSSStyleDeclaration, string | number>;
-
-type CSSProp = string | Partial<CSSProperties>;
-
-type ClassObject = Record<string, boolean>;
-
-type ClassProp = string | ClassObject;
-
-
-/* ===== JSX ===== */
+/// <reference types="./pulsor" />
 
 declare namespace JSX {
 
-
   type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
 
+  type OverridesEnum = keyof VProps;
 
-  type EventNames = keyof HTMLElementEventMap;
-
-  type OnEventNames = `on${EventNames}`
-
-
-  type HTMLAttributesOverrides<T extends EventTarget> = {
-    init: Action;
-    clear: Action;
-    style: CSSProp;
-    class: ClassProp;
-    children: VChildNode;
-  } & Record<OnEventNames, Action>
-
-  type OverridesEnum<T extends EventTarget> = keyof HTMLAttributesOverrides<T>;
-
-  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum<T>>> & Partial<HTMLAttributesOverrides<T>>
+  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum>> & Partial<VProps>
 
   type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
 
-  type Element = VChildNode;
+  type Element = VNode;
 
   type ElementChildrenAttribute = {
     children: VChildNode;

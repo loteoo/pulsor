@@ -1,7 +1,8 @@
-const h: HyperScript = (type, props, ...children) => ({
-  type,
-  props,
-  children,
-})
+type Component = (...args: any[]) => VChildNode;
 
-export default h
+export const h = (type: string | Component, props: VProps = {}, children?: VChildNode): VChildNode =>
+  typeof type === "function"
+    ? type(props, children)
+    : { type, props, children };
+
+export const Fragment = (_: VProps, children: VChildNode) => children

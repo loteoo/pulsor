@@ -196,7 +196,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
 
   if (newVNode?.ctx) {
     ctx = typeof newVNode.ctx === 'function'
-      ? newVNode.ctx(oldVNode.ctx)
+      ? newVNode.ctx(oldVNode.ctx!)
       : newVNode.ctx
   }
 
@@ -219,7 +219,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
   const newCh = normalize(newVNode.children, cycle, ctx);
 
   oldVNode.children = newVNode.children = newCh;
-  
+
   let oldStartIdx = 0;
   let newStartIdx = 0;
   let oldEndIdx = oldCh.length - 1;

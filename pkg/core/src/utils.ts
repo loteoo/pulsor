@@ -12,3 +12,5 @@ export const isTask = (action: Action): action is Task => typeof action === 'obj
 export const isSame = (a: any, b: any) => {
   return a?.type === b?.type && a?.key === b?.key;
 }
+
+export const isObj = (val: any) => val instanceof Object && !Array.isArray(val)

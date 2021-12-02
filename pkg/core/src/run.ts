@@ -73,7 +73,7 @@ const run = (app: VNode) => {
   }
 
 
-  const dispatch: Dispatch = (eventName, action, payload) => {
+  const dispatch = (eventName: string, action: Action, payload?: EventData) => {
 
     console.groupCollapsed(`Dispatch: ${eventName}`)
 
