@@ -1,4 +1,4 @@
-import { h } from "./h";
+import h from "./h";
 
 export const hydrate = (el: Node): VNode => {
   if (el.nodeType === 3) {

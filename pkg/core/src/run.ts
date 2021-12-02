@@ -1,7 +1,6 @@
 // import { hydrate } from './hydrate'
 import reduce from './reduce';
 import patch from './patch';
-import deepAssign from './deepAssign';
 import runTasks from './runTasks';
 
 // function stato(path: string | string[], value?: any) {
@@ -48,8 +47,7 @@ import runTasks from './runTasks';
 
 // const stateWithSelectors = new Proxy(stato2, handler);
 
-
-export const pulsor = (app: VNode) => {
+const run = (app: VNode) => {
 
   function domEmitter(event: any) {
     // @ts-ignore
@@ -87,7 +85,7 @@ export const pulsor = (app: VNode) => {
 
       while (cycle.needsRerender) {
         cycle.needsRerender = false;
-  
+
         const nextVNode = {
           children: app
         }
@@ -121,7 +119,7 @@ export const pulsor = (app: VNode) => {
 
   // const oldVNode = hydrate(mount ?? document.body) as VNode;
 
-  window.oldVNode = oldVNode
+  // window.oldVNode = oldVNode
 
   const cycle: Cycle = {
     state: {},
@@ -133,3 +131,6 @@ export const pulsor = (app: VNode) => {
 
   dispatch('root init', {})
 }
+
+
+export default run

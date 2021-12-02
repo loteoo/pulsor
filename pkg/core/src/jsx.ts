@@ -1,4 +1,3 @@
-
 export const jsx: JSXPragma = (type, props = {}, ...children) =>
   typeof type === "function"
     ? type(props, children)
