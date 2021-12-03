@@ -1,28 +1,26 @@
 {
   "name": "@pulsor/core",
-  "version": "0.0.1-rc.5",
+  "version": "0.0.1-rc.6",
   "description": "Virtual DOM unleashed",
+  "author": "Alexandre Lotte <dev@alexlotte.ca>",
+  "license": "ISC",
+  "keywords": ["virtual-dom"],
+  "devDependencies": {
+    "typescript": "^4.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loteoo/pulsor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/loteoo/pulsor/issues"
+  },
+  "homepage": "https://github.com/loteoo/pulsor#readme",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prepublish": "tsc",
     "test": "echo \"No test specified\""
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/loteoo/pulsor.git"
-  },
-  "keywords": [
-    "virtual-dom"
-  ],
-  "author": "Alexandre Lotte <dev@alexlotte.ca>",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/loteoo/pulsor/issues"
-  },
-  "homepage": "https://github.com/loteoo/pulsor#readme",
-  "devDependencies": {
-    "typescript": "^4.5.2"
   }
 }

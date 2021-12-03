@@ -56,7 +56,7 @@ type AllEventNames = keyof HTMLElementEventMap;
 type OnEventNames = `on${AllEventNames}`
 type EventProps = Record<OnEventNames, Action>;
 
-type CSSProperties = Record<keyof CSSStyleDeclaration, string | number>;
+type CSSProperties = Record<keyof CSSStyleDeclaration, any>;
 type CSSProp = string | Partial<CSSProperties>;
 
 type ClassObject = Record<string, boolean>;
