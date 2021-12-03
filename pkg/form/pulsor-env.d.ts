@@ -1,1 +1,1 @@
-/// <reference types="@pulsor/core/types" />
+/// <reference types="@pulsor/core/jsx" />

@@ -1,4 +1,4 @@
-import { h } from "@pulsor/core";
+import { Action, h, VChildNode } from "@pulsor/core";
 
 // ======== Shared =========
 
