@@ -1,31 +1,22 @@
 {
   "name": "@pulsor/location",
   "version": "0.0.1-rc.1",
-  "description": "Routing for pulsor",
-  "main": "index.js",
+  "description": "Routing utilities for pulsor",
+  "author": "Alexandre Lotte <dev@alexlotte.ca>",
+  "license": "ISC",
+  "module": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prepublish": "tsc",
     "test": "echo \"No test specified\""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/loteoo/pulsor.git"
-  },
-  "keywords": [
-    "pulsor",
-    "router"
-  ],
-  "author": "Alexandre Lotte <dev@alexlotte.ca>",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/loteoo/pulsor/issues"
-  },
-  "homepage": "https://github.com/loteoo/pulsor#readme",
-  "devDependencies": {
-    "typescript": "^4.4.4"
-  },
   "dependencies": {
+    "@pulsor/core": "0.0.1-rc.11",
     "path-to-regexp": "^6.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.2"
   }
 }

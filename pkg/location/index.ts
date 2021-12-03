@@ -1,12 +1,11 @@
 import { match, MatchFunction } from "path-to-regexp";
-
-import { h } from '../core/src/h'
+import { h, ActionFunction, Action, VChildNode, VNode, Component } from '@pulsor/core'
 
 const parseQueryString = (qs?: string) => {
   return qs ? Object.fromEntries(new URLSearchParams(qs)) : {}
 }
 
-const HandleRouteChange: ActionFunction = (_, url) => {
+const HandleRouteChange: ActionFunction = (_, url: string) => {
   const [rest, hash] = url.split('#')
   const [path, queryString] = rest.split('?')
   return [
@@ -53,8 +52,6 @@ const TrackRouteChange = {
   onroutechange: HandleRouteChange,
 }
 
-
-
 export const navigate = (href: string) => ({
   run: () => {
     history.pushState(null, '', href)
@@ -76,7 +73,6 @@ export const Link = ({ href, ...rest }: LinkProps, children: VChildNode) =>
     },
     children
   )
-
 
 export const EnhanceLinkClicks = (state: any, ev: any) => ({
   run: () => {
@@ -138,7 +134,6 @@ export const createRouter = ({ routes }: Options) => {
       return
     }
   })
-
 
   return Router
 }
