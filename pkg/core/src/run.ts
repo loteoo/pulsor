@@ -81,7 +81,7 @@ const run = (app: VNode) => {
     reduce(action, payload, cycle, undefined, eventName);
 
     if (cycle.needsRerender) {
-      console.group(`diff`);
+      console.group(`render`);
 
       while (cycle.needsRerender) {
         cycle.needsRerender = false;

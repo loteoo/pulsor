@@ -67,7 +67,7 @@ type SpecialProps = {
   class: ClassProp;
 }
 
-type HtmlProps = Record<string, TextElement>;
+type HtmlProps = Record<string, any>;
 
 type VProps = Partial<LogicalProps & EventProps & SpecialProps & HtmlProps>;
 

@@ -4,13 +4,17 @@ declare namespace JSX {
 
   type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
 
-  type OverridesEnum = keyof VProps;
+  type OverridesEnum = keyof (VProps & ElementChildrenAttribute);
 
-  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum>> & Partial<VProps>
+  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum>> & Partial<VProps>;
 
   type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
 
   type Element = VNode & TextElement;
+
+  interface ElementAttributesProperty {
+    props: VProps;
+  }
 
   type ElementChildrenAttribute = {
     children: VChildNode;
