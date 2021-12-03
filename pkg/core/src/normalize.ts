@@ -1,3 +1,4 @@
+import { Cycle, VChildNode, VChildNodeFunction, VNode } from './types';
 import { isVChildNodeFunction, isRenderable, isString } from './utils';
 
 const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] => {

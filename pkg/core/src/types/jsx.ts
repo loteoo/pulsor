@@ -1,26 +1,26 @@
-/// <reference types="./pulsor" />
+import { TextElement, VChildNode, VNode, VProps } from './core';
 
-declare namespace JSX {
+export namespace JSX {
 
-  type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
+  export type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
 
-  type OverridesEnum = keyof (VProps & ElementChildrenAttribute);
+  export type OverridesEnum = keyof (VProps & ElementChildrenAttribute);
 
-  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum>> & Partial<VProps>;
+  export type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum>> & Partial<VProps>;
 
-  type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
+  export type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
 
-  type Element = VNode & TextElement;
+  export type Element = VNode & TextElement;
 
-  interface ElementAttributesProperty {
+  export interface ElementAttributesProperty {
     props: VProps;
   }
 
-  type ElementChildrenAttribute = {
+  export type ElementChildrenAttribute = {
     children: VChildNode;
   };
 
-  interface IntrinsicElements {
+  export interface IntrinsicElements {
 		// HTML
 		a: HTMLAttributes<HTMLAnchorElement>;
 		abbr: HTMLAttributes<HTMLElement>;

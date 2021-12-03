@@ -1,3 +1,5 @@
+import { Task, Cycle } from './types';
+
 const runTasks = (tasks: Task[], cycle: Cycle): void =>
   tasks.forEach((task) => {
     console.log('task', task)

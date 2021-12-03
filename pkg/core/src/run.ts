@@ -2,6 +2,7 @@
 import reduce from './reduce';
 import patch from './patch';
 import runTasks from './runTasks';
+import { VNode, Task, Emitter, Action, EventData, Cycle } from './types';
 
 // function stato(path: string | string[], value?: any) {
 

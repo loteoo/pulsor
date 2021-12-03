@@ -2,6 +2,7 @@
 import { isSame } from './utils'
 import normalize from './normalize';
 import reduce from './reduce';
+import { Action, Cycle, VNode } from './types';
 
 // ====
 

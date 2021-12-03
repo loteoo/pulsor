@@ -1,3 +1,5 @@
+import { VNode } from './types';
+
 const hydrate = (el: Node): VNode => {
   if (el.nodeType === 3) {
     return {

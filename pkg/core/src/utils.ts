@@ -1,3 +1,4 @@
+import { VChildNode, VChildNodeFunction, Action, Task } from './types';
 
 export const isVChildNodeFunction = (vnode: VChildNode): vnode is VChildNodeFunction => typeof vnode === 'function';
 

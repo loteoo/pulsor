@@ -1,4 +1,5 @@
 import deepAssign from './deepAssign';
+import { Action, Cycle, VNode, ActionFunction, Task } from './types';
 import { isTask } from './utils';
 
 /**

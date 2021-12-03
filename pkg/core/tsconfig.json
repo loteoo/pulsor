@@ -4,10 +4,9 @@
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "commonjs",
-    "jsx": "preserve",
     "declaration": true,
     "esModuleInterop": true,
     "outDir": "dist"
   },
-  "include": ["./src", "types"]
+  "include": ["./src"],
 }
