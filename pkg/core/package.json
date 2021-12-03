@@ -1,6 +1,6 @@
 {
   "name": "@pulsor/core",
-  "version": "0.0.1-rc.4",
+  "version": "0.0.1-rc.5",
   "description": "Virtual DOM unleashed",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
