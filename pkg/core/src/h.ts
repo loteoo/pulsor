@@ -1,5 +1,3 @@
-type Component = (...args: any[]) => VChildNode;
-
 export const h = <T = string | Component>(type: T, props: VProps = {}, ...children: VChildNode[]): T extends Function ? VChildNode : VNode =>
   typeof type === "function"
     ? type(props, children)

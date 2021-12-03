@@ -8,7 +8,7 @@ type State = Record<string, any>
 
 // === Actions
 
-type EventData = Record<string, any>;
+type EventData = any;
 
 // Task
 type Emitter = (eventName: string, payload?: EventData) => void;
@@ -98,6 +98,7 @@ interface VNode<S extends State = State> extends Partial<LogicalProps> {
   mount?: Node; /* Node on which to mount child elements onto */
 }
 
+type Component = (...args: any[]) => VChildNode;
 
 
 // Internals
