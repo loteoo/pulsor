@@ -1,26 +1,28 @@
-import { TextElement, VChildNode, VNode, VProps } from './core';
+declare namespace JSX {
 
-export namespace JSX {
+  type VChildNode = import('./src/types').VChildNode;
+  type VNode = import('./src/types').VNode;
+  type VProps = import('./src/types').VProps;
 
-  export type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
+  type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
 
-  export type OverridesEnum = keyof (VProps & ElementChildrenAttribute);
+  type OverridesEnum = keyof (VProps & ElementChildrenAttribute);
 
-  export type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum>> & Partial<VProps>;
+  type HTMLAttributes<T extends EventTarget = HTMLElement> = Partial<Omit<ExcludeMethods<T>, OverridesEnum>> & Partial<VProps> & Partial<ElementChildrenAttribute>;
 
-  export type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
+  type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
 
-  export type Element = VNode & TextElement;
+  type Element = VNode;
 
-  export interface ElementAttributesProperty {
+  interface ElementAttributesProperty {
     props: VProps;
   }
 
-  export type ElementChildrenAttribute = {
+  type ElementChildrenAttribute = {
     children: VChildNode;
   };
 
-  export interface IntrinsicElements {
+  interface IntrinsicElements {
 		// HTML
 		a: HTMLAttributes<HTMLAnchorElement>;
 		abbr: HTMLAttributes<HTMLElement>;

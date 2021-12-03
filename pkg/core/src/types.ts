@@ -100,6 +100,7 @@ export interface VNode<S extends State = State> extends Partial<LogicalProps> {
 
 export type Component = (...args: any[]) => VChildNode;
 
+export type HyperScript = <T = string | Component>(type: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode
 
 // Internals
 
