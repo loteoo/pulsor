@@ -1,5 +1,4 @@
-import { h } from "../core/src/h";
-
+import { h } from "@pulsor/core";
 
 // ======== Shared =========
 
@@ -61,7 +60,6 @@ interface InputProps extends Partial<Omit<HTMLInputElement, 'value'>> {
 const HandleInput = (name: string, scope?: any, format?: any) => (_: any, ev: any): Action =>
   SetField(name, format ? format(ev.target.value) : ev.target.value, scope)
 
-
 export const Input = ({
   defaultValue = '',
   format,
@@ -102,7 +100,6 @@ export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
 
 
 // ======== Checkbox =========
-
 
 const HandleCheckbox = (name: string, scope?: any) => (_: any, ev: any): Action =>
   SetField(name, ev.target.checked, scope)
@@ -193,10 +190,5 @@ export const Select = ({
     }
   )
 }
-
-
-
-// TODO: Select
-
 
 // To decide: Should there be default "defaultValues"? Maybe the default should be undefined instead of false / empty strings
