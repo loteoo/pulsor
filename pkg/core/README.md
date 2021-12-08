@@ -19,7 +19,7 @@ run(app);
 
 The app is a single tree of vNodes describing the whole app.
 
-<details>
+<details open>
   <summary>Raw hello world</summary>
 
 ```typescript

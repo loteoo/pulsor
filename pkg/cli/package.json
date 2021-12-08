@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "vite": "^2.6.13"
+    "@pulsor/core": "0.0.1-rc.5",
+    "vite": "^2.6.14"
   }
 }

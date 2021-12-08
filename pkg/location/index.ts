@@ -9,6 +9,7 @@ const HandleRouteChange: ActionFunction = (_, url: string) => {
   const [rest, hash] = url.split('#')
   const [path, queryString] = rest.split('?')
   return [
+    { location: undefined, },
     {
       location: {
         path,
@@ -21,7 +22,9 @@ const HandleRouteChange: ActionFunction = (_, url: string) => {
         setTimeout(() => {
           const el = document.getElementById(hash);
           if (el) {
-            el.scrollIntoView();
+            el.scrollIntoView({
+              behavior: 'smooth',
+            });
           }
           emit('scrolled')
         })
@@ -85,7 +88,7 @@ export const EnhanceLinkClicks = (state: any, ev: any) => ({
     if (anchor) {
       const href = anchor.getAttribute('href');
 
-      if (href && href.startsWith('/')) {
+      if (href && (href.startsWith('/') || href.startsWith('#'))) {
         ev.preventDefault();
         history.pushState(null, '', href)
         dispatchEvent(new CustomEvent("pushstate"))

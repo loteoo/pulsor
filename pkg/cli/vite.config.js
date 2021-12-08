@@ -2,38 +2,12 @@ import { defineConfig } from "vite";
 import path from 'path';
 
 const appToCliPath = path.relative(process.cwd(), __dirname);
-const pathToPulsor = path.join(__dirname, '/../core/src/pulsor').replace(/\\/g, '/');
-const pathToJsx = path.join(__dirname, '/../core/src/jsx').replace(/\\/g, '/');
+const rootNodePath = process.cwd().replace(/\\/g, '/');
 
 
-const middleware = () => {
-  return {
-    name: "middleware",
-    apply: "serve",
-    configureServer(viteDevServer) {
-      return () => {
-        viteDevServer.middlewares.use(async (req, res, next) => {
+const mainFile = `import initialAppModule from '${rootNodePath}';
 
-          if (req.url === "/index.html") {
-            req.url = `/${appToCliPath}/index.html`
-          }
-
-          // if (req.url === "/favicon.ico") {
-          //   req.url = `/${appToCliPath}/favicon.ico`
-          // }
-          
-          // console.log('test', req.url)
-
-          next();
-        });
-      };
-    },
-    load(id) {
-
-      if (id === '/main.ts') {
-        return `import initialAppModule from '${process.cwd().replace(/\\/g, '/')}';
-
-import { pulsor } from '${pathToPulsor}';
+import { run } from '@pulsor/core';
 
 let app = initialAppModule;
 
@@ -54,8 +28,28 @@ const rootApp = [
   },
 ];
 
-pulsor(initialAppModule);
-        `
+run(rootApp);
+`
+
+const middleware = () => {
+  return {
+    name: "middleware",
+    apply: "serve",
+    configureServer(viteDevServer) {
+      return () => {
+        viteDevServer.middlewares.use(async (req, res, next) => {
+
+          if (req.url === "/index.html") {
+            req.url = `/${appToCliPath}/index.html`
+          }
+
+          next();
+        });
+      };
+    },
+    load(id) {
+      if (id === '/main.ts') {
+        return mainFile
       }
     }
   };
@@ -64,13 +58,19 @@ pulsor(initialAppModule);
 export default defineConfig({
   plugins: [middleware()],
   esbuild: {
-    jsxFactory: 'jsx',
+    jsxFactory: 'h',
     jsxFragment: 'Fragment',
-    jsxInject: `import { jsx, Fragment } from '${pathToJsx}'`
+    jsxInject: `import { h, Fragment } from '@pulsor/core'`
   },
   server: {
     fs: {
       strict: false,
     },
+  },
+  resolve: {
+    alias: {
+      // '@pulsor/core': `${path.resolve(__dirname).replace(/\\/g, '/')}/node_modules/@pulsor/core/src`,
+      '@pulsor/core': `${path.resolve(__dirname).replace(/\\/g, '/') + '/../core/src'}`, // For core development
+    }
   },
 });
