@@ -1,0 +1,15 @@
+{
+  "name": "vite-typescript-starter",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "pulsor src/app",
+    "build": "pulsor build src/app",
+    "preview": "pulsor preview"
+  },
+  "dependencies": {
+    "@pulsor/core": "0.0.1-rc.9"
+  },
+  "devDependencies": {
+    "@pulsor/dev": "0.0.1-rc.9"
+  }
+}

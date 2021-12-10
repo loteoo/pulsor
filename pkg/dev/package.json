@@ -1,0 +1,23 @@
+{
+  "name": "@pulsor/dev",
+  "version": "0.0.1-rc.1",
+  "description": "Vite-based development environment for building pulsor apps.",
+  "author": "Alexandre Lotte <dev@alexlotte.ca>",
+  "license": "ISC",
+  "keywords": [
+    "pulsor",
+    "vite",
+    "cli"
+  ],
+  "main": "cli.js",
+  "bin": {
+    "pulsor": "cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@pulsor/core": "^0.0.1-rc.11",
+    "vite": "^2.7.1"
+  }
+}
