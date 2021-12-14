@@ -106,7 +106,7 @@ const app = (
       <summary>State</summary>
       <pre>
         <code>
-          {(s) => JSON.stringify(s, null, 2)}
+          {(s) => JSON.stringify(s.coolForm, null, 2)}
         </code>
       </pre>
     </details>
