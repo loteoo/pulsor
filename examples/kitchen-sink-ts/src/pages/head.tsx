@@ -1,4 +1,5 @@
-import Head from '../../pkg/head'
+import Head from '../../../../pkg/head'
+
 
 const Init = { count: 0 }
 const Decrement = (state) => ({ count: state.count - 1 })

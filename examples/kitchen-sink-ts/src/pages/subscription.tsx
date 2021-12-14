@@ -58,21 +58,9 @@ const app = {
           {s => JSON.stringify(s, null, 2)}
         </code>
       </pre>
-    </main>,
-    <style>{css}</style>
+    </main>
   ]
 }
 
-
-const css = /* CSS */ `
-  body {
-    font-family: sans-serif;
-    font-size: 1.25em;
-    line-height: 1.75;
-    max-width: 70ch;
-    padding: 3em 1em;
-    margin: auto;
-  }
-`
 
 export default app

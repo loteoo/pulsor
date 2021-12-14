@@ -1,5 +1,3 @@
-import styles from './app.module.css'
-
 
 const init = {
   list: [
@@ -76,7 +74,7 @@ const ToDo = props => (
 );
 
 const app = (
-  <main init={init} class={styles.app}>
+  <main init={init}>
     <code>key=id</code>
     <br />
     <button onclick={addToStart}>

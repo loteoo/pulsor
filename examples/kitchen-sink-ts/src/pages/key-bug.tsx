@@ -1,15 +1,4 @@
-import { Form, Input } from '../../pkg/form'
-
-const css = /* CSS */ `
-  body {
-    font-family: sans-serif;
-    font-size: 1.25em;
-    line-height: 1.75;
-    max-width: 70ch;
-    padding: 3em 1em;
-    margin: auto;
-  }
-`
+import { Form, Input } from '../../../../pkg/form'
 
 const PreventDefault = {
   run: (_, ev) => ev.preventDefault()
@@ -75,8 +64,7 @@ const app = [
         )
       }
     }
-  },
-  <style>{css}</style>
+  }
 ]
 
 export default app

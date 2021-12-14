@@ -1,4 +1,4 @@
-import Http from '../../pkg/http'
+import Http from '../../../../pkg/http'
 
 const DoStuffA = () => ({ fooA: 'fooA'})
 
