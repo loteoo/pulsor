@@ -85,9 +85,6 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     vNode.el = document.createTextNode(String(vNode.text));
   } else if (!vNode.type) {
     vNode.el = document.createDocumentFragment();
-    if (!vNode.mount) {
-      vNode.mount = parent;
-    }
   } else {
     vNode.el = document.createElement(vNode.type!);
   }
@@ -106,6 +103,11 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
   );
 
   parent.insertBefore(vNode.el, before);
+
+  // For fragments
+  if (vNode.type == null && vNode.text == null && !vNode.mount) {
+    vNode.mount = parent;
+  }
 };
 
 
@@ -293,7 +295,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
-          createNode(ch, parent, before, cycle, ctx)
+          createNode(ch, parent, before, cycle, ctx);
         }
       }
     } else {
