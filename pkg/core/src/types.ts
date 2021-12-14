@@ -2,9 +2,9 @@
 
 export type Falsy = false | null | undefined;
 export type TextElement = string | number | bigint;
-export type State = Record<string, any>
-
-
+export type DeepPartial<T> = {
+  [P in keyof T]?: DeepPartial<T[P]>;
+};
 
 // === Actions
 
@@ -23,23 +23,23 @@ export interface Task {
 }
 
 // Update
-export type Update = Record<string, any>
+export type Update<S extends State = State> = DeepPartial<S>;
 
 // Action
-export type ActionFunction = (state: State, payload?: EventData) => Action;
+export type ActionFunction<S extends State = State> = (state: S, payload?: EventData) => Action<S>;
 
-export type Action =
-  | Update
-  | ActionFunction // Nested action based on state
-  | Array<Action> // Nested action
+export type Action<S extends State = State> =
+  | Update<S>
+  | ActionFunction<S> // Nested action based on state
+  | Array<Action<S>> // Nested action
   | Task
-  | Falsy
+  | Falsy;
 
 
 
 // === VNode
 
-export type Context = Record<string, any>
+export type Context = Record<string, any>;
 export type ContextProp = Context | ((ctx: Context) => Context);
 
 // Props you can set on both props and vNode directly
@@ -48,12 +48,12 @@ export interface LogicalProps {
   init: Action;
   clear: Action;
   ctx: ContextProp;
-}
+};
 
 // Props
 
 export type AllEventNames = keyof HTMLElementEventMap;
-export type OnEventNames = `on${AllEventNames}`
+export type OnEventNames = `on${AllEventNames}`;
 export type EventProps = Record<OnEventNames, Action>;
 
 export type CSSProperties = Record<keyof CSSStyleDeclaration, any>;
@@ -65,7 +65,7 @@ export type ClassProp = string | ClassObject;
 export type SpecialProps = {
   style: CSSProp;
   class: ClassProp;
-}
+};
 
 export type HtmlProps = Record<string, any>;
 
@@ -73,7 +73,7 @@ export type VProps = Partial<LogicalProps & EventProps & SpecialProps & HtmlProp
 
 // Children
 
-export type VChildNodeFunction<S extends State = State> = ((state: S, ctx: Context) => VChildNode<S>)
+export type VChildNodeFunction<S extends State = State> = ((state: S, ctx: Context) => VChildNode<S>);
 
 export type VChildNode<S extends State = State> =
   | VNode<S>
@@ -96,11 +96,11 @@ export interface VNode<S extends State = State> extends Partial<LogicalProps> {
   // TODO: maybe only 1 is needed, maybe move to "LogicalProps" type
   el?: Node;
   mount?: Node; /* Node on which to mount child elements onto */
-}
+};
 
 export type Component = (...args: any[]) => VChildNode;
 
-export type HyperScript = <T = string | Component>(type: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode
+export type HyperScript = <T = string | Component>(type: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode;
 
 // Internals
 
@@ -110,4 +110,4 @@ export interface Cycle {
   domEmitter: any;
   createEmitter: any;
   tasks: Task[];
-}
+};
