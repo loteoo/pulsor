@@ -1,6 +1,6 @@
 // === Generic
 
-export type Falsy = false | null | undefined;
+export type Falsy = false | null | undefined | void;
 export type TextElement = string | number | bigint;
 export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
