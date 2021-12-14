@@ -76,40 +76,41 @@ const run = (app: VNode) => {
 
   const dispatch = (eventName: string, action: Action, payload?: EventData) => {
 
-    console.groupCollapsed(`Dispatch: ${eventName}`)
+    // console.groupCollapsed(`Dispatch: ${eventName}`)
 
     // Apply state updates
     reduce(action, payload, cycle, undefined, eventName);
 
     if (cycle.needsRerender) {
-      console.group(`render`);
+      // console.group(`render`);
 
       while (cycle.needsRerender) {
         cycle.needsRerender = false;
 
         const nextVNode = {
+          ...oldVNode,
           children: app
         }
         patch(oldVNode, nextVNode, cycle, {});
       }
 
-      console.groupEnd();
+      // console.groupEnd();
 
-      console.log('Resulting state', cycle.state)
+      // console.log('Resulting state', cycle.state)
     } else {
-      console.log('No state updates')
+      // console.log('No state updates')
     }
 
     // Run Tasks
     if (cycle.tasks.length > 0) {
-      console.log(`Running ${cycle.tasks.length} tasks`)
+      // console.log(`Running ${cycle.tasks.length} tasks`)
       runTasks(cycle.tasks, cycle);
       cycle.tasks = [];
     } else {
-      console.log('No tasks')
+      // console.log('No tasks')
     }
 
-    console.groupEnd();
+    // console.groupEnd();
   }
 
   // if (!el) {
