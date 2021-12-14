@@ -149,7 +149,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
   }
 
   if (key === 'style' && typeof newValue === "object") {
-    for (const k in newValue) {
+    for (const k in { ...oldValue, ...newValue }) {
       const val = newValue[k] ?? '';
       if (k.startsWith('--')) {
         el[key].setProperty(k, val)
