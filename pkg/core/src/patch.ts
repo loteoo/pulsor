@@ -92,7 +92,7 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     vNode.el = document.createElement(vNode.type!);
   }
 
-  patchNode(
+  patch(
     {
       type: vNode.type,
       text: vNode.text,
@@ -182,7 +182,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 };
 
 
-const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
+const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
 
   // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
@@ -244,20 +244,20 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
     } else if (newEndVNode == null) {
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newStartVNode)) {
-      patchNode(oldStartVNode, newStartVNode, cycle, ctx);
+      patch(oldStartVNode, newStartVNode, cycle, ctx);
       oldStartVNode = oldCh[++oldStartIdx];
       newStartVNode = newCh[++newStartIdx];
     } else if (isSame(oldEndVNode, newEndVNode)) {
-      patchNode(oldEndVNode, newEndVNode, cycle, ctx);
+      patch(oldEndVNode, newEndVNode, cycle, ctx);
       oldEndVNode = oldCh[--oldEndIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
-      patchNode(oldStartVNode, newEndVNode, cycle, ctx);
+      patch(oldStartVNode, newEndVNode, cycle, ctx);
       moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx, parent)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
-      patchNode(oldEndVNode, newStartVNode, cycle, ctx);
+      patch(oldEndVNode, newStartVNode, cycle, ctx);
       moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx, parent)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
@@ -279,7 +279,7 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
         if (elmToMove.type !== newStartVNode.type) {
           createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx);
         } else {
-          patchNode(elmToMove, newStartVNode, cycle, ctx);
+          patch(elmToMove, newStartVNode, cycle, ctx);
           oldCh[idxInOld] = undefined as any;
           moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx, parent)!);
         }
@@ -312,4 +312,4 @@ const patchNode = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => 
 };
 
 
-export default patchNode
+export default patch
