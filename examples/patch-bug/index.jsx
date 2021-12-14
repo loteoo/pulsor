@@ -1,7 +1,7 @@
 const Init = [
   { count: 0 },
   {
-    effect: () => {
+    run: () => {
       console.clear();
     }
   }
@@ -11,6 +11,7 @@ const Increment = (state) => ({ count: state.count + 1 })
 
 export default (
   <main init={Init}>
+    <h2>diffing madness</h2>
     <h1>{({ count }) => count}</h1>
     <button onclick={Decrement}>-</button>
     <button onclick={Increment}>+</button>
@@ -26,19 +27,32 @@ export default (
     {({ count }) => ({
       // key: count,
       // type: 'div',
-      children: {
-        // type: 'div', // TODO: Fix the remove logic in patch
-        children: [
-          {
-            key: `sub-${count}`,
-            children: <p>{`hey-${count}`}</p>
-          },
-          {
-            key: `test-${count}`,
-            children: <p>{`hey2-${count}`}</p>
-          },
-        ]
-      }
+      children: [
+        {
+          children: [
+            {
+              key: `sub-${count}`,
+              children: <p>{`hey-${count}`}</p>
+            },
+            {
+              key: `test-${count}`,
+              children: <p>{`hey2-${count}`}</p>
+            },
+          ]
+        },
+        {
+          children: [
+            {
+              key: `sub-${count}`,
+              children: <p>{`hey-${count}`}</p>
+            },
+            {
+              key: `test-${count}`,
+              children: <p>{`hey2-${count}`}</p>
+            },
+          ]
+        }
+      ]
     })}
     <hr />
   </main>

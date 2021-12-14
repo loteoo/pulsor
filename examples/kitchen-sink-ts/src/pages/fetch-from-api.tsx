@@ -5,7 +5,7 @@ const FetchCharacters = {
     emit('complete', data.results);
   },
   oncomplete: (_, characters) => ({
-    characters
+    test_characters: characters
   })
 }
 
@@ -13,12 +13,13 @@ const app = (
   <main init={FetchCharacters}>
     <h1>Characters</h1>
     <ul>
-      {({ characters }) => characters?.map((character) => (
+      {({ test_characters }) => test_characters?.map((character) => (
         <li>
           {character.name} - {character.species} - {character.status}
         </li>
       ))}
     </ul>
+    {console.log}
   </main>
 )
 
