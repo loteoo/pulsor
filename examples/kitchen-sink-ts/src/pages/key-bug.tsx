@@ -1,11 +1,12 @@
+import { Action, VChildNode, VChildNodeFunction } from '@pulsor/core'
 import { Form, Input } from '../../../../pkg/form'
 
-const PreventDefault = {
+const PreventDefault: Action = {
   run: (_, ev) => ev.preventDefault()
 }
 
-const Decrement = (state, ev) => ({ count: state.count - 1 })
-const Increment = (state, ev) => ({ count: state.count + 1 })
+const Decrement: Action = (state) => ({ count: state.count! - 1 })
+const Increment: Action = (state) => ({ count: state.count! + 1 })
 
 const Set = {
   foo: {
@@ -24,11 +25,11 @@ const Set3 = {
   foo: undefined
 }
 
-const fullName = (s) => {
+const fullName: VChildNodeFunction = (s) => {
   return `${s.firstName} ${s.lastName}`
 }
 
-const app = [
+const app: VChildNode = [
   {
     init: { count: 0 },
     children: {

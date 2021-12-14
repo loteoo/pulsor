@@ -41,10 +41,11 @@ export type Action<S extends State = State> =
 
 export type Context = Record<string, any>;
 export type ContextProp = Context | ((ctx: Context) => Context);
+export type Key = any;
 
 // Props you can set on both props and vNode directly
 export interface LogicalProps {
-  key: string;
+  key: Key;
   init: Action;
   clear: Action;
   ctx: ContextProp;

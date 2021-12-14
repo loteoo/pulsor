@@ -1,1 +1,1 @@
-type State = Record<string, any>;
+type State = Record<string, unknown>;
