@@ -1,0 +1,1 @@
+export default <small>smol</small>
