@@ -24,13 +24,13 @@ export interface Task {
 
 // Update
 export type Update<S = State> = {
-  [K in keyof S]?: Update<S[K]> | ((v: S[K]) => S[K]);
+  [K in keyof S]?: S[K] | ((v?: S[K]) => S[K]) | Update<S[K]>;
 };
 
 // Action
-export type ActionFunction<S extends State = State> = (state: S, payload?: EventData) => Action<S>;
+export type ActionFunction<S = State> = (state: S, payload?: EventData) => Action<S>;
 
-export type Action<S extends State = State> =
+export type Action<S = State> =
   | Update<S>
   | ActionFunction<S> // Nested action based on state
   | Array<Action<S>> // Nested action
@@ -48,8 +48,8 @@ export type Key = any;
 // Props you can set on both props and vNode directly
 export interface LogicalProps {
   key: Key;
-  init: Action;
-  clear: Action;
+  init: Action | Action<unknown>;
+  clear: Action | Action<unknown>;
   ctx: ContextProp;
 };
 
@@ -57,7 +57,7 @@ export interface LogicalProps {
 
 export type AllEventNames = keyof HTMLElementEventMap;
 export type OnEventNames = `on${AllEventNames}`;
-export type EventProps = Record<OnEventNames, Action>;
+export type EventProps = Record<OnEventNames, Action | Action<unknown>>;
 
 export type CSSProperties = Record<keyof CSSStyleDeclaration, any>;
 export type CSSProp = string | Partial<CSSProperties>;
@@ -76,9 +76,9 @@ export type VProps = Partial<LogicalProps & EventProps & SpecialProps & HtmlProp
 
 // Children
 
-export type VChildNodeFunction<S extends State = State> = ((state: S, ctx: Context) => VChildNode<S>);
+export type VChildNodeFunction<S = State> = ((state: S, ctx: Context) => VChildNode<S>);
 
-export type VChildNode<S extends State = State> =
+export type VChildNode<S = State> =
   | VNode<S>
   | VChildNodeFunction<S>
   | Array<VChildNode<S>>
@@ -87,7 +87,7 @@ export type VChildNode<S extends State = State> =
 
 // VNode
 
-export interface VNode<S extends State = State> extends Partial<LogicalProps> {
+export interface VNode<S = State> extends Partial<LogicalProps> {
   type?: string;
   props?: VProps;
   children?: VChildNode<S>;
