@@ -25,7 +25,7 @@ function moveVNode(parent: Node, vNode: VNode, before?: Node) {
   }
 }
 
-function getFragmentEl(chArray: VNode[], initialIdx: number, parent: Node, ignoreSibling?: boolean): Node | null {
+function getFragmentEl(chArray: VNode[], initialIdx: number, parent: Node): Node | null {
   const endIdx = chArray.length - 1;
   let idx = initialIdx;
   let el = null;
@@ -45,16 +45,14 @@ function getFragmentEl(chArray: VNode[], initialIdx: number, parent: Node, ignor
         }
       }
     }
-    if (ignoreSibling) {
-      break
-    }
+
     idx++;
   }
 
   return el as Node | null;
 }
 
-function runClearTasks(vNode: VNode, cycle: Cycle) {
+function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
 
   handleInlineAction(vNode.clear, vNode.el, cycle, vNode, 'clear');
 
@@ -71,7 +69,13 @@ function runClearTasks(vNode: VNode, cycle: Cycle) {
   //@ts-ignore
   if (vNode.children?.length) {
     for (const ch of (vNode.children as VNode[])) {
-      runClearTasks(ch, cycle)
+      recurseRemove(ch, vNode.type ? vNode.el! : parent, cycle);
+    }
+  }
+
+  if (vNode.type) {
+    if (vNode.el!.parentNode === parent) {
+      parent.removeChild(vNode.el!);
     }
   }
 }
@@ -302,11 +306,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
       for (let i = oldStartIdx; i <= oldEndIdx; i++) {
         const ch = oldCh[i];
         if (ch != null) {
-          runClearTasks(ch, cycle);
-          const chEl = getFragmentEl(oldCh, i, parent, true);
-          if (chEl) {
-            parent.removeChild(chEl)
-          }
+          recurseRemove(ch, parent, cycle);
         }
       }
     }

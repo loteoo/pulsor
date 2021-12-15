@@ -33,8 +33,8 @@ const isProject = fs.existsSync(path.resolve(process.cwd(), 'package.json'));
 const projectPulsor = '@pulsor/core';
 const cliPulsor = path.resolve(__dirname, 'node_modules/@pulsor/core/src');
 
-const pulsorPath = isProject ? projectPulsor : cliPulsor;
-// const pulsorPath = path.resolve(__dirname, '../core/src');
+// const pulsorPath = isProject ? projectPulsor : cliPulsor;
+const pulsorPath = path.resolve(__dirname, '../core/src');
 
 // ===
 const createMainFile = (rootNode, accept) => `import initialAppModule from '${rootNode}';
