@@ -17,8 +17,11 @@ const deepAssign = (source: any, update: any) => {
 
       deepAssign(source[key], update[key])
 
-    // Apply everything else
+    } else if (typeof update[key] === 'function') {
+      // Apply functions
+      source[key] = update[key](source[key])
     } else {
+      // Apply everything else
       source[key] = update[key]
     }
   }

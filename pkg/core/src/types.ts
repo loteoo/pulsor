@@ -23,7 +23,9 @@ export interface Task {
 }
 
 // Update
-export type Update<S extends State = State> = DeepPartial<S>;
+export type Update<S = State> = {
+  [K in keyof S]?: Update<S[K]> | ((v: S[K]) => S[K]);
+};
 
 // Action
 export type ActionFunction<S extends State = State> = (state: S, payload?: EventData) => Action<S>;
