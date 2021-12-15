@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { defineConfig, mergeConfig } from "vite";
+import { defineConfig, mergeConfig, normalizePath } from "vite";
 
 const appToCliPath = path.relative(process.cwd(), __dirname);
 const htmlFilePath = path.resolve(__dirname, 'index.html');
@@ -13,7 +13,7 @@ const sufixesToCheck = [
   '/index.js', '/index.jsx', '/index.ts', '/index.tsx',
 ]
 
-const getExactName = (path) => {
+const getExactPath = (path) => {
   if (path.includes('.')) {
     return path;
   }
@@ -31,10 +31,10 @@ const getExactName = (path) => {
 const isProject = fs.existsSync(path.resolve(process.cwd(), 'package.json'));
 
 const projectPulsor = '@pulsor/core';
-const cliPulsor = path.resolve(__dirname, 'node_modules/@pulsor/core/src');
+const cliPulsor = normalizePath(path.resolve(__dirname, 'node_modules/@pulsor/core/src'));
 
-// const pulsorPath = isProject ? projectPulsor : cliPulsor;
-const pulsorPath = path.resolve(__dirname, '../core/src');
+const pulsorPath = isProject ? projectPulsor : cliPulsor;
+// const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
 
 // ===
 const createMainFile = (rootNode, accept) => `import initialAppModule from '${rootNode}';
@@ -86,7 +86,7 @@ const pulsorDevPlugin = () => {
     },
 
     config(config, { command }) {
-      rootNode = getExactName(path.resolve(process.cwd(), config.root || '.'));
+      rootNode = normalizePath(getExactPath(path.resolve(process.cwd(), config.root || '.')));
 
       Object.assign(config, mergeConfig(config, defineConfig({
         root: process.cwd(),
@@ -114,7 +114,7 @@ const pulsorDevPlugin = () => {
     },
     load(id) {
       if (id === '\0/main.ts') {
-        const accept = path.relative(process.cwd(), rootNode);
+        const accept = normalizePath(path.relative(process.cwd(), rootNode));
         return createMainFile(rootNode, accept);
       }
     },
