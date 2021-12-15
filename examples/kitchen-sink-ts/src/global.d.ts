@@ -6,4 +6,5 @@ type State = import('@pulsor/core').DeepPartial<
   Record<string, unknown>
   & import('./pages/keyed-arrays').PageState
   & import('./pages/counter').CounterState
+  & import('./pages/updates').UpdateState
 >;

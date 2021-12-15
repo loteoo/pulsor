@@ -1,8 +1,8 @@
 declare namespace JSX {
 
-  type VChildNode = import('./src/types').VChildNode;
-  type VNode = import('./src/types').VNode;
-  type VProps = import('./src/types').VProps;
+  type VChildNode = import('./dist/types').VChildNode;
+  type VNode = import('./dist/types').VNode;
+  type VProps = import('./dist/types').VProps;
 
   type ExcludeMethods<T> = Pick<T, { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]>;
 
@@ -13,7 +13,7 @@ declare namespace JSX {
   type SVGAttributes<T extends EventTarget = SVGElement> = HTMLAttributes<T>;
 
 	type Element = VChildNode;
-	
+
   interface ElementAttributesProperty {
     props: VProps;
   }

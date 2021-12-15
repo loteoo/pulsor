@@ -1,4 +1,6 @@
-export default (state) => (
+import { VChildNode } from '@pulsor/core';
+
+export default (state: State): VChildNode => (
   <div>
     <pre>
       <code>{JSON.stringify(state, null, 2)}</code>

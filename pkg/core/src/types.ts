@@ -24,17 +24,18 @@ export interface Task {
 
 // Update
 export type Update<S = State> = {
-  [K in keyof S]?: S[K] | ((v?: S[K]) => S[K]) | Update<S[K]>;
+  [K in keyof S]?: S[K] | ((v: S[K]) => S[K]) | Update<S[K]>;
 };
 
 // Action
 export type ActionFunction<S = State> = (state: S, payload?: EventData) => Action<S>;
 
+export type ActionItem<S = State> = Update<S> | Task;
+
 export type Action<S = State> =
-  | Update<S>
+  | ActionItem<S>
   | ActionFunction<S> // Nested action based on state
   | Array<Action<S>> // Nested action
-  | Task
   | Falsy;
 
 
