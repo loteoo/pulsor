@@ -33,11 +33,11 @@ const isProject = fs.existsSync(path.resolve(process.cwd(), 'package.json'));
 const projectPulsor = '@pulsor/core';
 const cliPulsor = path.resolve(__dirname, 'node_modules/@pulsor/core/src');
 
-const pulsorPath = isProject ? projectPulsor : cliPulsor;
-// const pulsorPath = path.resolve(__dirname, '../core/src');
+// const pulsorPath = isProject ? projectPulsor : cliPulsor;
+const pulsorPath = path.resolve(__dirname, '../core/src');
 
 // ===
-const createMainFile = (rootNode) => `import initialAppModule from '${rootNode}';
+const createMainFile = (rootNode, accept) => `import initialAppModule from '${rootNode}';
 
 import { run } from '${pulsorPath}';
 
@@ -58,7 +58,7 @@ if (import.meta.hot) {
     children: () => app,
   };
 
-  import.meta.hot.accept('${rootNode.split('/').at(-1)}', (newModule) => {
+  import.meta.hot.accept('${accept}', (newModule) => {
     app = newModule.default
     dispatchEvent(new CustomEvent("hmr"))
   })
@@ -114,7 +114,8 @@ const pulsorDevPlugin = () => {
     },
     load(id) {
       if (id === '\0/main.ts') {
-        return createMainFile(rootNode);
+        const accept = path.relative(process.cwd(), rootNode);
+        return createMainFile(rootNode, accept);
       }
     },
     closeBundle() {

@@ -1,18 +1,20 @@
-const Init = {
+import { Action, Task, VNode } from "@pulsor/core"
+
+const Init: Action = {
   count: 0
 }
 
-const Increment = state => ({
-  count: state.count + 1
+const Increment: Action = state => ({
+  count: state.count! + 1
 })
 
-const Decrement = state => ({
-  count: state.count - 1
+const Decrement: Action = state => ({
+  count: state.count! - 1
 })
 
-const TrackTask = {
+const TrackTask: Task = {
   run: (emit) => {
-    const logKey = (e) => {
+    const logKey = (e: KeyboardEvent) => {
       emit('keydown', e.code)
     }
     document.addEventListener('keydown', logKey)
@@ -20,7 +22,7 @@ const TrackTask = {
       document.removeEventListener('keydown', logKey)
     }
   },
-  onkeydown: (state, key) => [{ ...state, key }, { run: () => { console.log(key) } }]
+  onkeydown: (state: State, key: string) => [{ ...state, key }, { run: () => { console.log(key) } }]
 }
 
 const createTracker = () => ({
@@ -29,7 +31,7 @@ const createTracker = () => ({
   clear: { cleared: 'yes', inited: undefined },
 })
 
-const app = {
+const app: VNode = {
   init: Init,
   children: state => [
     <main>
@@ -48,8 +50,8 @@ const app = {
       <h1>{state.count}</h1>
       <button key="btn-1" onclick={Decrement}>-</button>
       <button key="btn-2" onclick={Increment}>+</button>
-      {state.count >= 3 && createTracker()}
-      {state.count >= 6 && {
+      {state.count! >= 3 && createTracker()}
+      {state.count! >= 6 && {
         init: { fooclear: 'init' },
         clear: { fooclear: 'done' },
       }}
@@ -58,21 +60,9 @@ const app = {
           {s => JSON.stringify(s, null, 2)}
         </code>
       </pre>
-    </main>,
-    <style>{css}</style>
+    </main>
   ]
 }
 
-
-const css = /* CSS */ `
-  body {
-    font-family: sans-serif;
-    font-size: 1.25em;
-    line-height: 1.75;
-    max-width: 70ch;
-    padding: 3em 1em;
-    margin: auto;
-  }
-`
 
 export default app

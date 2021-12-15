@@ -1,5 +1,4 @@
-import styles from './app.module.css'
-
+import { Action } from "@pulsor/core";
 
 const init = {
   list: [
@@ -11,9 +10,11 @@ const init = {
   toDoCounter: 1,
 }
 
-const sortByEarliest = (state) => {
+export type PageState = typeof init;
+
+const sortByEarliest: Action<PageState> = (state) => {
   const sortedList = state.list.sort((a, b) => {
-    return a.createdAt - b.createdAt;
+    return (a.createdAt as unknown as number) - (b.createdAt as unknown as number);
   });
 
   return {
@@ -21,9 +22,9 @@ const sortByEarliest = (state) => {
   };
 }
 
-const sortByLatest = (state) => {
+const sortByLatest: Action<PageState> = (state) => {
   const sortedList = state.list.sort((a, b) => {
-    return b.createdAt - a.createdAt;
+    return (b.createdAt as unknown as number) - (a.createdAt as unknown as number);
   });
 
   return {
@@ -31,7 +32,7 @@ const sortByLatest = (state) => {
   };
 }
 
-const addToEnd = (state) => {
+const addToEnd: Action<PageState> = (state) => {
   const date = new Date();
   const nextId = state.toDoCounter + 1;
   const newList = [
@@ -45,7 +46,7 @@ const addToEnd = (state) => {
   };
 }
 
-const addToStart = (state) => {
+const addToStart: Action<PageState> = (state) => {
   const date = new Date();
   const nextId = state.toDoCounter + 1;
   const newList = [
@@ -61,7 +62,7 @@ const addToStart = (state) => {
 
 
 
-const ToDo = props => (
+const ToDo = (props: NonNullable<NonNullable<State['list']>[0]>) => (
   <tr key={props.id}>
     <td>
       <label>{props.id}</label>
@@ -70,13 +71,13 @@ const ToDo = props => (
       <input />
     </td>
     <td>
-      <label>{props.createdAt.toTimeString()}</label>
+      <label>{(props.createdAt as Date).toTimeString()}</label>
     </td>
   </tr>
 );
 
 const app = (
-  <main init={init} class={styles.app}>
+  <main init={init}>
     <code>key=id</code>
     <br />
     <button onclick={addToStart}>
@@ -97,9 +98,11 @@ const app = (
         <th />
         <th>created at</th>
       </tr>
-      {(state) => state.list.map((todo, index) => (
-        <ToDo {...todo} />
-      ))}
+      {(state) => {
+        return state.list?.map((todo) => (
+          <ToDo {...todo} />
+        ))
+      }}
     </table>
   </main>
 );

@@ -24,13 +24,13 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
   if (typeof action === "function") {
 
     // @ts-ignore
-    console.group(action.name || parentAction);
+    // console.group(action.name || parentAction);
 
     const sub = (action as ActionFunction)(cycle.state, payload);
 
     // @ts-ignore
     reduce(sub, payload, cycle, vNode, action.name);
-    console.groupEnd();
+    // console.groupEnd();
     return;
   }
 
@@ -40,11 +40,11 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
     task.payload = payload;
     task.vNode = vNode;
     cycle.tasks.push(task);
-    console.log(`enqueued task`, task)
+    // console.log(`enqueued task`, task)
     return;
   }
 
-  console.log(action)
+  // console.log(action)
   deepAssign(cycle.state, action);
   cycle.needsRerender = true;
 };

@@ -22,7 +22,8 @@ const selectField = (name: string, scope?: string) => (state: any) => {
 
 // ======== Form =========
 
-interface FormProps extends Partial<HTMLFormElement> {
+type FormProps = JSX.IntrinsicElements['form'] & {
+  name?: string;
   defaultValue?: any;
 }
 
@@ -51,7 +52,7 @@ export const Form = (props: FormProps, children: VChildNode) => {
 
 // ======== Input =========
 
-interface InputProps extends Partial<Omit<HTMLInputElement, 'value'>> {
+type InputProps = Omit<JSX.IntrinsicElements['input'], 'init' | 'value' | 'oninput'>  & {
   name: string;
   parse?: (value: any) => string;
   format?: (value: string) => any;
@@ -104,7 +105,7 @@ export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
 const HandleCheckbox = (name: string, scope?: any) => (_: any, ev: any): Action =>
   SetField(name, ev.target.checked, scope)
 
-interface CheckboxProps extends Partial<Omit<HTMLInputElement, 'type' | 'checked'>> {
+type CheckboxProps = Omit<JSX.IntrinsicElements['input'], 'type' | 'init' | 'checked' | 'oninput'> & {
   name: string;
 }
 
@@ -128,7 +129,7 @@ export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => (_: any
 const HandleRadio = (name: string, scope?: any) => (_: any, ev: any): Action =>
   SetField(name, ev.target.value, scope)
 
-interface RadioProps extends Partial<Omit<HTMLInputElement, 'type' | 'checked'>> {
+type RadioProps = Omit<JSX.IntrinsicElements['input'], 'type' | 'init' | 'checked' | 'oninput'> & {
   name: string;
 }
 
@@ -139,8 +140,8 @@ export const Radio = ({ defaultChecked, ...props }: RadioProps) => (_: any, { sc
       ...props,
       type: 'radio',
       init: defaultChecked ? SetField(props.name, props.value, scope) : undefined,
-      oninput: HandleRadio(props.name, scope),
       checked: (state: any) => selectField(props.name, scope)(state) === props.value,
+      oninput: HandleRadio(props.name, scope),
     }
   )
 }
@@ -153,12 +154,11 @@ export const Radio = ({ defaultChecked, ...props }: RadioProps) => (_: any, { sc
 const HandleSelect = (name: string, scope?: any) => (_: any, ev: any): Action =>
   SetField(name, ev.target.value, scope)
 
-
-interface OptionProps extends Partial<HTMLOptionElement> {
+type OptionProps = JSX.IntrinsicElements['option'] & {
 
 }
 
-interface SelectProps extends Partial<Omit<HTMLSelectElement, 'options' | 'value'>> {
+type SelectProps = Omit<JSX.IntrinsicElements['select'], 'init' | 'oninput' | 'options' | 'value'> & {
   name: string;
   defaultValue?: string;
   options?: OptionProps[];

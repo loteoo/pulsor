@@ -1,8 +1,8 @@
-import styles from './app.module.css'
-import { Form, Input, Textarea, Checkbox, Radio, Select } from '../../pkg/form'
+import { Action } from "@pulsor/core";
+import { Form, Input, Textarea, Checkbox, Radio, Select } from "../../../../pkg/form/index";
 
 
-const SetValuesA = (state) => ({
+const SetValuesA: Action = (state) => ({
   ...state,
   coolForm: {
     ...state.coolForm,
@@ -15,7 +15,7 @@ const SetValuesA = (state) => ({
     dropdown: 'dog',
   }
 })
-const SetValuesB = (state) => ({
+const SetValuesB: Action = (state) => ({
   ...state,
   coolForm: {
     ...state.coolForm,
@@ -29,12 +29,12 @@ const SetValuesB = (state) => ({
   }
 })
 
-const HandleForm = (state, ev) => {
+const HandleForm: Action = (state, ev) => {
   alert(JSON.stringify(state.coolForm, null, 2))
 }
 
 const app = (
-  <main class={styles.app}>
+  <main>
     <h1>Forms</h1>
     <Form name="coolForm" onsubmit={HandleForm}>
       <fieldset>
@@ -106,7 +106,7 @@ const app = (
       <summary>State</summary>
       <pre>
         <code>
-          {(s) => JSON.stringify(s, null, 2)}
+          {(s) => JSON.stringify(s.coolForm, null, 2)}
         </code>
       </pre>
     </details>

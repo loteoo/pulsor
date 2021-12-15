@@ -1,4 +1,4 @@
-import Http from '../../pkg/http'
+import Http from '../../../../pkg/http'
 
 const DoStuffA = () => ({ fooA: 'fooA'})
 
@@ -23,7 +23,7 @@ export default (
   <main init={[InitStuff, FetchCharacters]}>
     <h1>Characters</h1>
     <ul>
-      {({ characters }) => characters?.data?.results?.map((character) => (
+      {({ characters }: any) => characters?.data?.results?.map((character: any) => (
         <li>
           {character.name} - {character.species} - {character.status}
         </li>

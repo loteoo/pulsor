@@ -1,8 +1,10 @@
-import Head from '../../pkg/head'
+import { Action } from '@pulsor/core'
+import Head from '../../../../pkg/head'
 
-const Init = { count: 0 }
-const Decrement = (state) => ({ count: state.count - 1 })
-const Increment = (state) => ({ count: state.count + 1 })
+
+const Init: Action = { count: 0 }
+const Decrement: Action = (state) => ({ count: state.count! - 1 })
+const Increment: Action = (state) => ({ count: state.count! + 1 })
 
 export default (
   <main init={Init}>
