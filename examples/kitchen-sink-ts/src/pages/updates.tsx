@@ -44,16 +44,16 @@ const SimpleUpdate: Update<UpdateState> = {
   }
 }
 
-const SetUserA: Action<UpdateState> = {
+const SetUserA: Action = {
   update: {
-    user: userA
-  }
+    user: userA,
+  },
 }
 
 const SetFirstname: Update = {
   update: {
     user: {
-      firstName: 'Foo bar'
+      firstName: 'Foo bar',
     }
   }
 }
@@ -61,8 +61,9 @@ const SetFirstname: Update = {
 const ReplaceWithUserB: Action<UpdateState> = {
   update: {
     user: () => ({
-      ...userB
-    })
+      ...userB,
+
+    }),
   }
 }
 

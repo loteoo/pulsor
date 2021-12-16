@@ -1,5 +1,6 @@
 export default (
   <div>
-    <h1>Hleoo</h1>
+    <h1>Hi! Welcome to the kitchen sink</h1>
+    <p>(Trying out every thing in an unorganized way)</p>
   </div>
 )
