@@ -7,7 +7,7 @@
     "preview": "pulsor preview"
   },
   "dependencies": {
-    "@pulsor/core": "0.0.1-rc.15",
+    "@pulsor/core": "0.0.1-rc.16",
     "@pulsor/form": "^0.0.1-rc.2",
     "@pulsor/location": "^0.0.1-rc.1"
   }

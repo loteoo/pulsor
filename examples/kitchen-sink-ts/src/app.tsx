@@ -1,7 +1,7 @@
 import { EnhanceLinkClicks } from '../../../pkg/location'
-import Header from './components/Header'
-import Router from './components/Router'
-import Footer from './components/Footer'
+import Header from '/src/components/Header'
+import Router from '/src/components/Router'
+import Footer from '/src/components/Footer'
 import './style.css'
 
 export default (

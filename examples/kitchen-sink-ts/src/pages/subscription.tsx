@@ -1,4 +1,4 @@
-import { Action, Task, VNode } from "@pulsor/core"
+import { Action, State, Task, VNode } from "@pulsor/core"
 
 const Init: Action = {
   count: 0
@@ -9,7 +9,7 @@ const Increment: Action = state => ({
 })
 
 const Decrement: Action = state => ({
-  count: state.count! - 1
+  count: state.count! - 1,
 })
 
 const TrackTask: Task = {
