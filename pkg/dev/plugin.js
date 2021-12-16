@@ -3,8 +3,8 @@ import path from 'path';
 import { defineConfig, mergeConfig, normalizePath } from "vite";
 
 const appToCliPath = path.relative(process.cwd(), __dirname);
-const htmlFilePath = path.resolve(__dirname, 'index.html');
-const tempHtmlFilePath = path.resolve(process.cwd(), 'index.html');
+const cliHtmlFilePath = path.resolve(__dirname, 'index.html');
+const projectHtmlFilePath = path.resolve(process.cwd(), 'index.html');
 
 // ====
 
@@ -28,12 +28,25 @@ const getExactPath = (path) => {
 
 // ===
 
-const isProject = fs.existsSync(path.resolve(process.cwd(), 'package.json'));
+const pulsorIsInstalled = () => {
+  const packageJsonPath = path.resolve(process.cwd(), 'package.json');
+  const hasPackageJson = fs.existsSync(packageJsonPath);
+
+  if (hasPackageJson) {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+    if (packageJson && packageJson.dependencies && packageJson.dependencies['@pulsor/core']) {
+      return true
+    }
+  }
+
+  return false
+}
 
 const projectPulsor = '@pulsor/core';
 const cliPulsor = normalizePath(path.resolve(__dirname, 'node_modules/@pulsor/core/src'));
 
-const pulsorPath = isProject ? projectPulsor : cliPulsor;
+const pulsorPath = pulsorIsInstalled() ? projectPulsor : cliPulsor;
 // const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
 
 // ===
@@ -104,7 +117,7 @@ const pulsorDevPlugin = () => {
 
       // Change path to index.html during build
       if (command === 'build') {
-        fs.copyFileSync(htmlFilePath, tempHtmlFilePath);
+        fs.copyFileSync(cliHtmlFilePath, projectHtmlFilePath);
       }
     },
     resolveId(id) {
@@ -119,7 +132,7 @@ const pulsorDevPlugin = () => {
       }
     },
     closeBundle() {
-      fs.rmSync(tempHtmlFilePath);
+      fs.rmSync(projectHtmlFilePath);
     },
   };
 };
