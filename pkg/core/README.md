@@ -19,7 +19,7 @@ run(app);
 
 The app is a single tree of vNodes describing the whole app.
 
-<details open>
+<details>
   <summary>Raw hello world</summary>
 
 ```typescript
@@ -43,7 +43,7 @@ run(app);
 </details>
 
 <details>
-  <summary>Using the <code>h</code> helper</summary>
+  <summary>Using the <code>h</code> helper directly</summary>
 
 ```typescript
 import { run, h } from '@pulsor/core';
@@ -63,7 +63,7 @@ run(app);
 
 </details>
 
-<details>
+<details open>
   <summary>Using JSX</summary>
 
 ```tsx

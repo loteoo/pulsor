@@ -1,6 +1,4 @@
 // === Generic
-export type State = Record<string, unknown>;
-
 export type Falsy = false | null | undefined | void;
 export type TextElement = string | number | bigint;
 export type DeepPartial<T> = {
@@ -103,7 +101,7 @@ export interface VNode<S = State> extends Partial<LogicalProps> {
   mount?: Node; /* Node on which to mount child elements onto */
 };
 
-export type Component = (...args: any[]) => VChildNode;
+export type Component<S = State> = (...args: any[]) => VChildNode<S>;
 
 export type HyperScript = <T = string | Component>(type: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode;
 
