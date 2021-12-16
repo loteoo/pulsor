@@ -8,8 +8,5 @@
     "esModuleInterop": true,
     "outDir": "dist"
   },
-  "include": [
-    "index.ts",
-    "pulsor-env.d.ts",
-  ],
+  "include": ["index.ts"],
 }

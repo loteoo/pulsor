@@ -1,23 +1,30 @@
 import { match, MatchFunction } from "path-to-regexp";
 import { h, ActionFunction, Action, VChildNode, VNode, Component } from '@pulsor/core'
 
+export type State = {
+  location: {
+    path: string;
+    query: Record<string, string>;
+    hash: string;
+  }
+}
+
 const parseQueryString = (qs?: string) => {
   return qs ? Object.fromEntries(new URLSearchParams(qs)) : {}
 }
 
-const HandleRouteChange: ActionFunction = (_, url: string) => {
+const HandleRouteChange: ActionFunction<State> = (_, url: string) => {
   const [rest, hash] = url.split('#')
   const [path, queryString] = rest.split('?')
   return [
-    { location: undefined, },
     {
-      location: {
+      location: () => ({
         path,
         query: parseQueryString(queryString),
         hash,
-      }
+      })
     },
-    hash && {
+    Boolean(hash) && {
       run: (emit) => {
         setTimeout(() => {
           const el = document.getElementById(hash);
@@ -33,7 +40,7 @@ const HandleRouteChange: ActionFunction = (_, url: string) => {
   ]
 }
 
-const InitRoute = (params: any): Action => (state) => ({
+const InitRoute = (params: any): Action => ({
   location: {
     params,
   },
@@ -119,7 +126,7 @@ export const createRouter = ({ routes }: Options) => {
   }
 
   const Router: Component = () => ({
-    init: (state) => [
+    init: (state: State) => [
       HandleRouteChange(state, window.location.pathname + window.location.search + window.location.hash),
       TrackRouteChange
     ],

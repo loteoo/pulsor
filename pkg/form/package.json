@@ -1,6 +1,6 @@
 {
   "name": "@pulsor/form",
-  "version": "0.0.1-rc.2",
+  "version": "0.0.1-rc.4",
   "description": "Stateful form handling primitives for pulsor",
   "author": "Alexandre Lotte <dev@alexlotte.ca>",
   "license": "ISC",
@@ -12,10 +12,11 @@
     "prepublish": "tsc",
     "test": "echo \"No test specified\""
   },
-  "dependencies": {
-    "@pulsor/core": "0.0.1-rc.11"
+  "peerDependencies": {
+    "@pulsor/core": "*"
   },
   "devDependencies": {
+    "@pulsor/core": "0.0.1-rc.18",
     "typescript": "^4.5.2"
   }
 }
