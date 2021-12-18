@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@pulsor/core": "0.0.1-rc.18",
-    "@pulsor/form": "^0.0.1-rc.2",
-    "@pulsor/location": "^0.0.1-rc.1"
+    "@pulsor/form": "^0.0.1-rc.4",
+    "@pulsor/location": "^0.0.1-rc.2"
   }
 }

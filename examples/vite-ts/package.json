@@ -7,10 +7,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@pulsor/core": "0.0.1-rc.9"
+    "@pulsor/core": "0.0.1-rc.18"
   },
   "devDependencies": {
     "typescript": "^4.5.2",
-    "vite": "^2.6.14"
+    "vite": "^2.7.1"
   }
 }

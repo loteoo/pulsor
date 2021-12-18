@@ -16,7 +16,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
+  "peerDependencies": {
+    "@pulsor/core": "*"
+  },
+  "devDependencies": {
     "@pulsor/core": "0.0.1-rc.18",
     "vite": "^2.7.1"
   }

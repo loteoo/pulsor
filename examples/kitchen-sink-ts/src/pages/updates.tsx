@@ -67,7 +67,7 @@ const ReplaceWithUserB: Action<UpdateState> = {
   }
 }
 
-const SetCount: Action<UpdateState> = ({
+const Test: Action<UpdateState> = ({
   run: (emit) => {
 
   },
@@ -75,6 +75,13 @@ const SetCount: Action<UpdateState> = ({
 
   })
 })
+
+
+const RemoveKey: Update<UpdateState> = {
+  update: {
+    foo: undefined
+  }
+}
 
 const IncrementNested: Update<UpdateState> = ({
   update: {
@@ -91,7 +98,7 @@ export default (
     <p><button type="button" onclick={SetUserA}>SetUserA</button></p>
     <p><button type="button" onclick={SetFirstname}>SetFirstname</button></p>
     <p><button type="button" onclick={ReplaceWithUserB}>ReplaceWithUserB</button></p>
-    <p><button type="button" onclick={SetCount}>SetCount</button></p>
     <p><button type="button" onclick={IncrementNested}>IncrementNested</button></p>
+    <p><button type="button" onclick={RemoveKey}>RemoveKey</button></p>
   </div>
 )
