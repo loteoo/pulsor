@@ -83,15 +83,23 @@ function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
 
 // ===
 
-const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx: any) => {
+const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx: any, isSvg: boolean) => {
 
   if (vNode.text != null) {
     vNode.el = document.createTextNode(String(vNode.text));
   } else if (!vNode.type) {
     vNode.el = document.createDocumentFragment();
   } else {
-    vNode.el = document.createElement(vNode.type!);
+    if (vNode.type === 'svg') {
+      isSvg = true;
+    }
+    if (isSvg) {
+      vNode.el = document.createElementNS('http://www.w3.org/2000/svg', vNode.type!);
+    } else {
+      vNode.el = document.createElement(vNode.type!);
+    }
   }
+  
 
   patch(
     {
@@ -104,6 +112,7 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     vNode,
     cycle,
     ctx,
+    isSvg,
   );
 
   parent.insertBefore(vNode.el, before);
@@ -119,7 +128,7 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
 
 
 
-const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, oldVNode: VNode, newVNode: VNode, cycle: Cycle) => {
+const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, oldVNode: VNode, newVNode: VNode, cycle: Cycle, isSvg: boolean) => {
   if (key.startsWith("on")) {
     const eventName = key.slice(2);
     //@ts-ignore
@@ -168,7 +177,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
   }
 
   // Handle "method" properties ex: value, selected, checked, open, innerHTML, innerText, etc
-  if (key in el) {
+  if (key in el && !isSvg) {
     if (newValue == null) {
       // @ts-ignore
       el[key] = ''
@@ -188,7 +197,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 };
 
 
-const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
+const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: boolean) => {
 
   // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
@@ -216,7 +225,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
     for (const key in { ...oldVNode?.props, ...newVNode?.props }) {
       const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode?.props?.[key];
       if (oldVal !== newVNode?.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
-        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], oldVNode, newVNode, cycle);
+        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], oldVNode, newVNode, cycle, isSvg);
       }
     }
   }
@@ -250,20 +259,20 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
     } else if (newEndVNode == null) {
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newStartVNode)) {
-      patch(oldStartVNode, newStartVNode, cycle, ctx);
+      patch(oldStartVNode, newStartVNode, cycle, ctx, isSvg);
       oldStartVNode = oldCh[++oldStartIdx];
       newStartVNode = newCh[++newStartIdx];
     } else if (isSame(oldEndVNode, newEndVNode)) {
-      patch(oldEndVNode, newEndVNode, cycle, ctx);
+      patch(oldEndVNode, newEndVNode, cycle, ctx, isSvg);
       oldEndVNode = oldCh[--oldEndIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
-      patch(oldStartVNode, newEndVNode, cycle, ctx);
+      patch(oldStartVNode, newEndVNode, cycle, ctx, isSvg);
       moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx, parent)?.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
-      patch(oldEndVNode, newStartVNode, cycle, ctx);
+      patch(oldEndVNode, newStartVNode, cycle, ctx, isSvg);
       moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx, parent)!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
@@ -279,13 +288,13 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx);
+        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, isSvg);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx);
+          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, isSvg);
         } else {
-          patch(elmToMove, newStartVNode, cycle, ctx);
+          patch(elmToMove, newStartVNode, cycle, ctx, isSvg);
           oldCh[idxInOld] = undefined as any;
           moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx, parent)!);
         }
@@ -299,7 +308,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any) => {
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
-          createNode(ch, parent, before, cycle, ctx);
+          createNode(ch, parent, before, cycle, ctx, isSvg);
         }
       }
     } else {
