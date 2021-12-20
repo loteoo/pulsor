@@ -222,6 +222,12 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
       el.textContent = String(newVNode.text);
       return;
     }
+
+
+    if (newVNode.type === 'svg') {
+      isSvg = true;
+    }
+
     for (const key in { ...oldVNode?.props, ...newVNode?.props }) {
       const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode?.props?.[key];
       if (oldVal !== newVNode?.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
