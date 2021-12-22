@@ -46,8 +46,8 @@ const pulsorIsInstalled = () => {
 const projectPulsor = '@pulsor/core';
 const cliPulsor = normalizePath(path.resolve(__dirname, 'node_modules/@pulsor/core/src'));
 
-const pulsorPath = pulsorIsInstalled() ? projectPulsor : cliPulsor;
-// const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
+// const pulsorPath = pulsorIsInstalled() ? projectPulsor : cliPulsor;
+const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
 
 // ===
 const createMainFile = (rootNode, accept) => `import initialAppModule from '${rootNode}';
@@ -77,7 +77,7 @@ if (import.meta.hot) {
   })
 }
 
-run(rootApp);
+run(rootApp, document.getElementById('pulsor'));
 `
 
 const pulsorDevPlugin = () => {
@@ -100,6 +100,8 @@ const pulsorDevPlugin = () => {
 
     config(config, { command }) {
       rootNode = normalizePath(getExactPath(path.resolve(process.cwd(), config.root || '.')));
+
+      console.log({ doc: config.document })
 
       Object.assign(config, mergeConfig(config, defineConfig({
         root: process.cwd(),
@@ -137,4 +139,4 @@ const pulsorDevPlugin = () => {
   };
 };
 
-module.exports = pulsorDevPlugin;
+export default pulsorDevPlugin;

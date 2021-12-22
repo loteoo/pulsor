@@ -1,5 +1,13 @@
 /// <reference types="vite/client" />
+import { ConfigEnv, UserConfig } from "vite";
+import { VNode } from '@pulsor/core'
 
-import { UserConfigExport } from "vite";
+type PulsorConfig = UserConfig & {
+  document?: (root: VNode) => VNode;
+}
+
+type UserConfigExport = PulsorConfig | Promise<PulsorConfig> | UserConfigFn;
+
+type UserConfigFn = (env: ConfigEnv) => PulsorConfig | Promise<PulsorConfig>;
 
 export type Config = UserConfigExport;

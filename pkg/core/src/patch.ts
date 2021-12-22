@@ -115,6 +115,12 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     isSvg,
   );
 
+  // console.log('insertBefore', {
+  //   parent,
+  //   el: vNode.el,
+  //   before
+  // })
+  
   parent.insertBefore(vNode.el, before);
 
   // For fragments

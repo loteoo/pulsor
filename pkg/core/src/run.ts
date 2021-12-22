@@ -1,4 +1,4 @@
-// import { hydrate } from './hydrate'
+import hydrate from './hydrate'
 import reduce from './reduce';
 import patch from './patch';
 import runTasks from './runTasks';
@@ -48,7 +48,7 @@ import { VNode, Task, Emitter, Action, EventData, Cycle } from './types';
 
 // const stateWithSelectors = new Proxy(stato2, handler);
 
-const run = (app: VNode) => {
+const run = (app: VNode, root: Node) => {
 
   function domEmitter(event: any) {
     // @ts-ignore
@@ -69,10 +69,7 @@ const run = (app: VNode) => {
       }
     }
 
-  const oldVNode: VNode = {
-    el: document.body,
-  }
-
+  const oldVNode = hydrate(root);
 
   const dispatch = (eventName: string, action: Action, payload?: EventData) => {
 
@@ -91,7 +88,7 @@ const run = (app: VNode) => {
           ...oldVNode,
           children: app
         }
-        patch(oldVNode, nextVNode, cycle, {});
+        patch(oldVNode, nextVNode, cycle, {}, false);
       }
 
       // console.groupEnd();
