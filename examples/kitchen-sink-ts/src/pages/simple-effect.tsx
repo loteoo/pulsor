@@ -1,11 +1,9 @@
-const promtTask = {
-  effect: (emit) => {
-    const answer = prompt('What\'s your name?')
-    emit('answer', answer)
-  },
-  onanswer: (state, answer) => ({
-    answer
-  })
+import { Action } from "/../../pkg/core/src"
+
+const promtTask: Action = {
+  effect: (dispatch) => {
+    dispatch({ answer: prompt('What\'s your name?') })
+  }
 }
 
 const app = (

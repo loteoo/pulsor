@@ -39,7 +39,25 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
     const effect = action as Effect;
     effect.payload = payload;
     effect.vNode = vNode;
-    cycle.effects.push(effect);
+
+    const sideEffect = () => {
+      const cleanup = effect.effect((...args) => {
+        setTimeout(() => {
+          cycle.dispatch(...args)
+        })
+      }, effect.payload)
+      if (cleanup && effect.vNode) {
+        // @ts-ignore
+        if (!effect.vNode.el.clearEffects) {
+          // @ts-ignore
+          effect.vNode.el.clearEffects = [];
+        }
+        // @ts-ignore
+        effect.vNode.el.clearEffects.push(cleanup)
+      }
+    }
+
+    cycle.sideEffects.push(sideEffect);
     // console.log(`enqueued effect`, effect)
     return;
   }

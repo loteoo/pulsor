@@ -25,7 +25,7 @@ const HandleRouteChange: ActionFunction<State> = (_, url: string) => {
       })
     },
     Boolean(hash) && {
-      effect: (emit) => {
+      effect: () => {
         setTimeout(() => {
           const el = document.getElementById(hash);
           if (el) {
@@ -33,7 +33,6 @@ const HandleRouteChange: ActionFunction<State> = (_, url: string) => {
               behavior: 'smooth',
             });
           }
-          emit('scrolled')
         })
       },
     }
@@ -46,10 +45,10 @@ const InitRoute = (params: any): Action => ({
   },
 })
 
-const TrackRouteChange = {
-  effect: (emit: any) => {
+const TrackRouteChange: Action = {
+  effect: (dispatch) => {
     const handleLocationChange = () => {
-      emit('routechange', window.location.pathname + window.location.search + window.location.hash)
+      dispatch(HandleRouteChange, window.location.pathname + window.location.search + window.location.hash)
     }
 
     addEventListener('pushstate', handleLocationChange)
@@ -59,7 +58,6 @@ const TrackRouteChange = {
       removeEventListener('popstate', handleLocationChange)
     }
   },
-  onroutechange: HandleRouteChange,
 }
 
 export const navigate = (href: string): Effect => ({

@@ -63,11 +63,10 @@ if (import.meta.hot) {
     {
       init: {
         effect: (emit) => {
-          const handler = () => emit('hrmupdate')
+          const handler = () => emit({})
           window.addEventListener('hmr', handler)
           return () => window.removeEventListener('hmr', handler)
-        },
-        onhrmupdate: ({ })
+        }
       },
     },
     () => app,

@@ -8,11 +8,11 @@ export type DeepPartial<T> = {
 // === Actions
 
 export type EventData = any;
+export type Dispatch = (action: Action, payload?: EventData, eventName?: string) => void;
 
 // Effect
-export type Emitter = (eventName: string, payload?: EventData) => void;
 export type EffectCleanup = () => void | Promise<void>;
-export type Effector = (emit: Emitter, payload?: EventData) => EffectCleanup | void;
+export type Effector = (dispatch: Dispatch, payload?: EventData) => EffectCleanup | void;
 
 export interface Effect {
   vNode?: VNode;
@@ -110,6 +110,6 @@ export interface Cycle {
   state: State,
   needsRerender: boolean;
   domEmitter: any;
-  createEmitter: any;
-  effects: Effect[];
+  dispatch: Dispatch;
+  sideEffects: (() => void)[];
 };

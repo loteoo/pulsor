@@ -2,7 +2,7 @@
 import { isSame } from './utils'
 import normalize from './normalize';
 import reduce from './reduce';
-import { Action, Cycle, VNode } from './types';
+import { Cycle, VNode } from './types';
 
 
 const _createElement = document.createElement.bind(document);
@@ -19,17 +19,9 @@ document.createElement = (type) => {
 
 // ====
 
-function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: VNode, eventName: string) {
-  if (action) {
-    // console.group(eventName);
-    reduce(action, payload, cycle, vNode, eventName);
-    // console.groupEnd();
-  }
-}
-
 function recurseRemove(vNode: VNode, parent: Node | undefined, cycle: Cycle) {
 
-  handleInlineAction(vNode.clear, vNode.el, cycle, vNode, 'clear');
+  reduce(vNode.clear, vNode.el, cycle, vNode, 'clear');
 
   // @ts-ignore
   if (vNode.el?.clearEffects) {
@@ -48,10 +40,8 @@ function recurseRemove(vNode: VNode, parent: Node | undefined, cycle: Cycle) {
     }
   }
 
-  if (vNode.tag) {
-    if (vNode.el!.parentNode === parent) {
-      parent?.removeChild(vNode.el!);
-    }
+  if (vNode.el && vNode.el!.parentNode === parent) {
+    parent?.removeChild(vNode.el!);
   }
 }
 
@@ -71,6 +61,8 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
     } else {
       vNode.el = document.createElement(vNode.tag!);
     }
+  } else {
+    vNode.el = document.createComment('');
   }
   
   patch(
@@ -96,7 +88,7 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
 
 
 
-const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, oldVNode: VNode, newVNode: VNode, cycle: Cycle, isSvg: boolean) => {
+const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, cycle: Cycle, isSvg: boolean) => {
   if (key.startsWith("on")) {
     const eventName = key.slice(2);
     //@ts-ignore
@@ -173,7 +165,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
   const el = oldVNode.el;
 
   if (newVNode?.init && oldVNode?.init == null) {
-    handleInlineAction(newVNode?.init, el, cycle, oldVNode, 'init');
+    reduce(newVNode?.init, el, cycle, oldVNode, 'init');
   }
 
   if (newVNode?.ctx) {
@@ -196,7 +188,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
     for (const key in { ...oldVNode?.props, ...newVNode?.props }) {
       const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode?.props?.[key];
       if (oldVal !== newVNode?.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
-        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], oldVNode, newVNode, cycle, isSvg);
+        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], cycle, isSvg);
       }
     }
   }

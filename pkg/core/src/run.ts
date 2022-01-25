@@ -1,8 +1,7 @@
 import hydrate from './hydrate'
 import reduce from './reduce';
 import patch from './patch';
-import runEffects from './runEffects';
-import { VNode, Effect, Emitter, Action, EventData, Cycle } from './types';
+import { VNode, Action, EventData, Cycle } from './types';
 
 const run = (app: VNode, root: Node) => {
 
@@ -10,29 +9,15 @@ const run = (app: VNode, root: Node) => {
 
   function domEmitter(event: any) {
     // @ts-ignore
-    dispatch(event.type, (this[event.type] as Action), event);
+    dispatch((this[event.type] as Action), event, event.type);
   }
-
-  const createEmitter = (eventsObject: Effect & VNode): Emitter =>
-    (eventName, payload) => {
-      const handlerKey = `on${eventName}`;
-
-      //@ts-ignore
-      if (eventsObject[handlerKey]) {
-        //@ts-ignore
-
-        setTimeout(() => {
-          dispatch(eventName, eventsObject[handlerKey] as Action, payload)
-        })
-      }
-    }
 
   const oldVNode = hydrate(root);
 
   // @ts-ignore
   window.oldVNode = oldVNode
 
-  const dispatch = (eventName: string, action: Action, payload?: EventData) => {
+  const dispatch = (action: Action, payload?: EventData, eventName?: string) => {
 
     // console.groupCollapsed(`Dispatch: ${eventName}`)
 
@@ -58,10 +43,10 @@ const run = (app: VNode, root: Node) => {
     }
 
     // Run Effects
-    if (cycle.effects.length > 0) {
+    if (cycle.sideEffects.length > 0) {
       // console.log(`Running ${cycle.effects.length} effects`)
-      runEffects(cycle.effects, cycle);
-      cycle.effects = [];
+      cycle.sideEffects.forEach((effect) => effect())
+      cycle.sideEffects = [];
     } else {
       // console.log('No effects')
     }
@@ -73,11 +58,11 @@ const run = (app: VNode, root: Node) => {
     state: {},
     needsRerender: false,
     domEmitter,
-    createEmitter,
-    effects: [],
+    dispatch,
+    sideEffects: [],
   }
 
-  dispatch('root init', {})
+  dispatch({}, undefined, 'root init')
 }
 
 

@@ -1,12 +1,13 @@
-const FetchCharacters = {
-  effect: async (emit) => {
+import { Action } from "/../../pkg/core/src";
+
+const FetchCharacters: Action = {
+  effect: async (dispatch) => {
     const response = await fetch(`https://rickandmortyapi.com/api/character`)
     const data = await response.json()
-    emit('complete', data.results);
+    dispatch({
+      test_characters: data.results
+    });
   },
-  oncomplete: (_, characters) => ({
-    test_characters: characters
-  })
 }
 
 const app = (

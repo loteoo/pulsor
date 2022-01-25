@@ -1,10 +1,9 @@
-const promtTask = {
-  effect: (emit, el) => {
-    emit('width', el.clientWidth)
+import { Action } from "/../../pkg/core/src"
+
+const promtTask: Action = {
+  effect: (dispatch, el) => {
+    dispatch({ width: el.clientWidth})
   },
-  onwidth: (state, width) => ({
-    width
-  })
 }
 
 const app = (
