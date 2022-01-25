@@ -1,5 +1,5 @@
 const promtTask = {
-  run: (emit, el) => {
+  effect: (emit, el) => {
     emit('width', el.clientWidth)
   },
   onwidth: (state, width) => ({

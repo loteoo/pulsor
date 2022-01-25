@@ -1,5 +1,5 @@
 import { match, MatchFunction } from "path-to-regexp";
-import { h, ActionFunction, Action, VChildNode, VNode, Component } from '@pulsor/core'
+import { h, ActionFunction, Action, VChildNode, VNode, Component, Effect } from '../core/src'
 
 export type State = {
   location: {
@@ -25,7 +25,7 @@ const HandleRouteChange: ActionFunction<State> = (_, url: string) => {
       })
     },
     Boolean(hash) && {
-      run: (emit) => {
+      effect: (emit) => {
         setTimeout(() => {
           const el = document.getElementById(hash);
           if (el) {
@@ -47,7 +47,7 @@ const InitRoute = (params: any): Action => ({
 })
 
 const TrackRouteChange = {
-  run: (emit: any) => {
+  effect: (emit: any) => {
     const handleLocationChange = () => {
       emit('routechange', window.location.pathname + window.location.search + window.location.hash)
     }
@@ -62,8 +62,8 @@ const TrackRouteChange = {
   onroutechange: HandleRouteChange,
 }
 
-export const navigate = (href: string) => ({
-  run: () => {
+export const navigate = (href: string): Effect => ({
+  effect: () => {
     history.pushState(null, '', href)
     dispatchEvent(new CustomEvent("pushstate"))
   }
@@ -84,8 +84,8 @@ export const Link = ({ href, ...rest }: LinkProps, children: VChildNode) =>
     children
   )
 
-export const EnhanceLinkClicks = (state: any, ev: any) => ({
-  run: () => {
+export const EnhanceLinkClicks: Action = (state: any, ev: any) => ({
+  effect: () => {
     let clicked: HTMLElement | null = ev.target as HTMLElement;
 
     // Crawl up dom tree, look if click landed inside a <a /> tag
@@ -126,6 +126,7 @@ export const createRouter = ({ routes }: Options) => {
   }
 
   const Router: Component = () => ({
+    tag: 'div',
     init: (state: State) => [
       HandleRouteChange(state, window.location.pathname + window.location.search + window.location.hash),
       TrackRouteChange
@@ -135,6 +136,7 @@ export const createRouter = ({ routes }: Options) => {
         const maybeMatch = matchers[route](state.location.path)
         if (maybeMatch) {
           return {
+            tag: 'div',
             key: route,
             init: InitRoute(maybeMatch.params),
             children: routes[route],

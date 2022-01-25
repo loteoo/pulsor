@@ -4,7 +4,9 @@
   "description": "Virtual DOM unleashed",
   "author": "Alexandre Lotte <dev@alexlotte.ca>",
   "license": "ISC",
-  "keywords": ["virtual-dom"],
+  "keywords": [
+    "virtual-dom"
+  ],
   "devDependencies": {
     "typescript": "^4.5.2"
   },

@@ -9,15 +9,15 @@ export type DeepPartial<T> = {
 
 export type EventData = any;
 
-// Task
+// Effect
 export type Emitter = (eventName: string, payload?: EventData) => void;
-export type TaskCleanupFunction = () => void | Promise<void>;
-export type TaskRunner = (emit: Emitter, payload?: EventData) => TaskCleanupFunction | void;
+export type EffectCleanup = () => void | Promise<void>;
+export type Effector = (emit: Emitter, payload?: EventData) => EffectCleanup | void;
 
-export interface Task {
+export interface Effect {
   vNode?: VNode;
   payload?: EventData;
-  run: TaskRunner;
+  effect: Effector;
   [x: string]: any; // in reality, EventHandler;
 }
 
@@ -29,7 +29,7 @@ export type Update<S = State> = {
 // Action
 export type ActionFunction<S = State> = (state: S, payload?: EventData) => Action<S>;
 
-export type ActionItem<S = State> = Update<S> | Task;
+export type ActionItem<S = State> = Update<S> | Effect;
 
 export type Action<S = State> =
   | ActionItem<S>
@@ -88,22 +88,21 @@ export type VChildNode<S = State> =
 // VNode
 
 export interface VNode<S = State> extends Partial<LogicalProps> {
-  type?: string;
+  tag?: string;
   props?: VProps;
   children?: VChildNode<S>;
   text?: TextElement;
 
   // Maybe move somewhere else
-  clearTasks?: TaskCleanupFunction[];
+  clearEffects?: EffectCleanup[];
 
-  // TODO: maybe only 1 is needed, maybe move to "LogicalProps" type
+  // TODO: Maybe move to "LogicalProps" type
   el?: Node;
-  mount?: Node; /* Node on which to mount child elements onto */
 };
 
 export type Component<S = State> = (...args: any[]) => VChildNode<S>;
 
-export type HyperScript = <T = string | Component>(type: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode;
+export type HyperScript = <T = string | Component>(tag: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode;
 
 // Internals
 
@@ -112,5 +111,5 @@ export interface Cycle {
   needsRerender: boolean;
   domEmitter: any;
   createEmitter: any;
-  tasks: Task[];
+  effects: Effect[];
 };

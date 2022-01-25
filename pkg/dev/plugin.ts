@@ -59,17 +59,19 @@ let app = initialAppModule;
 let rootApp = app;
 
 if (import.meta.hot) {
-  rootApp = {
-    init: {
-      run: (emit) => {
-        const handler = () => emit('hrmupdate')
-        window.addEventListener('hmr', handler)
-        return () => window.removeEventListener('hmr', handler)
+  rootApp = [
+    {
+      init: {
+        effect: (emit) => {
+          const handler = () => emit('hrmupdate')
+          window.addEventListener('hmr', handler)
+          return () => window.removeEventListener('hmr', handler)
+        },
+        onhrmupdate: ({ })
       },
-      onhrmupdate: ({ })
     },
-    children: () => app,
-  };
+    () => app,
+  ];
 
   import.meta.hot.accept('${accept}', (newModule) => {
     app = newModule.default

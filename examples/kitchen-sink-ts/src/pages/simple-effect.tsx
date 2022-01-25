@@ -1,5 +1,5 @@
 const promtTask = {
-  run: (emit) => {
+  effect: (emit) => {
     const answer = prompt('What\'s your name?')
     emit('answer', answer)
   },

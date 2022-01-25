@@ -4,6 +4,19 @@ import normalize from './normalize';
 import reduce from './reduce';
 import { Action, Cycle, VNode } from './types';
 
+
+const _createElement = document.createElement.bind(document);
+
+// @ts-ignore
+document.createElement = (type) => {
+
+  console.count('Created a dom element')
+  // console.log('Created element ', type)
+
+  return _createElement(type)
+}
+
+
 // ====
 
 function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: VNode, eventName: string) {
@@ -14,52 +27,14 @@ function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: V
   }
 }
 
-function moveVNode(parent: Node, vNode: VNode, before?: Node) {
-  if (vNode.type || vNode.text != null) {
-    parent.insertBefore(vNode.el!, before!);
-    // @ts-ignore
-  } else if (vNode.children?.length) {
-    for (const ch of (vNode.children as VNode[])) {
-      moveVNode(parent, ch, before)
-    }
-  }
-}
-
-function getFragmentEl(chArray: VNode[], initialIdx: number, parent: Node): Node | null {
-  const endIdx = chArray.length - 1;
-  let idx = initialIdx;
-  let el = null;
-  while (idx <= endIdx) {
-    const vNode = chArray[idx];
-    if (vNode.type || vNode.text != null) {
-      el = vNode.el;
-      break;
-    }
-    // @ts-ignore
-    if (vNode.children?.length) {
-      const checkInside = getFragmentEl((vNode.children as VNode[]), 0, parent);
-      if (checkInside) {
-        if (checkInside.parentNode === parent) {
-          el = checkInside;
-          break;
-        }
-      }
-    }
-
-    idx++;
-  }
-
-  return el as Node | null;
-}
-
-function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
+function recurseRemove(vNode: VNode, parent: Node | undefined, cycle: Cycle) {
 
   handleInlineAction(vNode.clear, vNode.el, cycle, vNode, 'clear');
 
   // @ts-ignore
-  if (vNode.el.clearTasks) {
+  if (vNode.el?.clearEffects) {
     // @ts-ignore
-    vNode.el.clearTasks.forEach(cleanup => {
+    vNode.el.clearEffects.forEach(cleanup => {
       if (typeof cleanup === 'function') {
         cleanup()
       }
@@ -69,13 +44,13 @@ function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
   //@ts-ignore
   if (vNode.children?.length) {
     for (const ch of (vNode.children as VNode[])) {
-      recurseRemove(ch, vNode.type ? vNode.el! : parent, cycle);
+      recurseRemove(ch, vNode.tag ? vNode.el! : parent, cycle);
     }
   }
 
-  if (vNode.type) {
+  if (vNode.tag) {
     if (vNode.el!.parentNode === parent) {
-      parent.removeChild(vNode.el!);
+      parent?.removeChild(vNode.el!);
     }
   }
 }
@@ -83,30 +58,26 @@ function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
 
 // ===
 
-const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx: any, isSvg: boolean) => {
+const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle: Cycle, ctx: any, isSvg: boolean) => {
 
   if (vNode.text != null) {
     vNode.el = document.createTextNode(String(vNode.text));
-  } else if (!vNode.type) {
-    vNode.el = document.createDocumentFragment();
-  } else {
-    if (vNode.type === 'svg') {
+  } else if (vNode.tag) {
+    if (vNode.tag === 'svg') {
       isSvg = true;
     }
     if (isSvg) {
-      vNode.el = document.createElementNS('http://www.w3.org/2000/svg', vNode.type!);
+      vNode.el = document.createElementNS('http://www.w3.org/2000/svg', vNode.tag!);
     } else {
-      vNode.el = document.createElement(vNode.type!);
+      vNode.el = document.createElement(vNode.tag!);
     }
   }
   
-
   patch(
     {
-      type: vNode.type,
+      tag: vNode.tag,
       text: vNode.text,
       el: vNode.el,
-      mount: vNode.mount,
       children: [],
     },
     vNode,
@@ -115,17 +86,8 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
     isSvg,
   );
 
-  // console.log('insertBefore', {
-  //   parent,
-  //   el: vNode.el,
-  //   before
-  // })
-  
-  parent.insertBefore(vNode.el, before);
-
-  // For fragments
-  if (vNode.type == null && vNode.text == null && !vNode.mount) {
-    vNode.mount = parent;
+  if (vNode.el) {
+    parent?.insertBefore(vNode.el!, before);
   }
 };
 
@@ -207,14 +169,12 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
 
   // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
-  newVNode.mount = oldVNode.mount!;
 
   const el = oldVNode.el;
 
   if (newVNode?.init && oldVNode?.init == null) {
     handleInlineAction(newVNode?.init, el, cycle, oldVNode, 'init');
   }
-  newVNode.clearTasks = oldVNode.clearTasks;
 
   if (newVNode?.ctx) {
     ctx = typeof newVNode.ctx === 'function'
@@ -229,8 +189,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
       return;
     }
 
-
-    if (newVNode.type === 'svg') {
+    if (newVNode.tag === 'svg') {
       isSvg = true;
     }
 
@@ -242,7 +201,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
     }
   }
 
-  const parent = oldVNode.mount ?? oldVNode.el!;
+  const parent = oldVNode.el;
   const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
   const newCh = normalize(newVNode.children, cycle, ctx);
 
@@ -280,12 +239,12 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
       patch(oldStartVNode, newEndVNode, cycle, ctx, isSvg);
-      moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx, parent)?.nextSibling!);
+      parent?.insertBefore(oldStartVNode.el!, oldEndVNode.el!.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
       patch(oldEndVNode, newStartVNode, cycle, ctx, isSvg);
-      moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx, parent)!);
+      parent?.insertBefore(oldEndVNode.el!, oldStartVNode.el!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -300,15 +259,15 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, isSvg);
+        createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg);
       } else {
         elmToMove = oldCh[idxInOld];
-        if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, isSvg);
+        if (elmToMove.tag !== newStartVNode.tag) {
+          createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg);
         } else {
           patch(elmToMove, newStartVNode, cycle, ctx, isSvg);
           oldCh[idxInOld] = undefined as any;
-          moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx, parent)!);
+          parent?.insertBefore(elmToMove as Node, oldStartVNode.el!);
         }
       }
       newStartVNode = newCh[++newStartIdx];
@@ -316,7 +275,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
   }
   if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
     if (oldStartIdx > oldEndIdx) {
-      before = newCh[newEndIdx + 1] == null ? null : getFragmentEl(newCh, newEndIdx + 1, parent);
+      before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].el;
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {

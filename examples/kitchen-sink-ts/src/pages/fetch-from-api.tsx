@@ -1,5 +1,5 @@
 const FetchCharacters = {
-  run: async (emit) => {
+  effect: async (emit) => {
     const response = await fetch(`https://rickandmortyapi.com/api/character`)
     const data = await response.json()
     emit('complete', data.results);

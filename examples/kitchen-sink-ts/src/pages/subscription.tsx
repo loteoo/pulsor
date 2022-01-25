@@ -13,7 +13,7 @@ const Decrement: Action = state => ({
 })
 
 const TrackTask: Task = {
-  run: (emit) => {
+  effect: (emit) => {
     const logKey = (e: KeyboardEvent) => {
       emit('keydown', e.code)
     }
@@ -22,7 +22,7 @@ const TrackTask: Task = {
       document.removeEventListener('keydown', logKey)
     }
   },
-  onkeydown: (state: State, key: string) => [{ ...state, key }, { run: () => { console.log(key) } }]
+  onkeydown: (state: State, key: string) => [{ ...state, key }, { effect: () => { console.log(key) } }]
 }
 
 const createTracker = () => ({
@@ -32,15 +32,16 @@ const createTracker = () => ({
 })
 
 const app: VNode = {
+  type: 'div',
   init: Init,
   children: state => [
     <main>
       {{
-        type:'button',
+        type: 'button',
         children: {
           key: state.count,
           init: {
-            run: () => {
+            effect: () => {
               // console.log('count changed!')
             }
           },

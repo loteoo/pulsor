@@ -1,9 +1,9 @@
 import deepAssign from './deepAssign';
-import { Action, Cycle, VNode, ActionFunction, Task } from './types';
-import { isTask } from './utils';
+import { Action, Cycle, VNode, ActionFunction, Effect } from './types';
+import { isEffect } from './utils';
 
 /**
- * Reduces an action object into a single update "result" and an array of tasks
+ * Reduces an action object into a single update "result" and an array of effects
  */
 const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, parentAction?: string) => {
 
@@ -34,13 +34,13 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
     return;
   }
 
-  // Push tasks in task array
-  if (isTask(action)) {
-    const task = action as Task;
-    task.payload = payload;
-    task.vNode = vNode;
-    cycle.tasks.push(task);
-    // console.log(`enqueued task`, task)
+  // Push effects in effect array
+  if (isEffect(action)) {
+    const effect = action as Effect;
+    effect.payload = payload;
+    effect.vNode = vNode;
+    cycle.effects.push(effect);
+    // console.log(`enqueued effect`, effect)
     return;
   }
 

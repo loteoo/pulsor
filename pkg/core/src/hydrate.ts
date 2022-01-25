@@ -9,16 +9,28 @@ const hydrate = (el: Node): VNode => {
       el,
     };
   }
-  const type = el.nodeName.toLowerCase();
-  const children = [].map.call(el.childNodes, hydrate) as VChildNode[];
+  const tag = el.nodeName.toLowerCase();
+  let children: VChildNode[] = [];
+
+  if (tag === 'head') {
+    const elems = [].filter.call(
+      (el as HTMLHeadElement).children,
+      (el: HTMLElement) => el.dataset['pulsorhydrate'],
+    );
+    children = elems.map(hydrate);
+  } else {
+    children = [].filter.call(
+      el.childNodes,
+      (el: Node) => nodeTypesToHydrate.includes(el.nodeType)
+    ).map(hydrate);
+  }
+
 
   const vNode: VNode = {
-    type,
+    tag,
     el,
     children
   };
-  // console.log('hydrated', el)
-
   return vNode;
 };
 
