@@ -7,9 +7,9 @@ const run = (app: VNode, root: Node) => {
 
   console.log({ run: 'runrun' })
 
-  function domEmitter(event: any) {
+  function domEmitter(ev: Event) {
     // @ts-ignore
-    dispatch((this[event.type] as Action), event, event.type);
+    dispatch((this[ev.type] as Action), ev, ev.type);
   }
 
   const oldVNode = hydrate(root);

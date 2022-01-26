@@ -36,7 +36,7 @@ const HandleForm: Action = (state, ev) => {
 const app = (
   <main>
     <h1>Forms</h1>
-    <Form name="coolForm" onsubmit={HandleForm}>
+    <Form scope="coolForm" onsubmit={HandleForm}>
       <fieldset>
         <legend>Input</legend>
         <Input name="firstName" />

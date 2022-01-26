@@ -24,7 +24,7 @@ const LogKey = (_: any, key: string) => [
 const TrackKeydown: Effect = {
   effect: (dispatch) => {
     const logKey = (e: KeyboardEvent) => {
-      dispatch({ key: e.code })
+      dispatch(LogKey, e.code)
     }
     document.addEventListener('keydown', logKey)
     return () => {
@@ -42,12 +42,12 @@ const app: VNode = {
       <h1>{state.count}</h1>
       <button key="btn-1" onclick={Decrement}>-</button>
       <button key="btn-2" onclick={Increment}>+</button>
-      {state.count >= 3 && ({
+      {state.count! >= 3 && ({
         key: 'tracker',
         init: [{ inited: 'yes' }, TrackKeydown],
         clear: { cleared: 'yes', inited: undefined },
       })}
-      {state.count >= 6 && {
+      {state.count! >= 6 && {
         init: { fooclear: 'init' },
         clear: { fooclear: 'done' },
       }}

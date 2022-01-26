@@ -25,11 +25,10 @@ const hydrate = (el: Node): VNode => {
     ).map(hydrate);
   }
 
-
   const vNode: VNode = {
     tag,
+    children,
     el,
-    children
   };
   return vNode;
 };

@@ -18,7 +18,6 @@ export interface Effect {
   vNode?: VNode;
   payload?: EventData;
   effect: Effector;
-  [x: string]: any; // in reality, EventHandler;
 }
 
 // Update
@@ -93,9 +92,6 @@ export interface VNode<S = State> extends Partial<LogicalProps> {
   children?: VChildNode<S>;
   text?: TextElement;
 
-  // Maybe move somewhere else
-  clearEffects?: EffectCleanup[];
-
   // TODO: Maybe move to "LogicalProps" type
   el?: Node;
 };
@@ -109,7 +105,7 @@ export type HyperScript = <T = string | Component>(tag: T, props: VProps, ...chi
 export interface Cycle {
   state: State,
   needsRerender: boolean;
-  domEmitter: any;
+  domEmitter: (ev: Event) => void;
   dispatch: Dispatch;
   sideEffects: (() => void)[];
 };

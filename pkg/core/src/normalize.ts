@@ -1,7 +1,7 @@
-import { Cycle, VChildNode, VChildNodeFunction, VNode } from './types';
+import { Context, Cycle, VChildNode, VChildNodeFunction, VNode } from './types';
 import { isVChildNodeFunction, isRenderable, isString } from './utils';
 
-const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] => {
+const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: Context): VNode[] => {
   const vNodes = Array.isArray(_vNodes) ? [..._vNodes] : [_vNodes];
 
   let i = 0;

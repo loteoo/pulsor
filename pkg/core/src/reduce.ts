@@ -22,13 +22,8 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
 
   // Handle subactions
   if (typeof action === "function") {
-
-    // @ts-ignore
     // console.group(action.name || parentAction);
-
     const sub = (action as ActionFunction)(cycle.state, payload);
-
-    // @ts-ignore
     reduce(sub, payload, cycle, vNode, action.name);
     // console.groupEnd();
     return;

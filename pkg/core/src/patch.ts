@@ -2,24 +2,11 @@
 import { isSame } from './utils'
 import normalize from './normalize';
 import reduce from './reduce';
-import { Cycle, VNode } from './types';
-
-
-const _createElement = document.createElement.bind(document);
-
-// @ts-ignore
-document.createElement = (type) => {
-
-  console.count('Created a dom element')
-  // console.log('Created element ', type)
-
-  return _createElement(type)
-}
-
+import { Context, Cycle, VNode } from './types';
 
 // ====
 
-function recurseRemove(vNode: VNode, parent: Node | undefined, cycle: Cycle) {
+function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
 
   reduce(vNode.clear, vNode.el, cycle, vNode, 'clear');
 
@@ -36,13 +23,11 @@ function recurseRemove(vNode: VNode, parent: Node | undefined, cycle: Cycle) {
   //@ts-ignore
   if (vNode.children?.length) {
     for (const ch of (vNode.children as VNode[])) {
-      recurseRemove(ch, vNode.tag ? vNode.el! : parent, cycle);
+      recurseRemove(ch, vNode.el!, cycle);
     }
   }
 
-  if (vNode.el && vNode.el!.parentNode === parent) {
-    parent?.removeChild(vNode.el!);
-  }
+  parent?.removeChild(vNode.el!);
 }
 
 
@@ -78,9 +63,7 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
     isSvg,
   );
 
-  if (vNode.el) {
-    parent?.insertBefore(vNode.el!, before);
-  }
+  parent?.insertBefore(vNode.el!, before);
 };
 
 
@@ -157,7 +140,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, c
 };
 
 
-const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: boolean) => {
+const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isSvg: boolean) => {
 
   // ?? why are these needed?!!
   newVNode.el = oldVNode.el!;
@@ -278,7 +261,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
       for (let i = oldStartIdx; i <= oldEndIdx; i++) {
         const ch = oldCh[i];
         if (ch != null) {
-          recurseRemove(ch, parent, cycle);
+          recurseRemove(ch, parent!, cycle);
         }
       }
     }
