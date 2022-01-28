@@ -1,9 +1,12 @@
 import path from 'path'
 
+import document from './document'
+
 /** @type {import('@pulsor/dev').Config} */
 /** @type {import('../../pkg/dev').Config} */
 const config = {
   // Config goes here
+  document,
   resolve: {
     alias: {
       '@pulsor/core': path.resolve(__dirname, '../../pkg/core/src'),

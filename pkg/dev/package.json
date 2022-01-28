@@ -22,5 +22,9 @@
   "devDependencies": {
     "@pulsor/core": "0.0.1-rc.18",
     "vite": "^2.7.1"
+  },
+  "dependencies": {
+    "express": "^4.17.2",
+    "serve-static": "^1.14.2"
   }
 }

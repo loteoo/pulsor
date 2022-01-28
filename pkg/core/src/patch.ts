@@ -4,6 +4,23 @@ import normalize from './normalize';
 import reduce from './reduce';
 import { Context, Cycle, VNode } from './types';
 
+
+if (typeof window !== 'undefined') {
+
+  const _createElement = document.createElement.bind(document);
+  
+  // @ts-ignore
+  document.createElement = (type) => {
+  
+    console.count('Created a dom element')
+    // console.log('Created element ', type)
+  
+    return _createElement(type)
+  }
+}
+
+
+
 // ====
 
 function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
@@ -35,19 +52,21 @@ function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
 
 const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle: Cycle, ctx: any, isSvg: boolean) => {
 
-  if (vNode.text != null) {
-    vNode.el = document.createTextNode(String(vNode.text));
-  } else if (vNode.tag) {
-    if (vNode.tag === 'svg') {
-      isSvg = true;
-    }
-    if (isSvg) {
-      vNode.el = document.createElementNS('http://www.w3.org/2000/svg', vNode.tag!);
+  if (!cycle.dryRun) {
+    if (vNode.text != null) {
+      vNode.el = document.createTextNode(String(vNode.text));
+    } else if (vNode.tag) {
+      if (vNode.tag === 'svg') {
+        isSvg = true;
+      }
+      if (isSvg) {
+        vNode.el = document.createElementNS('http://www.w3.org/2000/svg', vNode.tag!);
+      } else {
+        vNode.el = document.createElement(vNode.tag!);
+      }
     } else {
-      vNode.el = document.createElement(vNode.tag!);
+      vNode.el = document.createComment('');
     }
-  } else {
-    vNode.el = document.createComment('');
   }
   
   patch(
@@ -63,7 +82,9 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
     isSvg,
   );
 
-  parent?.insertBefore(vNode.el!, before);
+  if (!cycle.dryRun) {
+    parent?.insertBefore(vNode.el!, before);
+  }
 };
 
 

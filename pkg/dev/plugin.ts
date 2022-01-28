@@ -54,6 +54,8 @@ const createMainFile = (rootNode, accept) => `import initialAppModule from '${ro
 
 import { run } from '${pulsorPath}';
 
+import doc from '${normalizePath(path.resolve(process.cwd(), 'document'))}';
+
 let app = initialAppModule;
 
 let rootApp = app;
@@ -78,12 +80,16 @@ if (import.meta.hot) {
   })
 }
 
-run(rootApp, document.getElementById('pulsor'));
+const combined = doc(rootApp);
+
+run(combined, document);
 `
 
 const pulsorDevPlugin = () => {
 
   let rootNode;
+  let styleSheets = [];
+
   return {
     name: "pulsor-dev",
 
@@ -100,9 +106,11 @@ const pulsorDevPlugin = () => {
     },
 
     config(config, { command }) {
-      rootNode = normalizePath(getExactPath(path.resolve(process.cwd(), config.root || '.')));
 
-      console.log({ doc: config.document })
+      const args = process.argv.slice(2);
+      const rootVNodePath = args[0];
+
+      rootNode = normalizePath(getExactPath(path.resolve(process.cwd(), rootVNodePath)));
 
       Object.assign(config, mergeConfig(config, defineConfig({
         root: process.cwd(),
@@ -122,6 +130,34 @@ const pulsorDevPlugin = () => {
       if (command === 'build') {
         fs.copyFileSync(cliHtmlFilePath, projectHtmlFilePath);
       }
+    },
+    transform(code, id, ssr) {
+      if (ssr && id.endsWith('.css')) {
+        styleSheets.push(code);
+      }
+    },
+    transformIndexHtml() {
+      const styleScripts = styleSheets.map((code) => ({
+        tag: 'style',
+        attrs: {
+          type: 'text/css',
+        },
+        children: code,
+        injectTo: 'head',
+      }))
+      return [
+        {
+          tag: 'script',
+          attrs: {
+            defer: true,
+            async: true,
+            type: 'module',
+            src: './main.ts',
+          },
+          injectTo: 'head',
+        },
+        ...styleScripts,
+      ];
     },
     resolveId(id) {
       if (['/main.ts', './main.ts'].includes(id)) {

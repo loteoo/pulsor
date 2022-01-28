@@ -3,6 +3,15 @@ import reduce from './reduce';
 import patch from './patch';
 import { VNode, Action, EventData, Cycle } from './types';
 
+export const diff = (a: VNode, b: VNode, cycle: Cycle) => {
+  if (cycle.needsRerender) {
+    while (cycle.needsRerender) {
+      cycle.needsRerender = false;
+      patch(a, b, cycle, {}, false);
+    }
+  }
+}
+
 const run = (app: VNode, root: Node) => {
 
   console.log({ run: 'runrun' })
@@ -14,49 +23,29 @@ const run = (app: VNode, root: Node) => {
 
   const oldVNode = hydrate(root);
 
-  // @ts-ignore
-  window.oldVNode = oldVNode
-
   const dispatch = (action: Action, payload?: EventData, eventName?: string) => {
-
-    // console.groupCollapsed(`Dispatch: ${eventName}`)
 
     // Apply state updates
     reduce(action, payload, cycle, undefined, eventName);
 
-    if (cycle.needsRerender) {
-      // console.group(`render`);
-      while (cycle.needsRerender) {
-        const nextVNode = {
-          ...oldVNode,
-          children: app
-        }
-        cycle.needsRerender = false;
-        patch(oldVNode, nextVNode, cycle, {}, false);
-      }
-
-      // console.groupEnd();
-
-      // console.log('Resulting state', cycle.state)
-    } else {
-      // console.log('No state updates')
+    const nextVNode = {
+      ...oldVNode,
+      children: app
     }
+
+    diff(oldVNode, nextVNode, cycle);
 
     // Run Effects
     if (cycle.sideEffects.length > 0) {
-      // console.log(`Running ${cycle.effects.length} effects`)
       cycle.sideEffects.forEach((effect) => effect())
       cycle.sideEffects = [];
-    } else {
-      // console.log('No effects')
     }
-
-    // console.groupEnd();
   }
 
   const cycle: Cycle = {
     state: {},
     needsRerender: false,
+    dryRun: false,
     domEmitter,
     dispatch,
     sideEffects: [],

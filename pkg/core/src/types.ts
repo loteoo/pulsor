@@ -105,6 +105,7 @@ export type HyperScript = <T = string | Component>(tag: T, props: VProps, ...chi
 export interface Cycle {
   state: State,
   needsRerender: boolean;
+  dryRun: boolean;
   domEmitter: (ev: Event) => void;
   dispatch: Dispatch;
   sideEffects: (() => void)[];

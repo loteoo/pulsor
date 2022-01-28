@@ -36,4 +36,4 @@ const mergeConfigFiles = async (env) => {
 }
 
 
-module.exports = mergeConfigFiles;
+export default mergeConfigFiles;

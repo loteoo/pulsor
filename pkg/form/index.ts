@@ -1,6 +1,6 @@
 /// <reference types="@pulsor/core/jsx" />
 
-import { Action, h, VChildNode } from "@pulsor/core";
+import { Action, h, VChildNode } from "../core/src";
 
 // ======== Shared =========
 
@@ -95,7 +95,7 @@ export const Input = ({
 
 export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
   const vNode = Input(props)(state, ctx);
-  vNode.type = 'textarea';
+  vNode.tag = 'textarea';
   delete vNode.props?.type;
   return vNode;
 }

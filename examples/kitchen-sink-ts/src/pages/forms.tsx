@@ -36,7 +36,7 @@ const HandleForm: Action = (state, ev) => {
 const app = (
   <main>
     <h1>Forms</h1>
-    <Form scope="coolForm" onsubmit={HandleForm}>
+    <Form name="coolForm" onsubmit={HandleForm}>
       <fieldset>
         <legend>Input</legend>
         <Input name="firstName" />
@@ -106,7 +106,11 @@ const app = (
       <summary>State</summary>
       <pre>
         <code>
-          {(s) => JSON.stringify(s.coolForm, null, 2)}
+          state: {(s) => {
+
+            // console.log(s)
+            return JSON.stringify(s, null, 2)
+          }}
         </code>
       </pre>
     </details>

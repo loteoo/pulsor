@@ -2,8 +2,11 @@
 import { ConfigEnv, UserConfig } from "vite";
 import { VNode } from '@pulsor/core'
 
+type BuildTarget = 'spa' | 'ssr' | 'static' | 'web-component'
+
 type PulsorConfig = UserConfig & {
   document?: (root: VNode) => VNode;
+  buildTarget?: BuildTarget;
 }
 
 type UserConfigExport = PulsorConfig | Promise<PulsorConfig> | UserConfigFn;

@@ -126,7 +126,9 @@ export const createRouter = ({ routes }: Options) => {
   const Router: Component = () => ({
     tag: 'div',
     init: (state: State) => [
-      HandleRouteChange(state, window.location.pathname + window.location.search + window.location.hash),
+      typeof window !== 'undefined'
+        ? HandleRouteChange(state, window.location.pathname + window.location.search + window.location.hash)
+        : undefined,
       TrackRouteChange
     ],
     children: (state: any) => {
