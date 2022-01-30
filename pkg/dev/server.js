@@ -85,11 +85,12 @@ async function createServer(
           needsRerender: true,
           sideEffects: [],
           dryRun: true,
+          ssr: true,
         }
 
         const oldVNode = { tag: combined.tag, };
 
-        
+
         diff(oldVNode, combined, cycle);
 
         // console.log(JSON.stringify(oldVNode, null, 2))

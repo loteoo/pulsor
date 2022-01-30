@@ -106,6 +106,7 @@ export interface Cycle {
   state: State,
   needsRerender: boolean;
   dryRun: boolean;
+  ssr: boolean;
   domEmitter: (ev: Event) => void;
   dispatch: Dispatch;
   sideEffects: (() => void)[];

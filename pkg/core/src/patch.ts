@@ -8,14 +8,15 @@ import { Context, Cycle, VNode } from './types';
 if (typeof window !== 'undefined') {
 
   const _createElement = document.createElement.bind(document);
-  
+
   // @ts-ignore
   document.createElement = (type) => {
-  
-    console.count('Created a dom element')
+
+    const el = _createElement(type);
+    console.log('Created a dom element', el)
     // console.log('Created element ', type)
-  
-    return _createElement(type)
+
+    return el
   }
 }
 
@@ -68,7 +69,7 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
       vNode.el = document.createComment('');
     }
   }
-  
+
   patch(
     {
       tag: vNode.tag,
@@ -225,20 +226,20 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isS
       newStartVNode = newCh[++newStartIdx];
     } else if (newEndVNode == null) {
       newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldStartVNode, newStartVNode)) {
+    } else if (isSame(oldStartVNode, newStartVNode, !cycle.ssr)) {
       patch(oldStartVNode, newStartVNode, cycle, ctx, isSvg);
       oldStartVNode = oldCh[++oldStartIdx];
       newStartVNode = newCh[++newStartIdx];
-    } else if (isSame(oldEndVNode, newEndVNode)) {
+    } else if (isSame(oldEndVNode, newEndVNode, !cycle.ssr)) {
       patch(oldEndVNode, newEndVNode, cycle, ctx, isSvg);
       oldEndVNode = oldCh[--oldEndIdx];
       newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldStartVNode, newEndVNode)) {
+    } else if (isSame(oldStartVNode, newEndVNode, !cycle.ssr)) {
       patch(oldStartVNode, newEndVNode, cycle, ctx, isSvg);
       parent?.insertBefore(oldStartVNode.el!, oldEndVNode.el!.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldEndVNode, newStartVNode)) {
+    } else if (isSame(oldEndVNode, newStartVNode, !cycle.ssr)) {
       patch(oldEndVNode, newStartVNode, cycle, ctx, isSvg);
       parent?.insertBefore(oldEndVNode.el!, oldStartVNode.el!);
       oldEndVNode = oldCh[--oldEndIdx];

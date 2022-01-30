@@ -10,6 +10,11 @@ export const isRenderable = (value: any) => ![true, false, null, undefined].incl
 
 export const isEffect = (action: Action): action is Effect => typeof action === 'object' && !!action && typeof (action as Effect).effect === 'function';
 
-export const isSame = (a: VNode, b: VNode) => a.tag === b.tag && a.key === b.key;
+export const isSame = (a: VNode, b: VNode, compareKeys: boolean) => {
+  if (compareKeys) {
+    return a.tag === b.tag && a.key === b.key
+  }
+  return a.tag === b.tag;
+};
 
 export const isObj = (val: any) => typeof val === 'object' && !Array.isArray(val) && val !== null;

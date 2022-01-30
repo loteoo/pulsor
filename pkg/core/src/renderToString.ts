@@ -43,6 +43,10 @@ const renderToString = (vNode: VNode, cycle: Cycle, ctx: any): string => {
           continue;
         }
 
+        if (['key', 'init', 'clear', 'ctx'].includes(prop)) {
+          continue
+        }
+
         if (typeof vNode.props[prop] === 'function') {
           vNode.props[prop] = vNode.props[prop](cycle.state);
         }

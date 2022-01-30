@@ -46,6 +46,7 @@ const run = (app: VNode, root: Node) => {
     state: {},
     needsRerender: false,
     dryRun: false,
+    ssr: true,
     domEmitter,
     dispatch,
     sideEffects: [],
