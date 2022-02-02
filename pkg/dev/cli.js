@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { cac } = require('cac');
 const { rollup } = require('rollup');
+const { preview, normalizePath } = require('vite');
 
 // Create CLI
 const cli = cac('pulsor');
@@ -38,7 +39,7 @@ cli
 
     const args1 = process.argv.slice(2).concat([
       '--config', viteConfig,
-      '--outDir', 'dist/client'
+      '--outDir', 'dist/client',
     ]);
 
     spawn(viteBinary, args1, {
@@ -59,6 +60,46 @@ cli
 
   })
 
+cli
+  .command('preview [root]')
+  .option('--host [host]', `[string] specify hostname`)
+  .option('--port <port>', `[number] specify port`)
+  .option('--strictPort', `[boolean] exit if specified port is already in use`)
+  .option('--https', `[boolean] use TLS + HTTP/2`)
+  .option('--open [path]', `[boolean | string] open browser on startup`)
+  .action(
+    async (
+      root,
+      options
+    ) => {
+      try {
+        const server = await preview({
+          root: root,
+          base: options.base,
+          configFile: options.config,
+          logLevel: options.logLevel,
+          mode: options.mode,
+          build: {
+            outDir: 'dist/client',
+          },
+          preview: {
+            port: options.port,
+            strictPort: options.strictPort,
+            host: options.host,
+            https: options.https,
+            open: options.open
+          }
+        })
+        server.printUrls()
+      } catch (e) {
+        console.error(
+          `error when starting preview server:\n${e.stack}`,
+          { error: e }
+        )
+        process.exit(1)
+      }
+    }
+  )
 
 cli.help()
 cli.version(require('./package.json').version)

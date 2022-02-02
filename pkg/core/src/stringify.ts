@@ -1,4 +1,4 @@
-import { VNode, Cycle } from "./types";
+import { Cycle, VNode } from '.';
 
 const voidElements = [
   'area',
@@ -23,7 +23,7 @@ const styleToString = (style: any) => {
   ), '');
 };
 
-const renderToString = (vNode: VNode, cycle: Cycle, ctx: any): string => {
+const stringify = (vNode: VNode, cycle: Cycle, ctx: any): string => {
 
   if (!vNode.tag && vNode.text != null) {
     return String(vNode.text);
@@ -111,7 +111,7 @@ const renderToString = (vNode: VNode, cycle: Cycle, ctx: any): string => {
 
   if (vNode.children) {
     for (const child of vNode.children as any[]) {
-      html.push(renderToString(child, cycle, ctx))
+      html.push(stringify(child, cycle, ctx))
     }
   }
 
@@ -124,4 +124,4 @@ const renderToString = (vNode: VNode, cycle: Cycle, ctx: any): string => {
   return html.join('');
 }
 
-export default renderToString;
+export default stringify;

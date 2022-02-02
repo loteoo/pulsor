@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const express = require('express')
 const { loadConfigFromFile, mergeConfig, normalizePath } = require('vite')
-const renderToString = require('../core/dist/renderToString').default;
+const stringify = require('../core/dist/stringify').default;
 const diff = require('../core/dist/run').diff;
 
 const configPath = path.resolve(__dirname, 'vite.config.ts');
@@ -42,14 +42,10 @@ async function createServer(
       }
     })
 
-    // console.log({ config })
-
-
     vite = await require('vite').createServer(config)
     // use vite's connect instance as middleware
     app.use(vite.middlewares)
   } else {
-    // app.use(require('compression')())
     app.use(
       require('serve-static')(path.resolve(root, 'dist/client'), {
         index: false
@@ -92,7 +88,7 @@ async function createServer(
         // console.log(JSON.stringify(oldVNode, null, 2))
 
         // @ts-ignore
-        const renderedHtml = renderToString(oldVNode, cycle, {});
+        const renderedHtml = stringify(oldVNode, cycle, {});
 
         html = await vite.transformIndexHtml(url, renderedHtml);
 

@@ -1,4 +1,4 @@
-import { VChildNode, VNode } from './types';
+import { VChildNode, VNode } from '.';
 
 const nodeTypesToHydrate = [1, 3];
 
