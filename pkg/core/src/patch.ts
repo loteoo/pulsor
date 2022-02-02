@@ -45,7 +45,10 @@ function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
     }
   }
 
-  parent?.removeChild(vNode.el!);
+  if (vNode.el?.parentNode === parent) {
+    parent?.removeChild(vNode.el!);
+  }
+
 }
 
 
@@ -226,20 +229,20 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isS
       newStartVNode = newCh[++newStartIdx];
     } else if (newEndVNode == null) {
       newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldStartVNode, newStartVNode, !cycle.ssr)) {
+    } else if (isSame(oldStartVNode, newStartVNode)) {
       patch(oldStartVNode, newStartVNode, cycle, ctx, isSvg);
       oldStartVNode = oldCh[++oldStartIdx];
       newStartVNode = newCh[++newStartIdx];
-    } else if (isSame(oldEndVNode, newEndVNode, !cycle.ssr)) {
+    } else if (isSame(oldEndVNode, newEndVNode)) {
       patch(oldEndVNode, newEndVNode, cycle, ctx, isSvg);
       oldEndVNode = oldCh[--oldEndIdx];
       newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldStartVNode, newEndVNode, !cycle.ssr)) {
+    } else if (isSame(oldStartVNode, newEndVNode)) {
       patch(oldStartVNode, newEndVNode, cycle, ctx, isSvg);
       parent?.insertBefore(oldStartVNode.el!, oldEndVNode.el!.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
-    } else if (isSame(oldEndVNode, newStartVNode, !cycle.ssr)) {
+    } else if (isSame(oldEndVNode, newStartVNode)) {
       patch(oldEndVNode, newStartVNode, cycle, ctx, isSvg);
       parent?.insertBefore(oldEndVNode.el!, oldStartVNode.el!);
       oldEndVNode = oldCh[--oldEndIdx];

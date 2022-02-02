@@ -3,7 +3,7 @@ import path from 'path';
 import { defineConfig, mergeConfig, normalizePath } from "vite";
 
 const appToCliPath = path.relative(process.cwd(), __dirname);
-const cliHtmlFilePath = path.resolve(__dirname, 'index.html');
+const cliHtmlFilePath = path.resolve(__dirname, 'build.html');
 const projectHtmlFilePath = path.resolve(process.cwd(), 'index.html');
 
 // ====
@@ -50,11 +50,9 @@ const cliPulsor = normalizePath(path.resolve(__dirname, 'node_modules/@pulsor/co
 const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
 
 // ===
-const createMainFile = (rootNode, accept) => `import initialAppModule from '${rootNode}';
+const createMainFile = (rootNode, accept) => `import initialAppModule from '/root.ts';
 
 import { run } from '${pulsorPath}';
-
-import doc from '${normalizePath(path.resolve(process.cwd(), 'document'))}';
 
 let app = initialAppModule;
 
@@ -80,35 +78,23 @@ if (import.meta.hot) {
   })
 }
 
-const combined = doc(rootApp);
 
-run(combined, document);
+run(rootApp, document);
 `
 
 const pulsorDevPlugin = () => {
 
   let rootNode;
   let styleSheets = [];
+  let customDocument;
 
   return {
     name: "pulsor-dev",
 
-    // Change path to index.html during dev
-    configureServer(server) {
-      return () => {
-        server.middlewares.use(async (req, res, next) => {
-          if (req.url === "/index.html") {
-            req.url = `/${appToCliPath}/index.html`
-          }
-          next();
-        });
-      };
-    },
-
     config(config, { command }) {
 
       const args = process.argv.slice(2);
-      const rootVNodePath = args[0];
+      const rootVNodePath = args[1] ?? args[0];
 
       rootNode = normalizePath(getExactPath(path.resolve(process.cwd(), rootVNodePath)));
 
@@ -123,13 +109,14 @@ const pulsorDevPlugin = () => {
           fs: {
             strict: false
           }
-        }
+        },
       })));
 
       // Change path to index.html during build
       if (command === 'build') {
-        fs.copyFileSync(cliHtmlFilePath, projectHtmlFilePath);
+        // fs.copyFileSync(cliHtmlFilePath, projectHtmlFilePath);
       }
+      customDocument = config.document;
     },
     transform(code, id, ssr) {
       if (ssr && id.endsWith('.css')) {
@@ -163,15 +150,42 @@ const pulsorDevPlugin = () => {
       if (['/main.ts', './main.ts'].includes(id)) {
         return '\0/main.ts';
       }
+      if (['/root.ts', './root.ts'].includes(id)) {
+        return '\0/root.ts';
+      }
     },
     load(id) {
       if (id === '\0/main.ts') {
+
         const accept = normalizePath(path.relative(process.cwd(), rootNode));
+
         return createMainFile(rootNode, accept);
+      }
+      if (id === '\0/root.ts') {
+
+        return `
+        import { h } from '${pulsorPath}'
+        import initialAppModule from '${rootNode}'
+
+const document = (root) => (
+  h('html', {}, [
+    h('head', {}, [
+      h('title', {}, 'Pulsor dev server')
+    ]),
+    h('body', {}, [
+      root
+    ])
+  ])
+)
+
+const root = document(initialAppModule)
+
+export default root
+`
       }
     },
     closeBundle() {
-      fs.rmSync(projectHtmlFilePath);
+      // fs.rmSync(projectHtmlFilePath);
     },
   };
 };

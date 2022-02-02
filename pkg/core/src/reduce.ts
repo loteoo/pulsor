@@ -22,10 +22,8 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
 
   // Handle subactions
   if (typeof action === "function") {
-    // console.group(action.name || parentAction);
     const sub = (action as ActionFunction)(cycle.state, payload);
     reduce(sub, payload, cycle, vNode, action.name);
-    // console.groupEnd();
     return;
   }
 
@@ -53,11 +51,9 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
     }
 
     cycle.sideEffects.push(sideEffect);
-    // console.log(`enqueued effect`, effect)
     return;
   }
 
-  // console.log(action)
   deepAssign(cycle.state, action);
   cycle.needsRerender = true;
 };

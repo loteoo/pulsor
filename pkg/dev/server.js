@@ -66,9 +66,7 @@ async function createServer(
 
       let html
       if (!isProd) {
-        const document = (await vite.ssrLoadModule(normalizePath(`/document`))).default;
-        const rootVNode = (await vite.ssrLoadModule(normalizePath(`/${rootVNodePath}`))).default;
-        const combined = document(rootVNode);
+        const rootVNode = (await vite.ssrLoadModule(normalizePath(`/root.ts`))).default;
 
         // TODO: dev pkg should define a way for various other pkgs to set some "Initial state" server-side
         // (atm, this would be needed for the location pkg, but for now it's hardcoded)...
@@ -85,13 +83,11 @@ async function createServer(
           needsRerender: true,
           sideEffects: [],
           dryRun: true,
-          ssr: true,
         }
 
-        const oldVNode = { tag: combined.tag, };
+        const oldVNode = { tag: rootVNode.tag, };
 
-
-        diff(oldVNode, combined, cycle);
+        diff(oldVNode, { ...rootVNode }, cycle);
 
         // console.log(JSON.stringify(oldVNode, null, 2))
 

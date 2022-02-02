@@ -43,7 +43,7 @@ const renderToString = (vNode: VNode, cycle: Cycle, ctx: any): string => {
           continue;
         }
 
-        if (['key', 'init', 'clear', 'ctx'].includes(prop)) {
+        if (['init', 'clear', 'ctx'].includes(prop)) {
           continue
         }
 
@@ -64,10 +64,29 @@ const renderToString = (vNode: VNode, cycle: Cycle, ctx: any): string => {
         }
 
         if (prop === 'style' && typeof vNode.props[prop] === 'object') {
-          vNode.props[prop] = styleToString(vNode.props[prop])
+          vNode.props[prop] = styleToString(vNode.props[prop]);
         }
 
-        html.push(` ${prop}="${String(vNode.props[prop])}"`)
+        if (prop === 'key') {
+          html.push(` data-pulsorkey="${vNode.props[prop]}"`);
+          continue
+        }
+
+        if (prop === 'innerHTML') {
+          html.push(` data-pulsorinnerhtml="true"`);
+          continue
+        }
+
+        if (vNode.props[prop] === false) {
+          continue
+        }
+
+        if (vNode.props[prop] === true) {
+          html.push(` ${prop}`);
+          continue
+        }
+
+        html.push(` ${prop}="${String(vNode.props[prop])}"`);
       }
     }
     // if (props.length) {
@@ -84,6 +103,10 @@ const renderToString = (vNode: VNode, cycle: Cycle, ctx: any): string => {
       // html.push(`></${vNode.tag}>`);
       html.push('>');
     }
+  }
+
+  if (vNode.props?.innerHTML) {
+    html.push(vNode.props.innerHTML);
   }
 
   if (vNode.children) {

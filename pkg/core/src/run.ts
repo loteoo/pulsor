@@ -14,8 +14,6 @@ export const diff = (a: VNode, b: VNode, cycle: Cycle) => {
 
 const run = (app: VNode, root: Node) => {
 
-  console.log({ run: 'runrun' })
-
   function domEmitter(ev: Event) {
     // @ts-ignore
     dispatch((this[ev.type] as Action), ev, ev.type);
@@ -46,7 +44,6 @@ const run = (app: VNode, root: Node) => {
     state: {},
     needsRerender: false,
     dryRun: false,
-    ssr: true,
     domEmitter,
     dispatch,
     sideEffects: [],
