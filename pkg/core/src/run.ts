@@ -7,7 +7,7 @@ export const diff = (a: VNode, b: VNode, cycle: Cycle) => {
   if (cycle.needsRerender) {
     while (cycle.needsRerender) {
       cycle.needsRerender = false;
-      patch(a, b, cycle, {}, false);
+      patch(a, { ...b }, cycle, {}, false);
     }
   }
 }

@@ -13,10 +13,10 @@ const hydrate = (el: Node): VNode => {
   let children: VChildNode[] = [];
 
   if ((el as HTMLElement).dataset?.pulsorinnerhtml) {
-  } else if (tag === 'head') {
+  } else if (['head', 'body'].includes(tag)) {
     const elems = [].filter.call(
       (el as HTMLHeadElement).children,
-      (el: HTMLElement) => el.dataset['pulsorhydrate'],
+      (el: HTMLElement) => el.dataset?.pulsorhydrate,
     );
     children = elems.map(hydrate);
   } else {
@@ -32,9 +32,8 @@ const hydrate = (el: Node): VNode => {
     el,
   };
 
-
   if ((el as HTMLElement).dataset?.pulsorkey) {
-    vNode.key = (el as HTMLElement).dataset?.pulsorkey;
+    vNode.key = (el as HTMLElement).dataset.pulsorkey;
   }
 
   return vNode;

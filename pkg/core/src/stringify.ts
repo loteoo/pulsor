@@ -23,7 +23,7 @@ const styleToString = (style: any) => {
   ), '');
 };
 
-const stringify = (vNode: VNode, cycle: Cycle, ctx: any): string => {
+const stringify = (vNode: VNode, cycle: Cycle, ctx: any, addHydrationFlags?: boolean): string => {
 
   if (!vNode.tag && vNode.text != null) {
     return String(vNode.text);
@@ -43,7 +43,7 @@ const stringify = (vNode: VNode, cycle: Cycle, ctx: any): string => {
           continue;
         }
 
-        if (['init', 'clear', 'ctx'].includes(prop)) {
+        if (['init', 'clear', 'ctx', 'key'].includes(prop)) {
           continue
         }
 
@@ -67,11 +67,6 @@ const stringify = (vNode: VNode, cycle: Cycle, ctx: any): string => {
           vNode.props[prop] = styleToString(vNode.props[prop]);
         }
 
-        if (prop === 'key') {
-          html.push(` data-pulsorkey="${vNode.props[prop]}"`);
-          continue
-        }
-
         if (prop === 'innerHTML') {
           html.push(` data-pulsorinnerhtml="true"`);
           continue
@@ -89,6 +84,16 @@ const stringify = (vNode: VNode, cycle: Cycle, ctx: any): string => {
         html.push(` ${prop}="${String(vNode.props[prop])}"`);
       }
     }
+
+
+    if (vNode.key) {
+      html.push(` data-pulsorkey="${vNode.key}"`);
+    }
+
+    if (addHydrationFlags) {
+      html.push(` data-pulsorhydrate="true"`);
+    }
+
     // if (props.length) {
     //   tag.push(' ' + props)
     // }
@@ -111,7 +116,9 @@ const stringify = (vNode: VNode, cycle: Cycle, ctx: any): string => {
 
   if (vNode.children) {
     for (const child of vNode.children as any[]) {
-      html.push(stringify(child, cycle, ctx))
+      const addHydrationFlags = ['head', 'body'].includes(vNode.tag!);
+      const childHtml = stringify(child, cycle, ctx, addHydrationFlags)
+      html.push(childHtml)
     }
   }
 

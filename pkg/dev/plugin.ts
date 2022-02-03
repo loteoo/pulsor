@@ -1,6 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import { defineConfig, mergeConfig, normalizePath } from "vite";
+import { Cycle } from '../core/src';
+import { diff } from '../core/src/run';
+import stringify from '../core/src/stringify';
+import http from 'http';
 
 const appToCliPath = path.relative(process.cwd(), __dirname);
 const cliHtmlFilePath = path.resolve(__dirname, 'build.html');
@@ -50,38 +54,6 @@ const cliPulsor = normalizePath(path.resolve(__dirname, 'node_modules/@pulsor/co
 const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
 
 // ===
-const createMainFile = (rootNode, accept) => `import initialAppModule from '/root.ts';
-
-import { run } from '${pulsorPath}';
-
-let app = initialAppModule;
-
-let rootApp = app;
-
-if (import.meta.hot) {
-  rootApp = [
-    {
-      init: {
-        effect: (emit) => {
-          const handler = () => emit({})
-          window.addEventListener('hmr', handler)
-          return () => window.removeEventListener('hmr', handler)
-        }
-      },
-    },
-    () => app,
-  ];
-
-  import.meta.hot.accept('${accept}', (newModule) => {
-    app = newModule.default
-    dispatchEvent(new CustomEvent("hmr"))
-  })
-}
-
-
-run(rootApp, document);
-`
-
 const pulsorDevPlugin = () => {
 
   let rootNode;
@@ -91,10 +63,52 @@ const pulsorDevPlugin = () => {
   return {
     name: "pulsor-dev",
 
+    // Change path to index.html during dev
+    configureServer(server) {
+
+      server.httpServer = http.createServer(server.middlewares);
+
+      return () => {
+
+        server.middlewares.use(async (req, res, next) => {
+
+
+          const rootVNode = (await server.ssrLoadModule(normalizePath(`/root.ts`))).default;
+
+          const cycle: Cycle = {
+            state: {
+              location: {
+                path: req.url,
+              }
+            },
+            needsRerender: true,
+            sideEffects: [],
+            dryRun: true,
+          }
+
+          const oldVNode = { tag: rootVNode.tag, };
+
+          rootNode.ctx = {
+            req,
+            res
+          }
+
+          diff(oldVNode, { ...rootVNode }, cycle);
+
+          const renderedHtml = stringify(oldVNode, cycle, {});
+
+          const html = await server.transformIndexHtml(req.url, renderedHtml);
+
+          res.end(html);
+
+          next();
+        });
+      };
+    },
+
     config(config, { command }) {
 
-      const args = process.argv.slice(2);
-      const rootVNodePath = args[1] ?? args[0];
+      const rootVNodePath = config.root;
 
       rootNode = normalizePath(getExactPath(path.resolve(process.cwd(), rootVNodePath)));
 
@@ -119,7 +133,7 @@ const pulsorDevPlugin = () => {
       customDocument = config.document;
     },
     transform(code, id, ssr) {
-      if (ssr && id.endsWith('.css')) {
+      if (ssr && id.endsWith('.css') && !styleSheets.includes(code)) {
         styleSheets.push(code);
       }
     },
@@ -155,17 +169,20 @@ const pulsorDevPlugin = () => {
       }
     },
     load(id) {
+      const accept = normalizePath(path.relative(process.cwd(), rootNode));
       if (id === '\0/main.ts') {
+        return `import rootApp from '/root.ts';
 
-        const accept = normalizePath(path.relative(process.cwd(), rootNode));
+import { run } from '${pulsorPath}';
 
-        return createMainFile(rootNode, accept);
+run(rootApp, document);
+        `;
       }
       if (id === '\0/root.ts') {
 
-        return `
-        import { h } from '${pulsorPath}'
-        import initialAppModule from '${rootNode}'
+        return `import { h } from '${pulsorPath}'
+
+import initialAppModule from '${rootNode}'
 
 const document = (root) => (
   h('html', {}, [
@@ -177,6 +194,32 @@ const document = (root) => (
     ])
   ])
 )
+
+
+let app = initialAppModule;
+
+let rootApp = app;
+
+if (import.meta.hot) {
+  rootApp = [
+    {
+      init: {
+        effect: (emit) => {
+          const handler = () => emit({})
+          window.addEventListener('hmr', handler)
+          return () => window.removeEventListener('hmr', handler)
+        }
+      },
+    },
+    () => app,
+  ];
+
+  import.meta.hot.accept('${accept}', (newModule) => {
+    app = newModule.default
+    dispatchEvent(new CustomEvent("hmr"))
+  })
+}
+
 
 const root = document(initialAppModule)
 

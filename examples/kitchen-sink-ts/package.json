@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "pulsor src/app",
-    "build": "pulsor build src/app",
-    "preview": "pulsor preview"
+    "build:static": "pulsor build src/app",
+    "preview": "pulsor preview",
+    "build:ssr": "pulsor build src/app",
+    "start": "pulsor ssr"
   },
   "dependencies": {
     "@pulsor/core": "0.0.1-rc.18",
