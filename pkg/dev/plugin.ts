@@ -168,13 +168,13 @@ const pulsorDevPlugin = () => {
       }
     },
     load(id) {
-      const accept = normalizePath(path.relative(process.cwd(), rootNode));
-
       if (id === '\0@pulsor-root') {
 
         return `import { h } from '${pulsorPath}'
 
 import initialAppModule from '${rootNode}'
+
+export const fresh = initialAppModule;
 
 const document = (root) => (
   h('html', {}, [
@@ -187,7 +187,6 @@ const document = (root) => (
   ])
 )
 
-
 let app = initialAppModule;
 
 let rootApp = app;
@@ -197,23 +196,19 @@ if (import.meta.hot) {
     {
       init: {
         effect: (emit) => {
-          const handler = () => emit({})
-          window.addEventListener('hmr', handler)
-          return () => window.removeEventListener('hmr', handler)
+          import.meta.hot.accept((newModule) => {
+            app = newModule.fresh;
+            emit({});
+          });
         }
       },
     },
     () => app,
   ];
-
-  import.meta.hot.accept('${accept}', (newModule) => {
-    app = newModule.default
-    dispatchEvent(new CustomEvent("hmr"))
-  })
 }
 
 
-const root = document(initialAppModule)
+const root = document(rootApp)
 
 export default root
 `
