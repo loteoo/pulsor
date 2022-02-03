@@ -72,8 +72,7 @@ const pulsorDevPlugin = () => {
 
         server.middlewares.use(async (req, res, next) => {
 
-
-          const rootVNode = (await server.ssrLoadModule(normalizePath(`/root.ts`))).default;
+          const rootVNode = (await server.ssrLoadModule('@pulsor-root')).default;
 
           const cycle: Cycle = {
             state: {
@@ -153,7 +152,7 @@ const pulsorDevPlugin = () => {
             defer: true,
             async: true,
             type: 'module',
-            src: './main.ts',
+            src: '@pulsor-client',
           },
           injectTo: 'head',
         },
@@ -161,24 +160,17 @@ const pulsorDevPlugin = () => {
       ];
     },
     resolveId(id) {
-      if (['/main.ts', './main.ts'].includes(id)) {
-        return '\0/main.ts';
+      if (id.endsWith('@pulsor-client')) {
+        return '\0@pulsor-client';
       }
-      if (['/root.ts', './root.ts'].includes(id)) {
-        return '\0/root.ts';
+      if (id.endsWith('@pulsor-root')) {
+        return '\0@pulsor-root';
       }
     },
     load(id) {
       const accept = normalizePath(path.relative(process.cwd(), rootNode));
-      if (id === '\0/main.ts') {
-        return `import rootApp from '/root.ts';
 
-import { run } from '${pulsorPath}';
-
-run(rootApp, document);
-        `;
-      }
-      if (id === '\0/root.ts') {
+      if (id === '\0@pulsor-root') {
 
         return `import { h } from '${pulsorPath}'
 
@@ -225,6 +217,14 @@ const root = document(initialAppModule)
 
 export default root
 `
+      }
+
+      if (id === '\0@pulsor-client') {
+        return `import rootApp from '@pulsor-root';
+
+import { run } from '${pulsorPath}';
+
+run(rootApp, document);`;
       }
     },
     closeBundle() {

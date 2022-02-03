@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 const { spawn } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 const { cac } = require('cac');
-const { preview, createServer, loadConfigFromFile, mergeConfig } = require('vite');
+const { preview, createServer, loadConfigFromFile, mergeConfig, build } = require('vite');
 const connect = require('connect')
+const http = require('http')
+const sirv = require('sirv')
 const stringify = require('../core/dist/stringify').default;
 const diff = require('../core/dist/run').diff;
 
@@ -77,41 +80,170 @@ cli
   })
 
 
-// build command
+// // build command
+// cli
+//   .command('build <root>', 'Build the app')
+//   .action(async () => {
+
+//     const viteBinary = path.resolve(__dirname, 'node_modules/.bin/vite');
+//     const viteConfig = path.resolve(__dirname, 'vite.config.ts');
+
+//     const args1 = process.argv.slice(2).concat([
+//       '--config', viteConfig,
+//       '--outDir', 'dist/client',
+//     ]);
+
+//     spawn(viteBinary, args1, {
+//       stdio: 'inherit',
+//       shell: true,
+//     });
+
+//     const args2 = process.argv.slice(2).concat([
+//       '--config', viteConfig,
+//       '--outDir', 'dist/server',
+//       '--ssr', '/root.ts',
+//     ]);
+
+//     spawn(viteBinary, args2, {
+//       stdio: 'inherit',
+//       shell: true,
+//     });
+
+//   })
+
+// build
 cli
-  .command('build <root>', 'Build the app')
-  .action(async () => {
+  .command('build [root]')
+  .option('--target <target>', `[string] transpile target (default: 'modules')`)
+  .option('--outDir <dir>', `[string] output directory (default: dist)`)
+  .option(
+    '--assetsDir <dir>',
+    `[string] directory under outDir to place assets in (default: _assets)`
+  )
+  .option(
+    '--assetsInlineLimit <number>',
+    `[number] static asset base64 inline threshold in bytes (default: 4096)`
+  )
+  .option(
+    '--ssr [entry]',
+    `[string] build specified entry for server-side rendering`
+  )
+  .option(
+    '--sourcemap',
+    `[boolean] output source maps for build (default: false)`
+  )
+  .option(
+    '--minify [minifier]',
+    `[boolean | "terser" | "esbuild"] enable/disable minification, ` +
+      `or specify minifier to use (default: esbuild)`
+  )
+  .option('--manifest', `[boolean] emit build manifest json`)
+  .option('--ssrManifest', `[boolean] emit ssr manifest json`)
+  .option(
+    '--emptyOutDir',
+    `[boolean] force empty outDir when it's outside of root`
+  )
+  .option('-w, --watch', `[boolean] rebuilds when modules have changed on disk`)
+  .action(async (root, options) => {
+    try {
+      const configPath = path.resolve(__dirname, 'vite.config.ts');
 
-    const viteBinary = path.resolve(__dirname, 'node_modules/.bin/vite');
-    const viteConfig = path.resolve(__dirname, 'vite.config.ts');
+      const loadResult = await loadConfigFromFile({ mode: 'development', command: 'serve' }, configPath);
 
-    const args1 = process.argv.slice(2).concat([
-      '--config', viteConfig,
-      '--outDir', 'dist/client',
-    ]);
+      const config = mergeConfig(loadResult.config, {
+        root,
+        base: options.base,
+        mode: options.mode,
+        configFile: options.config,
+        logLevel: options.logLevel,
+        clearScreen: options.clearScreen,
+        build: options
+      })
 
-    spawn(viteBinary, args1, {
-      stdio: 'inherit',
-      shell: true,
-    });
+      // Build client
+      const clientBuildResult = await build({
+        ...config,
+        build: {
+          ...config.build,
+          rollupOptions: {
+            input: {
+              app: '@pulsor-client'
+            }
+          }
+        }
+      });
 
-    const args2 = process.argv.slice(2).concat([
-      '--config', viteConfig,
-      '--outDir', 'dist/server',
-      '--ssr', '/root.ts',
-    ]);
+      // Build SSR
+      await build({
+        ...config,
+        build: {
+          ...config.build,
+          outDir: 'dist/.pulsor',
+          ssr: true,
+          rollupOptions: {
+            input: {
+              app: '@pulsor-root'
+            }
+          }
+        }
+      });
 
-    spawn(viteBinary, args2, {
-      stdio: 'inherit',
-      shell: true,
-    });
 
+      let headImports = [];
+
+      const entries = clientBuildResult.output.filter(bundle => bundle.isEntry);
+      for (const bundle of entries) {
+        headImports.push({
+          tag: 'script',
+          props: {
+            async: true,
+            type: 'module',
+            crossorigin: true,
+            src: `/${bundle.fileName}`
+          }
+        })
+        for (const chunkFileName of bundle.imports) {
+          headImports.push({
+            tag: 'link',
+            props: {
+              rel: 'modulepreload',
+              href: `/${chunkFileName}`
+            }
+          })
+        }
+      }
+
+      const cssFiles = clientBuildResult.output.filter(bundle => bundle.fileName.endsWith('.css'));
+      for (const cssFile of cssFiles) {
+        headImports.push({
+          tag: 'link',
+          props: {
+            rel: 'stylesheet',
+            href: `/${cssFile.fileName}`
+          }
+        })
+      }
+
+      fs.writeFileSync(
+        path.resolve(process.cwd(), 'dist/.pulsor/head.json'),
+        JSON.stringify(headImports, null, 2),
+        'utf-8'
+      )
+
+    } catch (e) {
+      console.error(
+        `error during build:\n${e.stack}`,
+        { error: e }
+      )
+      process.exit(1)
+    }
   })
+
 
 
 // ssr command
 cli
-  .command('ssr <root>', 'Start the production SSR server')
+  .command('ssr', 'Start the production SSR server')
   .option('--host [host]', `[string] specify hostname`)
   .option('--port <port>', `[number] specify port`)
   .option('--open [path]', `[boolean | string] open browser on startup`)
@@ -124,20 +256,16 @@ cli
     const app = connect()
 
 
-    // app.use(
-    //   require('serve-static')(path.resolve(root, 'dist/client'), {
-    //     index: false
-    //   })
-    // )
+    app.use(
+      sirv(path.resolve(root, 'dist'))
+    )
 
-    app.use('*', async (req, res) => {
+    app.use(async (req, res) => {
       try {
         const url = req.originalUrl
 
-        const args = process.argv.slice(2);
-        const rootVNodePath = args[0];
-
-        const rootVNode = {} // TODO: LOAD VNODE FROM DIST ENTRYPOINT
+        const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/app.js')).default;
+        const headImports = require(path.resolve(process.cwd(), 'dist/.pulsor/head.json'));
 
         const cycle = {
           state: {
@@ -159,23 +287,23 @@ cli
         // @ts-ignore
         const renderedHtml = stringify(oldVNode, cycle, {});
 
-        // TODO: INJECT LINKS TO JS/CSS BUNDLES
+        const headHtmlImports = stringify({
+          tag: 'head',
+          children: headImports
+        }).slice(6, -7).replaceAll(' data-pulsorhydrate="true"', '');
 
-        const html = renderedHtml;
+        const html = renderedHtml.replace('</head>', `${headHtmlImports}</head>`);
 
         res.end(html)
 
       } catch (e) {
         console.error(e.stack)
-        res.status(500).end(e.stack)
+        res.end(e.stack)
       }
     })
 
-
-    app.listen(3000, () => {
-      console.log('http://localhost:3000')
-    })
-
+    http.createServer(app).listen(3000);
+    console.log('http://localhost:3000')
   })
 
 

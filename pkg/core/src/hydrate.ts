@@ -15,7 +15,7 @@ const hydrate = (el: Node): VNode => {
   if ((el as HTMLElement).dataset?.pulsorinnerhtml) {
   } else if (['head', 'body'].includes(tag)) {
     const elems = [].filter.call(
-      (el as HTMLHeadElement).children,
+      el.childNodes,
       (el: HTMLElement) => el.dataset?.pulsorhydrate,
     );
     children = elems.map(hydrate);
