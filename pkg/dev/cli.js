@@ -86,12 +86,19 @@ cli
     '--target [target]',
     `["spa" | "static" | "ssr"] Specified build target (default: spa)`
   )
+  .option('--nojs', `[boolean] Remove JS runtime from static HTML files (static and ssr only)`)
+  .option('--prerenderPattern', `[string] Pattern to use to filter URLs to render`)
+  .option('--prerenderIgnorePattern', `[string] Pattern to use to filter out URLs to render`)
   .action(async (root, options) => {
     try {
 
       const buildTarget = options.target ?? 'spa';
 
       console.log('Building for', buildTarget)
+
+      if (options.nojs && !['static', 'ssr'].includes(buildTarget)) {
+        throw new Error('You should only use --nojs option with HTML-producing build targets: --target="static" or --target="ssr".')
+      }
 
       const configPath = path.resolve(__dirname, 'vite.config.ts');
 
@@ -124,25 +131,27 @@ cli
 
       let headImports = [];
 
-      const entries = buildResult.output.filter(bundle => bundle.isEntry);
-      for (const bundle of entries) {
-        headImports.push({
-          tag: 'script',
-          props: {
-            async: true,
-            type: 'module',
-            crossorigin: true,
-            src: `/${bundle.fileName}`
-          }
-        })
-        for (const chunkFileName of bundle.imports) {
+      if (!options.nojs) {
+        const jsEntries = buildResult.output.filter(bundle => bundle.isEntry);
+        for (const bundle of jsEntries) {
           headImports.push({
-            tag: 'link',
+            tag: 'script',
             props: {
-              rel: 'modulepreload',
-              href: `/${chunkFileName}`
+              async: true,
+              type: 'module',
+              crossorigin: true,
+              src: `/${bundle.fileName}`
             }
           })
+          for (const chunkFileName of bundle.imports) {
+            headImports.push({
+              tag: 'link',
+              props: {
+                rel: 'modulepreload',
+                href: `/${chunkFileName}`
+              }
+            })
+          }
         }
       }
 
@@ -164,7 +173,6 @@ cli
         JSON.stringify(headImports, null, 2),
         'utf-8'
       );
-
 
       if (buildTarget === 'spa') {
         fs.writeFileSync(
@@ -207,10 +215,12 @@ cli
           const internalLinks = html
             .match(pattern)
             .map(hrefAttr => hrefAttr.slice(6, -1))
-            .filter(href =>
-              href.startsWith('/')
-              && !href.includes('.')
-            );
+            .filter(href => {
+              if (!href.startsWith('/') || href.includes('.')) {
+                return false;
+              }
+              return true;
+            });
 
           const newLinks = internalLinks.filter(
             href => !pathQueue.includes(href)
@@ -287,6 +297,7 @@ const buildSpaHtml = async (config) => {
   // Build SSR
   await build({
     ...config,
+    logLevel: 'warn',
     build: {
       ...config.build,
       outDir: 'dist/.pulsor',
