@@ -5,20 +5,20 @@ import reduce from './reduce';
 import { Context, Cycle, VNode } from './types';
 
 
-if (typeof window !== 'undefined') {
+// if (typeof window !== 'undefined') {
 
-  const _createElement = document.createElement.bind(document);
+//   const _createElement = document.createElement.bind(document);
 
-  // @ts-ignore
-  document.createElement = (type) => {
+//   // @ts-ignore
+//   document.createElement = (type) => {
 
-    const el = _createElement(type);
-    console.log('Created a dom element', el)
-    // console.log('Created element ', type)
+//     const el = _createElement(type);
+//     console.log('Created a dom element', el)
+//     // console.log('Created element ', type)
 
-    return el
-  }
-}
+//     return el
+//   }
+// }
 
 
 

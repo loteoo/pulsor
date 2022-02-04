@@ -6,10 +6,6 @@ import { diff } from '../core/src/run';
 import stringify from '../core/src/stringify';
 import http from 'http';
 
-const appToCliPath = path.relative(process.cwd(), __dirname);
-const cliHtmlFilePath = path.resolve(__dirname, 'build.html');
-const projectHtmlFilePath = path.resolve(process.cwd(), 'index.html');
-
 // ====
 
 const sufixesToCheck = [
@@ -56,9 +52,8 @@ const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
 // ===
 const pulsorDevPlugin = () => {
 
-  let rootNode;
+  let rootNodePath;
   let styleSheets = [];
-  let customDocument;
 
   return {
     name: "pulsor-dev",
@@ -87,7 +82,7 @@ const pulsorDevPlugin = () => {
 
           const oldVNode = { tag: rootVNode.tag, };
 
-          rootNode.ctx = {
+          rootVNode.ctx = {
             req,
             res
           }
@@ -105,11 +100,11 @@ const pulsorDevPlugin = () => {
       };
     },
 
-    config(config, { command }) {
+    config(config) {
 
       const rootVNodePath = config.root;
 
-      rootNode = normalizePath(getExactPath(path.resolve(process.cwd(), rootVNodePath)));
+      rootNodePath = normalizePath(getExactPath(path.resolve(process.cwd(), rootVNodePath)));
 
       Object.assign(config, mergeConfig(config, defineConfig({
         root: process.cwd(),
@@ -125,11 +120,6 @@ const pulsorDevPlugin = () => {
         },
       })));
 
-      // Change path to index.html during build
-      if (command === 'build') {
-        // fs.copyFileSync(cliHtmlFilePath, projectHtmlFilePath);
-      }
-      customDocument = config.document;
     },
     transform(code, id, ssr) {
       if (ssr && id.endsWith('.css') && !styleSheets.includes(code)) {
@@ -172,7 +162,7 @@ const pulsorDevPlugin = () => {
 
         return `import { h } from '${pulsorPath}'
 
-import initialAppModule from '${rootNode}'
+import initialAppModule from '${rootNodePath}'
 
 export const fresh = initialAppModule;
 
@@ -210,8 +200,7 @@ if (import.meta.hot) {
 
 const root = document(rootApp)
 
-export default root
-`
+export default root`;
       }
 
       if (id === '\0@pulsor-client') {
@@ -221,9 +210,6 @@ import { run } from '${pulsorPath}';
 
 run(rootApp, document);`;
       }
-    },
-    closeBundle() {
-      // fs.rmSync(projectHtmlFilePath);
     },
   };
 };

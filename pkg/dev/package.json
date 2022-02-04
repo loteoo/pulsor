@@ -9,12 +9,8 @@
     "vite",
     "cli"
   ],
-  "main": "cli.js",
   "bin": {
     "pulsor": "cli.js"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "peerDependencies": {
     "@pulsor/core": "*"
@@ -22,13 +18,9 @@
   "devDependencies": {
     "@pulsor/core": "0.0.1-rc.18",
     "@types/connect": "^3.4.35",
-    "connect": "^3.7.0",
-    "vite": "^2.7.13"
-  },
-  "dependencies": {
     "cac": "^6.7.12",
-    "express": "^4.17.2",
-    "serve-static": "^1.14.2",
-    "sirv": "^2.0.2"
+    "connect": "^3.7.0",
+    "sirv": "^2.0.2",
+    "vite": "^2.7.13"
   }
 }

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { cac } = require('cac');
@@ -80,36 +79,6 @@ cli
   })
 
 
-// // build command
-// cli
-//   .command('build <root>', 'Build the app')
-//   .action(async () => {
-
-//     const viteBinary = path.resolve(__dirname, 'node_modules/.bin/vite');
-//     const viteConfig = path.resolve(__dirname, 'vite.config.ts');
-
-//     const args1 = process.argv.slice(2).concat([
-//       '--config', viteConfig,
-//       '--outDir', 'dist/client',
-//     ]);
-
-//     spawn(viteBinary, args1, {
-//       stdio: 'inherit',
-//       shell: true,
-//     });
-
-//     const args2 = process.argv.slice(2).concat([
-//       '--config', viteConfig,
-//       '--outDir', 'dist/server',
-//       '--ssr', '/root.ts',
-//     ]);
-
-//     spawn(viteBinary, args2, {
-//       stdio: 'inherit',
-//       shell: true,
-//     });
-
-//   })
 
 // build
 cli
@@ -228,7 +197,43 @@ cli
         path.resolve(process.cwd(), 'dist/.pulsor/head.json'),
         JSON.stringify(headImports, null, 2),
         'utf-8'
-      )
+      );
+
+      const pathQueue = [
+        '/'
+      ];
+
+      for (const url of pathQueue) {
+
+        const html = renderPathToHtml(url);
+
+        const pattern = /href="(.*?)"/g;
+
+        const internalLinks = html
+          .match(pattern)
+          .map(hrefAttr => hrefAttr.slice(6, -1))
+          .filter(href =>
+            href.startsWith('/')
+            && !href.includes('.')
+          );
+
+        const newLinks = internalLinks.filter(
+          href => !pathQueue.includes(href)
+        );
+
+        pathQueue.push(...newLinks);
+
+        const dirName = path.resolve(process.cwd(), `dist/${url}`);
+
+        fs.mkdirSync(dirName, { recursive: true });
+
+        fs.writeFileSync(
+          path.resolve(dirName, 'index.html'),
+          html,
+          'utf-8'
+        );
+
+      }
 
     } catch (e) {
       console.error(
@@ -241,6 +246,44 @@ cli
 
 
 
+
+
+const renderPathToHtml = (url) => {
+
+  const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/app.js')).default;
+  const headImports = require(path.resolve(process.cwd(), 'dist/.pulsor/head.json'));
+
+  const cycle = {
+    state: {
+      location: {
+        path: url
+      }
+    },
+    needsRerender: true,
+    sideEffects: [],
+    dryRun: true,
+  }
+
+  const oldVNode = { tag: rootVNode.tag, };
+
+  diff(oldVNode, { ...rootVNode }, cycle);
+
+
+  // @ts-ignore
+  const renderedHtml = stringify(oldVNode, cycle, {});
+
+  const headHtmlImports = stringify({
+    tag: 'head',
+    children: headImports
+  }).slice(6, -7).replaceAll(' data-pulsorhydrate="true"', '');
+
+  const html = renderedHtml.replace('</head>', `${headHtmlImports}</head>`);
+
+  return html
+}
+
+
+
 // ssr command
 cli
   .command('ssr', 'Start the production SSR server')
@@ -249,53 +292,17 @@ cli
   .option('--open [path]', `[boolean | string] open browser on startup`)
   .action(async () => {
 
-
-
-    const root = process.cwd();
-
     const app = connect()
 
-
     app.use(
-      sirv(path.resolve(root, 'dist'))
-    )
+      sirv(path.resolve(process.cwd(), 'dist'))
+    );
 
     app.use(async (req, res) => {
       try {
-        const url = req.originalUrl
-
-        const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/app.js')).default;
-        const headImports = require(path.resolve(process.cwd(), 'dist/.pulsor/head.json'));
-
-        const cycle = {
-          state: {
-            location: {
-              path: url
-            }
-          },
-          needsRerender: true,
-          sideEffects: [],
-          dryRun: true,
-        }
-
-        const oldVNode = { tag: rootVNode.tag, };
-
-        diff(oldVNode, { ...rootVNode }, cycle);
-
-        // console.log(JSON.stringify(oldVNode, null, 2))
-
-        // @ts-ignore
-        const renderedHtml = stringify(oldVNode, cycle, {});
-
-        const headHtmlImports = stringify({
-          tag: 'head',
-          children: headImports
-        }).slice(6, -7).replaceAll(' data-pulsorhydrate="true"', '');
-
-        const html = renderedHtml.replace('</head>', `${headHtmlImports}</head>`);
-
-        res.end(html)
-
+        const url = req.originalUrl;
+        const html = renderPathToHtml(url);
+        res.end(html);
       } catch (e) {
         console.error(e.stack)
         res.end(e.stack)
@@ -303,7 +310,8 @@ cli
     })
 
     http.createServer(app).listen(3000);
-    console.log('http://localhost:3000')
+
+    console.log('http://localhost:3000');
   })
 
 
@@ -326,9 +334,7 @@ cli
           configFile: options.config,
           logLevel: options.logLevel,
           mode: options.mode,
-          build: {
-            outDir: 'dist/client',
-          },
+          build: options,
           preview: {
             port: options.port,
             strictPort: options.strictPort,
