@@ -156,26 +156,18 @@ const pulsorDevPlugin = () => {
       if (id.endsWith('@pulsor-root')) {
         return '\0@pulsor-root';
       }
+      if (id.endsWith('@pulsor-document')) {
+        return '\0@pulsor-document';
+      }
     },
     load(id) {
       if (id === '\0@pulsor-root') {
 
-        return `import { h } from '${pulsorPath}'
-
+        return `
 import initialAppModule from '${rootNodePath}'
+import document from '@pulsor-document'
 
 export const fresh = initialAppModule;
-
-const document = (root) => (
-  h('html', {}, [
-    h('head', {}, [
-      h('title', {}, 'Pulsor dev server')
-    ]),
-    h('body', {}, [
-      root
-    ])
-  ])
-)
 
 let app = initialAppModule;
 
@@ -209,6 +201,22 @@ export default root`;
 import { run } from '${pulsorPath}';
 
 run(rootApp, document);`;
+      }
+      if (id === '\0@pulsor-document') {
+        return `import { h } from '${pulsorPath}'
+
+const document = (root) => (
+  h('html', {}, [
+    h('head', {}, [
+      h('title', {}, 'Pulsor dev server')
+    ]),
+    h('body', {}, [
+      root
+    ])
+  ])
+)
+
+export default document`;
       }
     },
   };
