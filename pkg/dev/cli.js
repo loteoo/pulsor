@@ -6,8 +6,7 @@ const { createServer, loadConfigFromFile, mergeConfig, build } = require('vite')
 const connect = require('connect')
 const http = require('http')
 const sirv = require('sirv')
-const stringify = require('../core/dist/stringify').default;
-const diff = require('../core/dist/run').diff;
+const renderPathToHtml = require('./renderPathToHtml').renderPathToHtml;
 
 
 // Create CLI
@@ -83,7 +82,7 @@ cli
 cli
   .command('build [root]')
   .option(
-    '--target [target]',
+    '--buildTarget [buildTarget]',
     `["spa" | "static" | "ssr"] Specified build target (default: spa)`
   )
   .option('--nojs', `[boolean] Remove JS runtime from static HTML files (static and ssr only)`)
@@ -92,156 +91,26 @@ cli
   .action(async (root, options) => {
     try {
 
-      const buildTarget = options.target ?? 'spa';
-
-      console.log('Building for', buildTarget)
-
-      if (options.nojs && !['static', 'ssr'].includes(buildTarget)) {
-        throw new Error('You should only use --nojs option with HTML-producing build targets: --target="static" or --target="ssr".')
-      }
-
       const configPath = path.resolve(__dirname, 'vite.config.ts');
 
-      const loadResult = await loadConfigFromFile({ mode: 'development', command: 'serve' }, configPath);
+      const loadResult = await loadConfigFromFile({ mode: 'production', command: 'build' }, configPath);
 
       const config = mergeConfig(loadResult.config, {
         root,
-        // customLogger: {
-        //   info: (str) => {
-        //     const vStr = pkg => `${pkg.name} v${pkg.version}`
-        //     const vitePkg = require('vite/package.json');
-        //     const cliPkg = require('./package.json');
-        //     console.info(str.replace(vStr(vitePkg), vStr(cliPkg)))
-        //   },
-        // }
-      })
-
-      // Build client
-      const buildResult = await build({
-        ...config,
         build: {
-          ...config.build,
-          rollupOptions: {
-            input: {
-              app: '@pulsor-client'
-            }
-          }
+          buildTarget: options.buildTarget,
+          nojs: options.nojs,
+        },
+        customLogger: {
+          info: (str) => {
+            const vStr = pkg => `${pkg.name} v${pkg.version}`
+            const vitePkg = require('vite/package.json');
+            const cliPkg = require('./package.json');
+            console.info(str.replace(vStr(vitePkg), vStr(cliPkg)))
+          },
         }
       });
-
-      let headImports = [];
-
-      if (!options.nojs) {
-        const jsEntries = buildResult.output.filter(bundle => bundle.isEntry);
-        for (const bundle of jsEntries) {
-          headImports.push({
-            tag: 'script',
-            props: {
-              async: true,
-              type: 'module',
-              crossorigin: true,
-              src: `/${bundle.fileName}`
-            }
-          })
-          for (const chunkFileName of bundle.imports) {
-            headImports.push({
-              tag: 'link',
-              props: {
-                rel: 'modulepreload',
-                href: `/${chunkFileName}`
-              }
-            })
-          }
-        }
-      }
-
-      const cssFiles = buildResult.output.filter(bundle => bundle.fileName.endsWith('.css'));
-      for (const cssFile of cssFiles) {
-        headImports.push({
-          tag: 'link',
-          props: {
-            rel: 'stylesheet',
-            href: `/${cssFile.fileName}`
-          }
-        })
-      }
-
-      // TODO: only do this when necessary (head.json only when SSR)
-      fs.mkdirSync(path.resolve(process.cwd(), 'dist/.pulsor'), { recursive: true });
-      fs.writeFileSync(
-        path.resolve(process.cwd(), 'dist/.pulsor/head.json'),
-        JSON.stringify(headImports, null, 2),
-        'utf-8'
-      );
-
-      if (buildTarget === 'spa') {
-        fs.writeFileSync(
-          path.resolve(path.resolve(process.cwd(), 'dist/index.html')),
-          (await buildSpaHtml(config)),
-          'utf-8'
-        );
-        return;
-      } else {
-        // Build SSR
-        await build({
-          ...config,
-          build: {
-            ...config.build,
-            outDir: 'dist/.pulsor',
-            emptyOutDir: false,
-            ssr: true,
-            rollupOptions: {
-              input: {
-                app: '@pulsor-root'
-              }
-            }
-          }
-        });
-      }
-
-
-      if (buildTarget === 'static') {
-
-        const pathQueue = [
-          '/'
-        ];
-
-        for (const url of pathQueue) {
-
-          const html = renderPathToHtml(url);
-
-          const pattern = /href="(.*?)"/g;
-
-          const internalLinks = html
-            .match(pattern)
-            .map(hrefAttr => hrefAttr.slice(6, -1))
-            .filter(href => {
-              if (!href.startsWith('/') || href.includes('.')) {
-                return false;
-              }
-              return true;
-            });
-
-          const newLinks = internalLinks.filter(
-            href => !pathQueue.includes(href)
-          );
-
-          pathQueue.push(...newLinks);
-
-          const dirName = path.resolve(process.cwd(), `dist/${url}`);
-
-          fs.mkdirSync(dirName, { recursive: true });
-
-          fs.writeFileSync(
-            path.resolve(dirName, 'index.html'),
-            html,
-            'utf-8'
-          );
-
-        }
-        return;
-      }
-
+      await build(config);
 
 
     } catch (e) {
@@ -251,96 +120,7 @@ cli
       )
       process.exit(1)
     }
-  })
-
-
-
-
-// TODO: This should be "reqToHtml"
-const renderPathToHtml = (url) => {
-
-  const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/app.js')).default;
-  const headImports = require(path.resolve(process.cwd(), 'dist/.pulsor/head.json'));
-
-  const cycle = {
-    state: {
-      location: {
-        path: url
-      }
-    },
-    needsRerender: true,
-    sideEffects: [],
-    dryRun: true,
-  }
-
-  const oldVNode = { tag: rootVNode.tag, };
-
-  diff(oldVNode, { ...rootVNode }, cycle);
-
-
-  // @ts-ignore
-  const renderedHtml = stringify(oldVNode, cycle, {});
-
-  const headHtmlImports = stringify({
-    tag: 'head',
-    children: headImports
-  }).slice(6, -7).replaceAll(' data-pulsorhydrate="true"', '');
-
-  const html = renderedHtml.replace('</head>', `${headHtmlImports}</head>`);
-
-  return html
-}
-
-
-const buildSpaHtml = async (config) => {
-
-  // Build SSR
-  await build({
-    ...config,
-    logLevel: 'warn',
-    build: {
-      ...config.build,
-      outDir: 'dist/.pulsor',
-      emptyOutDir: false,
-      ssr: true,
-      rollupOptions: {
-        input: {
-          document: '@pulsor-document'
-        }
-      }
-    }
   });
-
-  const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/document.js')).default();
-  const headImports = require(path.resolve(process.cwd(), 'dist/.pulsor/head.json'));
-
-  const cycle = {
-    state: {},
-    needsRerender: true,
-    sideEffects: [],
-    dryRun: true,
-  }
-
-  const oldVNode = { tag: rootVNode.tag, };
-
-  diff(oldVNode, { ...rootVNode }, cycle);
-
-
-  // @ts-ignore
-  const renderedHtml = stringify(oldVNode, cycle, {});
-
-  const headHtmlImports = stringify({
-    tag: 'head',
-    children: headImports
-  }).slice(6, -7).replaceAll(' data-pulsorhydrate="true"', '');
-
-  const html = renderedHtml.replace('</head>', `${headHtmlImports}</head>`);
-
-  const cleaned = html.replace(/<body>.*<\/body>/, '<body></body>')
-
-  return cleaned
-}
-
 
 
 // serve command
@@ -370,10 +150,10 @@ cli
 
       if (options.ssr) {
         if (fs.existsSync(path.resolve(process.cwd(), 'dist/index.html'))) {
-          throw new Error('Static (non-SSR) build found. Please run \'pulsor build --target=ssr\' before serving the app in SSR mode.')
+          throw new Error('Static (non-SSR) build found. Please run \'pulsor build --buildTarget="ssr"\' before serving the app in SSR mode.')
         }
         if (!fs.existsSync(path.resolve(process.cwd(), 'dist/.pulsor/app.js'))) {
-          throw new Error('No SSR build found. Please run \'pulsor build --target=ssr\' before serving the app in SSR mode.')
+          throw new Error('No SSR build found. Please run \'pulsor build --buildTarget="ssr"\' before serving the app in SSR mode.')
         }
         app.use(async (req, res) => {
           try {
@@ -381,8 +161,8 @@ cli
             const html = renderPathToHtml(url);
             res.end(html);
           } catch (e) {
-            console.error(e.stack)
-            res.end(e.stack)
+            console.error(e.stack);
+            res.end(e.stack);
           }
         })
       }

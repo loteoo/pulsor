@@ -20,7 +20,6 @@ const app = (
         </li>
       ))}
     </ul>
-    {console.log}
   </main>
 )
 

@@ -4,8 +4,8 @@
   "scripts": {
     "dev": "pulsor src/app",
     "build": "pulsor build src/app",
-    "build:static": "pulsor build src/app --target=static",
-    "build:ssr": "pulsor build src/app --target=ssr",
+    "build:static": "pulsor build src/app --buildTarget=static",
+    "build:ssr": "pulsor build src/app --buildTarget=ssr",
     "serve": "pulsor serve",
     "serve:ssr": "pulsor serve --ssr"
   },
