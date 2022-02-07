@@ -90,7 +90,7 @@ const pulsorDevPlugin = () => {
             dryRun: true,
           };
 
-          const oldVNode = { tag: rootVNode.tag, };
+          const oldVNode = { tag: rootVNode.tag, props: rootVNode.props };
 
           rootVNode.ctx = {
             req,
@@ -103,7 +103,7 @@ const pulsorDevPlugin = () => {
 
           const html = await server.transformIndexHtml(req.url, renderedHtml);
 
-          res.end(html);
+          res.end(`<!DOCTYPE html>\n${html}`);
 
           next();
         });
@@ -126,10 +126,13 @@ const pulsorDevPlugin = () => {
       })));
 
 
-      if (!_config.build.rollupOptions) {
-        _config.build.rollupOptions = {
-          input: {
-            app: '@pulsor-client'
+      if (!_config.build?.rollupOptions) {
+        _config.build = {
+          ..._config.build,
+          rollupOptions: {
+            input: {
+              app: '@pulsor-client'
+            }
           }
         }
       }
@@ -300,7 +303,7 @@ run(rootApp, document);`;
         })
       }
 
-      
+
 
       if (config.build.buildTarget === 'spa') {
 
@@ -336,7 +339,7 @@ run(rootApp, document);`;
           dryRun: true,
         } as Cycle;
 
-        const oldVNode = { tag: rootVNode.tag, };
+        const oldVNode = { tag: rootVNode.tag, props: rootVNode.props };
 
         diff(oldVNode, { ...rootVNode }, cycle);
 

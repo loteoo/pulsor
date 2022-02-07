@@ -2,17 +2,20 @@ import { VChildNode, VNode } from '.';
 
 const nodeTypesToHydrate = [1, 3];
 
-const hydrate = (el: Node): VNode => {
-  if (el.nodeType === 3) {
+const hydrate = (_el: Node): VNode => {
+  if (_el.nodeType === 3) {
     return {
-      text: String(el.nodeValue),
-      el,
+      text: String(_el.nodeValue),
+      el: _el,
     };
   }
+
+  const el = _el as HTMLElement;
+
   const tag = el.nodeName.toLowerCase();
   let children: VChildNode[] = [];
 
-  if ((el as HTMLElement).dataset?.pulsorinnerhtml) {
+  if (el.dataset?.pulsorinnerhtml) {
   } else if (['head', 'body'].includes(tag)) {
     const elems = [].filter.call(
       el.childNodes,
@@ -26,8 +29,16 @@ const hydrate = (el: Node): VNode => {
     ).map(hydrate);
   }
 
+  const props = {} as any;
+  if (el.getAttributeNames) {
+    for (const prop of el.getAttributeNames()) {
+      props[prop] = el.getAttribute(prop);
+    }
+  }
+
   const vNode: VNode = {
     tag,
+    props,
     children,
     el,
   };

@@ -25,8 +25,12 @@ const styleToString = (style: any) => {
 
 const stringify = (vNode: VNode, cycle: Cycle, ctx: any, addHydrationFlags?: boolean): string => {
 
-  if (!vNode.tag && vNode.text != null) {
-    return String(vNode.text);
+  if (!vNode.tag) {
+    if (vNode.text != null) {
+      return String(vNode.text);
+    } else {
+      return '';
+    }
   }
 
   var html = []
@@ -57,7 +61,7 @@ const stringify = (vNode: VNode, cycle: Cycle, ctx: any, addHydrationFlags?: boo
           // @ts-ignore
           for (const key of Object.keys(vNode.props[prop]).filter(k => vNode.props[prop][k])) {
             // @ts-ignore
-            cls += ' ' + vNode.props[prop][key];
+            cls += ' ' + key;
           }
 
           vNode.props[prop] = cls;
@@ -78,6 +82,10 @@ const stringify = (vNode: VNode, cycle: Cycle, ctx: any, addHydrationFlags?: boo
 
         if (vNode.props[prop] === true) {
           html.push(` ${prop}`);
+          continue
+        }
+
+        if (vNode.props[prop] === undefined) {
           continue
         }
 

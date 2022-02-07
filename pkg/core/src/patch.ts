@@ -131,7 +131,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, c
     return;
   }
 
-  if (key === 'style' && typeof newValue === "object") {
+  if (key === 'style' && typeof oldValue === "object" && typeof newValue === "object") {
     for (const k in { ...oldValue, ...newValue }) {
       const val = newValue[k] ?? '';
       if (k.startsWith('--')) {
@@ -180,6 +180,10 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isS
     ctx = typeof newVNode.ctx === 'function'
       ? newVNode.ctx(oldVNode.ctx!)
       : newVNode.ctx
+  }
+
+  if (!newVNode.tag) {
+    return;
   }
 
   if (el) {

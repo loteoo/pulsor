@@ -22,7 +22,8 @@ const renderPathToHtml = (url, headImports) => {
     dryRun: true,
   }
 
-  const oldVNode = { tag: rootVNode.tag, };
+  const oldVNode = { tag: rootVNode.tag, props: rootVNode.props };
+
 
   diff(oldVNode, { ...rootVNode }, cycle);
 
