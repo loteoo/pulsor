@@ -102,12 +102,15 @@ cli
           nojs: options.nojs,
         },
         customLogger: {
+          log: console.log,
           info: (str) => {
             const vStr = pkg => `${pkg.name} v${pkg.version}`
             const vitePkg = require('vite/package.json');
             const cliPkg = require('./package.json');
             console.info(str.replace(vStr(vitePkg), vStr(cliPkg)))
           },
+          warn: console.warn,
+          error: console.error,
         }
       });
       await build(config);

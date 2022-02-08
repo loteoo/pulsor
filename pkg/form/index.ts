@@ -11,9 +11,9 @@ const SetField = (name: string, value: any, scope?: string): Action => {
   return scope ? { [scope]: update } : update
 }
 
-const PreventDefault = {
-  run: (_: any, ev: any) => ev.preventDefault()
-}
+const PreventDefault = (_: any, ev: any) => ({
+  effect: () => ev.preventDefault()
+})
 
 const selectField = (name: string, scope?: string) => (state: any) => {
   if (scope) {

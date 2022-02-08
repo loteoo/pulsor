@@ -123,8 +123,9 @@ export const createRouter = ({ routes }: Options) => {
     matchers[route] = match(route)
   }
 
-  const Router: Component = () => ({
+  const Router: Component = ({ props }: any) => ({
     tag: 'div',
+    props,
     init: (state: State) => [
       typeof window !== 'undefined'
         ? HandleRouteChange(state, window.location.pathname + window.location.search + window.location.hash)

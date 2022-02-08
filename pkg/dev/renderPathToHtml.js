@@ -37,7 +37,7 @@ const renderPathToHtml = (url, headImports) => {
 
   const html = renderedHtml.replace('</head>', `${headHtmlImports}</head>`);
 
-  return html
+  return `<!DOCTYPE html>\n${html}`;
 }
 
 

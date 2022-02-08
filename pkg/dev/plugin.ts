@@ -47,7 +47,10 @@ const pulsorIsInstalled = () => {
 
 
 const customLogger = {
+  log: console.log,
   info: () => {},
+  warn: console.warn,
+  error: console.error,
 }
 
 const projectPulsor = '@pulsor/core';
@@ -158,10 +161,10 @@ const pulsorDevPlugin = () => {
         styleSheets.push(code);
       }
       if (id === '\0@pulsor-document') {
-        const result = await transformWithEsbuild(code, 'document.tsx');
+        const result = await transformWithEsbuild(code, 'document.tsx', config.esbuild);
         return {
           ...result,
-          code: `import { h, Fragment } from '${pulsorPath}';\n${result.code}`
+          code: `import { h, Fragment } from '${pulsorPath}';\n${result.code}`,
         }
       }
     },
@@ -206,30 +209,30 @@ const pulsorDevPlugin = () => {
 import initialAppModule from '${rootNodePath}'
 import document from '@pulsor-document'
 
-export const fresh = initialAppModule;
+export let fresh = initialAppModule;
 
-let app = initialAppModule;
+let app = fresh;
 
-let rootApp = app;
-
-if (import.meta.hot) {
-  rootApp = [
+if (typeof window !== 'undefined' && import.meta.hot) {
+  app = [
     {
       init: {
-        effect: (emit) => {
-          import.meta.hot.accept((newModule) => {
-            app = newModule.fresh;
-            emit({});
-          });
+        effect: (dispatch) => {
+          const handler = () => dispatch({})
+          window.addEventListener('hmr', handler)
+          return () => window.removeEventListener('hmr', handler)
         }
       },
     },
-    () => app,
+    () => window.__hrm_vnode ?? fresh,
   ];
+  import.meta.hot.accept((newModule) => {
+    window.__hrm_vnode = newModule.fresh;
+    dispatchEvent(new CustomEvent("hmr"));
+  });
 }
 
-
-const root = document(rootApp)
+const root = document(app);
 
 export default root`;
       }
@@ -316,6 +319,7 @@ run(rootApp, document);`;
           ...config,
           root: rootNodePath,
           logLevel: 'warn',
+          publicDir: false,
           build: {
             ...config.build,
             outDir: 'dist/.pulsor',
@@ -359,7 +363,7 @@ run(rootApp, document);`;
 
         fs.writeFileSync(
           path.resolve(path.resolve(process.cwd(), 'dist/index.html')),
-          cleaned,
+          `<!DOCTYPE html>\n${cleaned}`,
           'utf-8'
         );
 
@@ -375,6 +379,7 @@ run(rootApp, document);`;
       await build({
         ...config,
         root: rootNodePath,
+        publicDir: false,
         build: {
           ...config.build,
           outDir: 'dist/.pulsor',
@@ -401,21 +406,27 @@ run(rootApp, document);`;
 
           const pattern = /href="(.*?)"/g;
 
-          const internalLinks = html
-            .match(pattern)
-            .map(hrefAttr => hrefAttr.slice(6, -1))
-            .filter(href => {
-              if (!href.startsWith('/') || href.includes('.')) {
-                return false;
-              }
-              return true;
-            });
+          const matches = html.match(pattern);
 
-          const newLinks = internalLinks.filter(
-            href => !pathQueue.includes(href)
-          );
+          if (matches) {
 
-          pathQueue.push(...newLinks);
+            const internalLinks = html
+              .match(pattern)
+              .map(hrefAttr => hrefAttr.slice(6, -1))
+              .filter(href => {
+                if (!href.startsWith('/') || href.includes('.') || href.startsWith('#')) {
+                  return false;
+                }
+                return true;
+              });
+
+            const newLinks = internalLinks.filter(
+              href => !pathQueue.includes(href)
+            );
+
+            pathQueue.push(...newLinks);
+
+          }
 
           const dirName = path.resolve(process.cwd(), `dist/${url}`);
 

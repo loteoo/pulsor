@@ -131,8 +131,8 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, c
     return;
   }
 
-  if (key === 'style' && typeof oldValue === "object" && typeof newValue === "object") {
-    for (const k in { ...oldValue, ...newValue }) {
+  if (key === 'style' && typeof newValue === "object") {
+    for (const k in { ...(typeof oldValue === 'object' ? oldValue : {}), ...newValue }) {
       const val = newValue[k] ?? '';
       if (k.startsWith('--')) {
         el[key].setProperty(k, val)
@@ -182,7 +182,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isS
       : newVNode.ctx
   }
 
-  if (!newVNode.tag) {
+  if (!newVNode.tag && newVNode.text == null) {
     return;
   }
 
