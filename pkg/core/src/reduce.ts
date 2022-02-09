@@ -1,11 +1,11 @@
 import deepAssign from './deepAssign';
-import { Action, Cycle, VNode, ActionFunction, Effect } from './types';
+import { Action, Cycle, VNode, ActionFunction, Effect, Lens } from './types';
 import { isEffect } from './utils';
 
 /**
  * Reduces an action object into a single update "result" and an array of effects
  */
-const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, parentAction?: string) => {
+const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?: VNode, parentAction?: string) => {
 
   // Ignore falsy values
   if (!action) {
@@ -15,7 +15,7 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
   // Recurse on arrays
   if (Array.isArray(action)) {
     for (const sub of action) {
-      reduce(sub, payload, cycle, vNode, parentAction);
+      reduce(sub, payload, cycle, scope, vNode, parentAction);
     }
     return;
   }
@@ -23,7 +23,7 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
   // Handle subactions
   if (typeof action === "function") {
     const sub = (action as ActionFunction)(cycle.state, payload);
-    reduce(sub, payload, cycle, vNode, action.name);
+    reduce(sub, payload, cycle, scope, vNode, action.name);
     return;
   }
 
@@ -34,9 +34,9 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
     effect.vNode = vNode;
 
     const sideEffect = () => {
-      const cleanup = effect.effect((...args) => {
+      const cleanup = effect.effect((_action, _payload, _eventName, _scope) => {
         setTimeout(() => {
-          cycle.dispatch(...args)
+          cycle.dispatch(_action, _payload, _eventName, _scope ?? scope)
         })
       }, effect.payload)
       if (cleanup && effect.vNode) {
@@ -52,6 +52,10 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
 
     cycle.sideEffects.push(sideEffect);
     return;
+  }
+
+  if (scope) {
+    action = scope.set(action)
   }
 
   deepAssign(cycle.state, action);

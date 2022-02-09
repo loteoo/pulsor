@@ -5,10 +5,17 @@ export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
 
+export type Scope = string | Lens;
+
+export type Lens = {
+  get: (state: State) => any;
+  set: (value: any) => Update;
+};
+
 // === Actions
 
 export type EventData = any;
-export type Dispatch = (action: Action, payload?: EventData, eventName?: string) => void;
+export type Dispatch = (action: Action, payload?: EventData, eventName?: string, scope?: Lens) => void;
 
 // Effect
 export type EffectCleanup = () => void | Promise<void>;
@@ -47,6 +54,7 @@ export type Key = any;
 // Props you can set on both props and vNode directly
 export interface LogicalProps {
   key: Key;
+  scope: Scope;
   init: Action | Action<unknown>;
   clear: Action | Action<unknown>;
   ctx: ContextProp;

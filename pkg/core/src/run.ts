@@ -1,7 +1,7 @@
 import hydrate from './hydrate'
 import reduce from './reduce';
 import patch from './patch';
-import { VNode, Action, EventData, Cycle } from './types';
+import { VNode, Action, Dispatch, Cycle } from './types';
 
 export const diff = (a: VNode, b: VNode, cycle: Cycle) => {
   if (cycle.needsRerender) {
@@ -16,15 +16,15 @@ const run = (app: VNode, root: Node) => {
 
   function domEmitter(ev: Event) {
     // @ts-ignore
-    dispatch((this[ev.type] as Action), ev, ev.type);
+    dispatch((this[ev.type] as Action), ev, ev.type, this.__scope);
   }
 
   const oldVNode = hydrate(root);
 
-  const dispatch = (action: Action, payload?: EventData, eventName?: string) => {
+  const dispatch: Dispatch = (action, payload, eventName, scope) => {
 
     // Apply state updates
-    reduce(action, payload, cycle, undefined, eventName);
+    reduce(action, payload, cycle, scope, undefined, eventName);
 
     const nextVNode = {
       ...oldVNode,
