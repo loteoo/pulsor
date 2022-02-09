@@ -33,7 +33,7 @@ cli
       const loadResult = await loadConfigFromFile({ mode: 'development', command: 'serve' }, configPath);
 
       const config = mergeConfig(loadResult.config, {
-        root,
+        root: root ?? 'index',
         base: options.base,
         mode: options.mode,
         configFile: options.config,
@@ -96,7 +96,7 @@ cli
       const loadResult = await loadConfigFromFile({ mode: 'production', command: 'build' }, configPath);
 
       const config = mergeConfig(loadResult.config, {
-        root,
+        root: root ?? 'index',
         build: {
           buildTarget: options.buildTarget,
           nojs: options.nojs,
