@@ -1,4 +1,4 @@
-import { Cycle, VNode } from '.';
+import { Cycle, VNode } from '../../core/src';
 
 const voidElements = [
   'area',

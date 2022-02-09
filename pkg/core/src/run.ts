@@ -1,4 +1,3 @@
-import hydrate from './hydrate'
 import reduce from './reduce';
 import patch from './patch';
 import { VNode, Action, Dispatch, Cycle } from './types';
@@ -12,14 +11,16 @@ export const diff = (a: VNode, b: VNode, cycle: Cycle) => {
   }
 }
 
-const run = (app: VNode, root: Node) => {
+const run = (app: VNode, mount: HTMLElement | VNode) => {
 
   function domEmitter(ev: Event) {
     // @ts-ignore
     dispatch((this[ev.type] as Action), ev, ev.type, this.__scope);
   }
 
-  const oldVNode = hydrate(root);
+  const oldVNode = mount instanceof HTMLElement
+    ? { tag: mount.tagName, el: mount }
+    : mount;
 
   const dispatch: Dispatch = (action, payload, eventName, scope) => {
 
@@ -29,7 +30,7 @@ const run = (app: VNode, root: Node) => {
     const nextVNode = {
       ...oldVNode,
       children: app
-    }
+    };
 
     diff(oldVNode, nextVNode, cycle);
 

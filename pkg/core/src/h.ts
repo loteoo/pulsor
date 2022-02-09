@@ -1,7 +1,7 @@
 import { VProps, VChildNode, HyperScript } from './types';
 
 export const h: HyperScript = (tag, props, ...children: VChildNode[]) =>
-  typeof tag === "function"
+  typeof tag === 'function'
     ? tag(props ?? {}, children)
     : { tag, props, children };
 

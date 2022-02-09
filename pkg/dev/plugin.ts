@@ -3,7 +3,7 @@ import path from 'path';
 import { defineConfig, mergeConfig, normalizePath, transformWithEsbuild, build } from "vite";
 import { Cycle } from '../core/src';
 import { diff } from '../core/src/run';
-import stringify from '../core/src/stringify';
+import stringify from '../html/src/stringify';
 import http from 'http';
 import { renderPathToHtml } from './renderPathToHtml';
 
@@ -126,6 +126,11 @@ const pulsorDevPlugin = () => {
           jsxFragment: 'Fragment',
           jsxInject: `import { h, Fragment } from '${pulsorPath}'`
         },
+        resolve: {
+          alias: {
+            '@pulsor/html': path.resolve(__dirname, '../html/src')
+          }
+        }
       })));
 
 
@@ -241,8 +246,9 @@ export default root`;
         return `import rootApp from '@pulsor-root';
 
 import { run } from '${pulsorPath}';
+import { hydrate } from '@pulsor/html';
 
-run(rootApp, document);`;
+run(rootApp, hydrate(document));`;
       }
       if (id === '\0@pulsor-document') {
         const projectDocument = getExactPath(`${process.cwd()}/document`);
