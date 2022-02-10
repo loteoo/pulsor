@@ -15,7 +15,7 @@ function recurseRemove(vNode: NormalizedVNode, parent: Node, cycle: Cycle, scope
   reduce(vNode.clear, vNode.el, cycle, scope, vNode, 'clear');
 
   // @ts-ignore
-  if (vNode.el?.clearEffects) {
+  if (vNode.el.clearEffects) {
     // @ts-ignore
     vNode.el.clearEffects.forEach(cleanup => {
       if (typeof cleanup === 'function') {
@@ -31,8 +31,8 @@ function recurseRemove(vNode: NormalizedVNode, parent: Node, cycle: Cycle, scope
     }
   }
 
-  if (vNode.el?.parentNode === parent) {
-    parent?.removeChild(vNode.el!);
+  if (vNode.el.parentNode === parent) {
+    parent?.removeChild(vNode.el);
   }
 
 }
@@ -161,22 +161,22 @@ const patch = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Co
 
   const el = oldVNode.el;
 
-  if (newVNode?.scope) {
-    if (typeof newVNode.scope === 'string') {
-      scope = createLens(newVNode?.scope);
-    } else {
-      scope = newVNode?.scope;
-    }
-  }
-
-  if (newVNode?.init && oldVNode?.init == null) {
-    reduce(newVNode?.init, el, cycle, scope, oldVNode, 'init');
-  }
-
-  if (newVNode?.ctx) {
+  if (newVNode.ctx) {
     ctx = typeof newVNode.ctx === 'function'
       ? newVNode.ctx(oldVNode.ctx!)
       : newVNode.ctx
+  }
+
+  if (newVNode.scope) {
+    if (typeof newVNode.scope === 'string') {
+      scope = createLens(newVNode.scope);
+    } else {
+      scope = newVNode.scope;
+    }
+  }
+
+  if (newVNode.init && oldVNode.init == null) {
+    reduce(newVNode.init, el, cycle, scope, oldVNode, 'init');
   }
 
   if (!newVNode.tag && newVNode.text == null) {
@@ -194,10 +194,10 @@ const patch = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Co
       isSvg = true;
     }
 
-    for (const key in { ...oldVNode?.props, ...newVNode?.props }) {
-      const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode?.props?.[key];
-      if (oldVal !== newVNode?.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
-        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], cycle, isSvg, scope);
+    for (const key in { ...oldVNode.props, ...newVNode.props }) {
+      const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode.props?.[key];
+      if (oldVal !== newVNode.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
+        patchProp(el as HTMLElement, key, oldVNode.props?.[key], newVNode.props?.[key], cycle, isSvg, scope);
       }
     }
   }
@@ -240,12 +240,12 @@ const patch = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Co
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
       patch(oldStartVNode, newEndVNode, cycle, ctx, isSvg, scope);
-      parent?.insertBefore(oldStartVNode.el!, oldEndVNode.el!.nextSibling!);
+      parent?.insertBefore(oldStartVNode.el, oldEndVNode.el.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
       patch(oldEndVNode, newStartVNode, cycle, ctx, isSvg, scope);
-      parent?.insertBefore(oldEndVNode.el!, oldStartVNode.el!);
+      parent?.insertBefore(oldEndVNode.el, oldStartVNode.el);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -260,15 +260,15 @@ const patch = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Co
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg, scope);
+        createNode(newStartVNode, parent, oldStartVNode.el, cycle, ctx, isSvg, scope);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.tag !== newStartVNode.tag) {
-          createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg, scope);
+          createNode(newStartVNode, parent, oldStartVNode.el, cycle, ctx, isSvg, scope);
         } else {
           patch(elmToMove, newStartVNode, cycle, ctx, isSvg, scope);
           oldCh[idxInOld] = undefined as any;
-          parent?.insertBefore(elmToMove.el, oldStartVNode.el!);
+          parent?.insertBefore(elmToMove.el, oldStartVNode.el);
         }
       }
       newStartVNode = newCh[++newStartIdx];
