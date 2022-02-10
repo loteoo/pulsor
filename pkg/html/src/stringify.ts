@@ -1,4 +1,4 @@
-import { Cycle, VNode } from '../../core/src';
+import { Cycle, NormalizedVNode } from '../../core/src';
 
 const voidElements = [
   'area',
@@ -23,7 +23,7 @@ const styleToString = (style: any) => {
   ), '');
 };
 
-const stringify = (vNode: VNode, cycle: Cycle, ctx: any, addHydrationFlags?: boolean): string => {
+const stringify = (vNode: NormalizedVNode, cycle: Cycle, ctx: any, addHydrationFlags?: boolean): string => {
 
   if (!vNode.tag) {
     if (vNode.text != null) {
@@ -123,7 +123,7 @@ const stringify = (vNode: VNode, cycle: Cycle, ctx: any, addHydrationFlags?: boo
   }
 
   if (vNode.children) {
-    for (const child of vNode.children as any[]) {
+    for (const child of vNode.children) {
       const addHydrationFlags = ['head', 'body'].includes(vNode.tag!);
       const childHtml = stringify(child, cycle, ctx, addHydrationFlags)
       html.push(childHtml)

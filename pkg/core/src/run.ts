@@ -1,8 +1,8 @@
 import reduce from './reduce';
 import patch from './patch';
-import { VNode, Action, Dispatch, Cycle } from './types';
+import { VNode, Action, Dispatch, Cycle, NormalizedVNode } from './types';
 
-export const diff = (a: VNode, b: VNode, cycle: Cycle) => {
+export const diff = (a: NormalizedVNode, b: VNode, cycle: Cycle) => {
   if (cycle.needsRerender) {
     while (cycle.needsRerender) {
       cycle.needsRerender = false;
@@ -11,7 +11,7 @@ export const diff = (a: VNode, b: VNode, cycle: Cycle) => {
   }
 }
 
-const run = (app: VNode, mount: HTMLElement | VNode) => {
+const run = (app: VNode, mount: HTMLElement | NormalizedVNode) => {
 
   function domEmitter(ev: Event) {
     // @ts-ignore

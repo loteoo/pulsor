@@ -1,8 +1,8 @@
 import { Lens } from '.';
-import { Context, Cycle, VChildNode, VChildNodeFunction, VNode } from './types';
+import { Context, Cycle, NormalizedVNode, VChildNode, VChildNodeFunction, VNode } from './types';
 import { isVChildNodeFunction, isRenderable, isString } from './utils';
 
-const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: Context, scope?: Lens): VNode[] => {
+const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: Context, scope?: Lens): NormalizedVNode[] => {
   const vNodes = Array.isArray(_vNodes) ? [..._vNodes] : [_vNodes];
 
   let i = 0;
@@ -46,7 +46,7 @@ const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: Context, scope?:
     i++;
   }
 
-  return vNodes as VNode[];
+  return vNodes as NormalizedVNode[];
 }
 
 export default normalize

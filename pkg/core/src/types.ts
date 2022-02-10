@@ -104,6 +104,11 @@ export interface VNode<S = State> extends Partial<LogicalProps> {
   el?: Node;
 };
 
+export interface NormalizedVNode<S = State> extends VNode<S> {
+  children?: Array<NormalizedVNode<S>>;
+  el: Node;
+};
+
 export type Component<S = State> = (...args: any[]) => VChildNode<S>;
 
 export type HyperScript = <T = string | Component>(tag: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode;

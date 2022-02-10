@@ -4,12 +4,13 @@ import normalize from './normalize';
 import reduce from './reduce';
 import { Context, Cycle, VNode, Lens } from './types';
 import createLens from './createLens';
+import { NormalizedVNode } from '.';
 
 
 
 // ====
 
-function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle, scope?: Lens) {
+function recurseRemove(vNode: NormalizedVNode, parent: Node, cycle: Cycle, scope?: Lens) {
 
   reduce(vNode.clear, vNode.el, cycle, scope, vNode, 'clear');
 
@@ -25,8 +26,8 @@ function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle, scope?: Lens) {
 
   //@ts-ignore
   if (vNode.children?.length) {
-    for (const ch of (vNode.children as VNode[])) {
-      recurseRemove(ch, vNode.el!, cycle, scope);
+    for (const ch of vNode.children) {
+      recurseRemove(ch, vNode.el, cycle, scope);
     }
   }
 
@@ -62,7 +63,7 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
     {
       tag: vNode.tag,
       text: vNode.text,
-      el: vNode.el,
+      el: vNode.el!,
       children: [],
     },
     vNode,
@@ -153,10 +154,10 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, c
 };
 
 
-const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isSvg: boolean, scope?: Lens) => {
+const patch = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Context, isSvg: boolean, scope?: Lens) => {
 
   // ?? why are these needed?!!
-  newVNode.el = oldVNode.el!;
+  newVNode.el = oldVNode.el;
 
   const el = oldVNode.el;
 
@@ -202,7 +203,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isS
   }
 
   const parent = oldVNode.el;
-  const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
+  const oldCh: NormalizedVNode[] = (oldVNode.children ?? []);
   const newCh = normalize(newVNode.children, cycle, ctx, scope);
 
   oldVNode.children = newVNode.children = newCh;
@@ -217,7 +218,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isS
   let newEndVNode = newCh[newEndIdx];
   let oldKeyToIdx: Record<string, number> | undefined;
   let idxInOld: number;
-  let elmToMove: VNode;
+  let elmToMove: NormalizedVNode;
   let before: any;
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
@@ -267,7 +268,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: Context, isS
         } else {
           patch(elmToMove, newStartVNode, cycle, ctx, isSvg, scope);
           oldCh[idxInOld] = undefined as any;
-          parent?.insertBefore(elmToMove as Node, oldStartVNode.el!);
+          parent?.insertBefore(elmToMove.el, oldStartVNode.el!);
         }
       }
       newStartVNode = newCh[++newStartIdx];
