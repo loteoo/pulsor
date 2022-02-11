@@ -2,22 +2,19 @@
 import { isSame } from './utils'
 import normalize from './normalize';
 import reduce from './reduce';
-import { Context, Cycle, VNode, Lens } from './types';
+import { Context, Cycle, VNode, Lens, NormalizedVNode } from './types';
 import createLens from './createLens';
-import { NormalizedVNode } from '.';
-
-
 
 // ====
 
-function recurseRemove(vNode: NormalizedVNode, parent: Node, cycle: Cycle, scope?: Lens) {
+function recurseRemove(vNode: NormalizedVNode, parent: Node | undefined, cycle: Cycle, scope?: Lens) {
 
   reduce(vNode.clear, vNode.el, cycle, scope, vNode, 'clear');
 
   // @ts-ignore
-  if (vNode.el.clearEffects) {
+  if (vNode.el?.clearEffects) {
     // @ts-ignore
-    vNode.el.clearEffects.forEach(cleanup => {
+    vNode.el?.clearEffects.forEach(cleanup => {
       if (typeof cleanup === 'function') {
         cleanup()
       }
@@ -31,7 +28,7 @@ function recurseRemove(vNode: NormalizedVNode, parent: Node, cycle: Cycle, scope
     }
   }
 
-  if (vNode.el.parentNode === parent) {
+  if (vNode.el?.parentNode === parent && vNode.el) {
     parent?.removeChild(vNode.el);
   }
 
@@ -63,7 +60,7 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
     {
       tag: vNode.tag,
       text: vNode.text,
-      el: vNode.el!,
+      el: vNode.el,
       children: [],
     },
     vNode,
@@ -91,15 +88,15 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, c
     //@ts-ignore
     el[eventName] = newValue;
     if (!newValue) {
-      el.removeEventListener(eventName, cycle.domEmitter);
+      el.removeEventListener(eventName, cycle.domEmitter!);
     } else if (!oldValue) {
-      el.addEventListener(eventName, cycle.domEmitter);
+      el.addEventListener(eventName, cycle.domEmitter!);
     }
     return;
   }
 
   if (typeof newValue === 'function') {
-    newValue = newValue(cycle.state)
+    newValue = newValue(cycle.state);
   }
 
   if (key === 'class' && typeof newValue === "object") {
@@ -240,12 +237,12 @@ const patch = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Co
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
       patch(oldStartVNode, newEndVNode, cycle, ctx, isSvg, scope);
-      parent?.insertBefore(oldStartVNode.el, oldEndVNode.el.nextSibling!);
+      parent?.insertBefore(oldStartVNode.el!, oldEndVNode.el!.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
       patch(oldEndVNode, newStartVNode, cycle, ctx, isSvg, scope);
-      parent?.insertBefore(oldEndVNode.el, oldStartVNode.el);
+      parent?.insertBefore(oldEndVNode.el!, oldStartVNode.el!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -260,15 +257,15 @@ const patch = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Co
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, parent, oldStartVNode.el, cycle, ctx, isSvg, scope);
+        createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg, scope);
       } else {
         elmToMove = oldCh[idxInOld];
         if (elmToMove.tag !== newStartVNode.tag) {
-          createNode(newStartVNode, parent, oldStartVNode.el, cycle, ctx, isSvg, scope);
+          createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg, scope);
         } else {
           patch(elmToMove, newStartVNode, cycle, ctx, isSvg, scope);
           oldCh[idxInOld] = undefined as any;
-          parent?.insertBefore(elmToMove.el, oldStartVNode.el);
+          parent?.insertBefore(elmToMove.el!, oldStartVNode.el!);
         }
       }
       newStartVNode = newCh[++newStartIdx];

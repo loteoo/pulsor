@@ -6,7 +6,7 @@ const { createServer, loadConfigFromFile, mergeConfig, build } = require('vite')
 const connect = require('connect')
 const http = require('http')
 const sirv = require('sirv')
-const renderPathToHtml = require('./renderPathToHtml').renderPathToHtml;
+const renderPage = require('./renderPage').renderPage;
 
 
 // Create CLI
@@ -45,27 +45,15 @@ cli
         },
       })
 
-      const server = await createServer(config)
+      const server = await createServer(config);
 
       if (!server.httpServer) {
-        throw new Error('HTTP server not available')
+        throw new Error('HTTP server not available');
       }
 
-      await server.listen()
+      await server.listen();
 
-      console.log('http://localhost:3000')
-
-      // const info = server.config.logger.info
-
-      // info(
-      //   colors.cyan(`\n  vite v${require('vite/package.json').version}`) +
-      //     colors.green(` dev server running at:\n`),
-      //   {
-      //     clear: !server.config.logger.hasWarned
-      //   }
-      // )
-
-      // server.printUrls()
+      console.log(`Development server running on http://localhost:${options.port ?? 3000}`)
 
     } catch (e) {
       console.error(
@@ -158,10 +146,13 @@ cli
         if (!fs.existsSync(path.resolve(process.cwd(), 'dist/.pulsor/app.js'))) {
           throw new Error('No SSR build found. Please run \'pulsor build --buildTarget="ssr"\' before serving the app in SSR mode.')
         }
+
+        const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/app.js')).default;
+        const headImports = require(path.resolve(process.cwd(), 'dist/.pulsor/head.json'));
+
         app.use(async (req, res) => {
           try {
-            const url = req.originalUrl;
-            const html = renderPathToHtml(url);
+            const html = renderPage(req.originalUrl, rootVNode, headImports);
             res.end(html);
           } catch (e) {
             console.error(e.stack);

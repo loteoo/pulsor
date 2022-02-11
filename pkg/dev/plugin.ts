@@ -1,11 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { defineConfig, mergeConfig, normalizePath, transformWithEsbuild, build } from "vite";
-import { Cycle } from '../core/src';
-import { diff } from '../core/src/run';
-import stringify from '../html/src/stringify';
 import http from 'http';
-import { renderPathToHtml } from './renderPathToHtml';
+import { defineConfig, mergeConfig, normalizePath, transformWithEsbuild, build } from "vite";
+import { stringify } from '../html/dist';
+import { renderPage } from './renderPage';
 
 // ====
 
@@ -80,29 +78,16 @@ const pulsorDevPlugin = () => {
 
         server.middlewares.use(async (req, res, next) => {
 
-          const rootVNode = (await server.ssrLoadModule('@pulsor-root')).default;
+          const rootVNode = (await server.ssrLoadModule('@pulsor-combined-root')).default;
 
-          const cycle: Cycle = {
-            state: {
-              location: {
-                path: req.url,
+          const renderedHtml = stringify({
+            ...rootVNode,
+            ctx: {
+              ssr: {
+                url: req.url
               }
-            },
-            needsRerender: true,
-            sideEffects: [],
-            dryRun: true,
-          };
-
-          const oldVNode = { tag: rootVNode.tag, props: rootVNode.props };
-
-          rootVNode.ctx = {
-            req,
-            res
-          };
-
-          diff(oldVNode, { ...rootVNode }, cycle);
-
-          const renderedHtml = stringify(oldVNode, cycle, {});
+            }
+          });
 
           const html = await server.transformIndexHtml(req.url, renderedHtml);
 
@@ -169,7 +154,7 @@ const pulsorDevPlugin = () => {
         const result = await transformWithEsbuild(code, 'document.tsx', config.esbuild);
         return {
           ...result,
-          code: `import { h, Fragment } from '${pulsorPath}';\n${result.code}`,
+          code: `${config.esbuild.jsxInject}\n${result.code}`,
         }
       }
     },
@@ -200,15 +185,15 @@ const pulsorDevPlugin = () => {
       if (id.endsWith('@pulsor-client')) {
         return '\0@pulsor-client';
       }
-      if (id.endsWith('@pulsor-root')) {
-        return '\0@pulsor-root';
+      if (id.endsWith('@pulsor-combined-root')) {
+        return '\0@pulsor-combined-root';
       }
       if (id.endsWith('@pulsor-document')) {
         return '\0@pulsor-document';
       }
     },
     load(id) {
-      if (id === '\0@pulsor-root') {
+      if (id === '\0@pulsor-combined-root') {
 
         return `
 import initialAppModule from '${rootNodePath}'
@@ -243,7 +228,7 @@ export default root`;
       }
 
       if (id === '\0@pulsor-client') {
-        return `import rootApp from '@pulsor-root';
+        return `import rootApp from '@pulsor-combined-root';
 
 import { run } from '${pulsorPath}';
 import { hydrate } from '@pulsor/html';
@@ -268,7 +253,7 @@ run(rootApp, hydrate(document));`;
     async writeBundle(_, output) {
 
       // Don't run when running sub-build commands:
-      // Stop from "infinite loop" building
+      // (Stops from "infinite loop" building)
       if (config.build.ssr) {
         return;
       }
@@ -312,13 +297,7 @@ run(rootApp, hydrate(document));`;
         })
       }
 
-
-
       if (config.build.buildTarget === 'spa') {
-
-        /// ==== BUIlD SPA HTML
-
-        // console.log('config', config)
 
         // Build Document Node bundle
         await build({
@@ -342,34 +321,11 @@ run(rootApp, hydrate(document));`;
 
         const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/document.js')).default();
 
-        const cycle = {
-          state: {},
-          needsRerender: true,
-          sideEffects: [],
-          dryRun: true,
-        } as Cycle;
-
-        const oldVNode = { tag: rootVNode.tag, props: rootVNode.props };
-
-        diff(oldVNode, { ...rootVNode }, cycle);
-
-
-        // @ts-ignore
-        const renderedHtml = stringify(oldVNode, cycle, {});
-
-
-        const headHtmlImports = stringify({
-          tag: 'head',
-          children: headImports
-        }, cycle, {}).slice(6, -7).replaceAll(' data-pulsorhydrate="true"', '');
-
-        const html = renderedHtml.replace('</head>', `${headHtmlImports}</head>`);
-
-        const cleaned = html.replace(/<body>.*<\/body>/, '<body></body>')
+        const html = renderPage('/', rootVNode, headImports);
 
         fs.writeFileSync(
           path.resolve(path.resolve(process.cwd(), 'dist/index.html')),
-          `<!DOCTYPE html>\n${cleaned}`,
+          html,
           'utf-8'
         );
 
@@ -377,8 +333,7 @@ run(rootApp, hydrate(document));`;
           recursive: true,
         });
 
-        /// ==== END BUIlD SPA HTML
-        return
+        return;
       }
 
       // Build SSR
@@ -393,7 +348,7 @@ run(rootApp, hydrate(document));`;
           ssr: true,
           rollupOptions: {
             input: {
-              app: '@pulsor-root'
+              app: '@pulsor-combined-root'
             }
           }
         },
@@ -402,13 +357,15 @@ run(rootApp, hydrate(document));`;
 
       if (config.build.buildTarget === 'static') {
 
+        const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/app.js')).default;
+
         const pathQueue = [
           '/'
         ];
 
         for (const url of pathQueue) {
 
-          const html = renderPathToHtml(url, headImports);
+          const html = renderPage(url, rootVNode, headImports);
 
           const pattern = /href="(.*?)"/g;
 

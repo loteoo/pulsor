@@ -1,4 +1,5 @@
-import { Cycle, NormalizedVNode } from '../../core/src';
+import { Cycle, VNode, NormalizedVNode } from '../../core/dist/types';
+import { diff } from '../../core/src';
 
 const voidElements = [
   'area',
@@ -23,7 +24,7 @@ const styleToString = (style: any) => {
   ), '');
 };
 
-const stringify = (vNode: NormalizedVNode, cycle: Cycle, ctx: any, addHydrationFlags?: boolean): string => {
+const stringifyNode = (vNode: NormalizedVNode, cycle: Cycle, addHydrationFlags?: boolean): string => {
 
   if (!vNode.tag) {
     if (vNode.text != null) {
@@ -125,7 +126,7 @@ const stringify = (vNode: NormalizedVNode, cycle: Cycle, ctx: any, addHydrationF
   if (vNode.children) {
     for (const child of vNode.children) {
       const addHydrationFlags = ['head', 'body'].includes(vNode.tag!);
-      const childHtml = stringify(child, cycle, ctx, addHydrationFlags)
+      const childHtml = stringifyNode(child, cycle, addHydrationFlags)
       html.push(childHtml)
     }
   }
@@ -137,6 +138,27 @@ const stringify = (vNode: NormalizedVNode, cycle: Cycle, ctx: any, addHydrationF
   }
 
   return html.join('');
+}
+
+const stringify = (rootVNode: VNode) => {
+  const cycle = {
+    state: {},
+    effects: [],
+    needsRerender: true,
+    dryRun: true,
+  };
+
+  const oldVNode = { tag: rootVNode.tag, props: rootVNode.props };
+
+  diff(
+    oldVNode,
+    rootVNode,
+    cycle
+  );
+
+  const html = stringifyNode(oldVNode, cycle);
+
+  return html;
 }
 
 export default stringify;

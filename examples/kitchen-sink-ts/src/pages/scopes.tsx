@@ -1,5 +1,5 @@
 
-const Counter = ({ name }) => (
+const ManuallyScopedCounter = ({ name }: any) => (
   <div init={{ [name]: { count: 0 } }}>
     {(state) => {
       const counter = state[name];
@@ -14,8 +14,8 @@ const Counter = ({ name }) => (
   </div>
 );
 
-const AutoScopedCounter = ({ name }) => (
-  <div scope={name} init={{ count: 0 }}>
+const ScopedCounter = ({ scope }: any) => (
+  <div scope={scope} init={{ count: 0 }}>
     {(counter) => (
       <>
         <h2>{counter.count}</h2>
@@ -27,10 +27,11 @@ const AutoScopedCounter = ({ name }) => (
 );
 
 export default (
-  <div>
-    <Counter name="a" />
-    <Counter name="b" />
-    <AutoScopedCounter name="very.deep.state" />
+  <>
+    <ManuallyScopedCounter name="a" />
+    <ManuallyScopedCounter name="b" />
+    <ScopedCounter scope="foo" />
+    <ScopedCounter scope="very.deep.state" />
     {console.log}
-  </div>
+  </>
 );

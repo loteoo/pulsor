@@ -106,7 +106,6 @@ export interface VNode<S = State> extends Partial<LogicalProps> {
 
 export interface NormalizedVNode<S = State> extends VNode<S> {
   children?: Array<NormalizedVNode<S>>;
-  el: Node;
 };
 
 export type Component<S = State> = (...args: any[]) => VChildNode<S>;
@@ -117,9 +116,9 @@ export type HyperScript = <T = string | Component>(tag: T, props: VProps, ...chi
 
 export interface Cycle {
   state: State,
+  effects: (() => void)[];
   needsRerender: boolean;
   dryRun: boolean;
-  domEmitter: (ev: Event) => void;
-  dispatch: Dispatch;
-  sideEffects: (() => void)[];
+  domEmitter?: (ev: Event) => void;
+  dispatch?: Dispatch;
 };

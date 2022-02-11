@@ -123,14 +123,17 @@ export const createRouter = ({ routes }: Options) => {
     matchers[route] = match(route)
   }
 
-  const Router: Component = ({ props }: any) => ({
+  const Router: Component = ({ props }: any) => (state, ctx) => ({
     tag: 'div',
     props,
-    init: (state: State) => [
-      typeof window !== 'undefined'
-        ? HandleRouteChange(state, window.location.pathname + window.location.search + window.location.hash)
-        : undefined,
-      TrackRouteChange
+    init: [
+      HandleRouteChange(
+        state,
+        typeof window !== 'undefined'
+          ? `${window.location.pathname}${window.location.search}${window.location.hash}`
+          : ctx.ssr?.url ?? '/',
+      ),
+      TrackRouteChange,
     ],
     children: (state: any) => {
       for (const route of Object.keys(routes)) {

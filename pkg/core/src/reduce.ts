@@ -36,21 +36,23 @@ const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?
     const sideEffect = () => {
       const cleanup = effect.effect((_action, _payload, _eventName, _scope) => {
         setTimeout(() => {
-          cycle.dispatch(_action, _payload, _eventName, _scope ?? scope)
+          cycle.dispatch?.(_action, _payload, _eventName, _scope ?? scope)
         })
       }, effect.payload)
       if (cleanup && effect.vNode) {
-        // @ts-ignore
-        if (!effect.vNode.el.clearEffects) {
+        if (effect.vNode.el) {
           // @ts-ignore
-          effect.vNode.el.clearEffects = [];
+          if (!effect.vNode.el?.clearEffects) {
+            // @ts-ignore
+            effect.vNode.el.clearEffects = [];
+          }
+          // @ts-ignore
+          effect.vNode.el.clearEffects.push(cleanup)
         }
-        // @ts-ignore
-        effect.vNode.el.clearEffects.push(cleanup)
       }
     }
 
-    cycle.sideEffects.push(sideEffect);
+    cycle.effects.push(sideEffect);
     return;
   }
 

@@ -2,6 +2,8 @@ import reduce from './reduce';
 import patch from './patch';
 import { VNode, Action, Dispatch, Cycle, NormalizedVNode } from './types';
 
+import './debug';
+
 export const diff = (a: NormalizedVNode, b: VNode, cycle: Cycle) => {
   if (cycle.needsRerender) {
     while (cycle.needsRerender) {
@@ -35,22 +37,23 @@ const run = (app: VNode, mount: HTMLElement | NormalizedVNode) => {
     diff(oldVNode, nextVNode, cycle);
 
     // Run Effects
-    if (cycle.sideEffects.length > 0) {
-      cycle.sideEffects.forEach((effect) => effect())
-      cycle.sideEffects = [];
+    if (cycle.effects.length > 0) {
+      cycle.effects.forEach((effect) => effect());
+      cycle.effects = [];
     }
+
   }
 
   const cycle: Cycle = {
     state: {},
+    effects: [],
     needsRerender: false,
     dryRun: false,
     domEmitter,
     dispatch,
-    sideEffects: [],
   }
 
-  dispatch({}, undefined, 'root init')
+  dispatch({}, undefined, 'root init');
 }
 
 

@@ -1,7 +1,0 @@
-{
-  "extends": "../core/tsconfig.json",
-  "include": [
-    "index.ts",
-    "pulsor.d.ts",
-  ],
-}
