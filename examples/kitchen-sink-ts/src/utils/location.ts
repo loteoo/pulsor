@@ -1,6 +1,8 @@
+import { createRouter } from "/../../pkg/location/src";
+
 const modules = import.meta.globEager('/src/pages/**/*.tsx')
 
-const routes = Object.entries(modules).reduce((acc, [path, module]) => {
+export const routes = Object.entries(modules).reduce((acc, [path, module]) => {
   let route = path
     .replace('/src/pages', '')
     .replace('/index', '')
@@ -17,4 +19,7 @@ const routes = Object.entries(modules).reduce((acc, [path, module]) => {
   }
 }, {})
 
-export default routes;
+// @ts-ignore
+routes['/test'] = import('/src/test-page');
+
+export const { TrackLocation, Router } = createRouter({ routes });

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import { defineConfig, mergeConfig, normalizePath, transformWithEsbuild, build } from "vite";
-import { stringify } from '../html/dist';
+import { stringify } from '../html/src';
 import { renderPage } from './renderPage';
 
 // ====
@@ -80,12 +80,9 @@ const pulsorDevPlugin = () => {
 
           const rootVNode = (await server.ssrLoadModule('@pulsor-combined-root')).default;
 
-          const renderedHtml = stringify({
-            ...rootVNode,
-            ctx: {
-              ssr: {
-                url: req.url
-              }
+          const renderedHtml = stringify(rootVNode, {
+            ssr: {
+              url: req.url
             }
           });
 
@@ -321,7 +318,7 @@ run(rootApp, hydrate(document));`;
 
         const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/document.js')).default();
 
-        const html = renderPage('/', rootVNode, headImports);
+        const html = renderPage('/', { ...rootVNode }, headImports);
 
         fs.writeFileSync(
           path.resolve(path.resolve(process.cwd(), 'dist/index.html')),
@@ -365,7 +362,7 @@ run(rootApp, hydrate(document));`;
 
         for (const url of pathQueue) {
 
-          const html = renderPage(url, rootVNode, headImports);
+          const html = renderPage(url, { ...rootVNode }, headImports);
 
           const pattern = /href="(.*?)"/g;
 

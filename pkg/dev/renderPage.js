@@ -1,13 +1,10 @@
-const stringify = require('../html/dist/stringify').default;
+const stringify = require('../html/dist/html/src/stringify').default;
 
 const renderPage = (url, rootVNode, headImports) => {
 
-  const renderedHtml = stringify({
-    ...rootVNode,
-    ctx: {
-      ssr: {
-        url
-      }
+  const renderedHtml = stringify(rootVNode, {
+    ssr: {
+      url
     }
   });
 

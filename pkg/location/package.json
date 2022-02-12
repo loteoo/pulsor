@@ -4,7 +4,6 @@
   "description": "Routing utilities for pulsor",
   "author": "Alexandre Lotte <dev@alexlotte.ca>",
   "license": "ISC",
-  "module": "index.ts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

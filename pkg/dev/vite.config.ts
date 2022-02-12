@@ -19,6 +19,7 @@ const getExactPath = (path, sufixesToCheck) => {
 const configPath = getExactPath(path.resolve(process.cwd(), 'pulsor.config'), ['.js', '.jsx', '.ts', '.tsx']);
 
 const defaultConfig = defineConfig({
+  // @ts-ignore
   plugins: [pulsorDevPlugin()],
 });
 

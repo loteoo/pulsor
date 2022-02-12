@@ -1,4 +1,4 @@
-import { NormalizedVNode } from '../../core/dist/types'
+import { NormalizedVNode } from '../../core/src'
 
 const nodeTypesToHydrate = [1, 3];
 

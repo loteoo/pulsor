@@ -4,15 +4,6 @@ import { VNode, Action, Dispatch, Cycle, NormalizedVNode } from './types';
 
 import './debug';
 
-export const diff = (a: NormalizedVNode, b: VNode, cycle: Cycle) => {
-  if (cycle.needsRerender) {
-    while (cycle.needsRerender) {
-      cycle.needsRerender = false;
-      patch(a, { ...b }, cycle, {}, false);
-    }
-  }
-}
-
 const run = (app: VNode, mount: HTMLElement | NormalizedVNode) => {
 
   function domEmitter(ev: Event) {
@@ -34,7 +25,7 @@ const run = (app: VNode, mount: HTMLElement | NormalizedVNode) => {
       children: app
     };
 
-    diff(oldVNode, nextVNode, cycle);
+    patch(oldVNode, nextVNode, cycle);
 
     // Run Effects
     if (cycle.effects.length > 0) {

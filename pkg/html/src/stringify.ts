@@ -1,5 +1,4 @@
-import { Cycle, VNode, NormalizedVNode } from '../../core/dist/types';
-import { diff } from '../../core/src';
+import { patch, Cycle, VNode, NormalizedVNode } from '../../core/src';
 
 const voidElements = [
   'area',
@@ -140,17 +139,20 @@ const stringifyNode = (vNode: NormalizedVNode, cycle: Cycle, addHydrationFlags?:
   return html.join('');
 }
 
-const stringify = (rootVNode: VNode) => {
+const stringify = (rootVNode: VNode, initialState?: State) => {
   const cycle = {
-    state: {},
+    state: initialState ?? {},
     effects: [],
     needsRerender: true,
     dryRun: true,
   };
 
-  const oldVNode = { tag: rootVNode.tag, props: rootVNode.props };
-
-  diff(
+  const oldVNode = {
+    ...rootVNode,
+    children: [],
+  };
+  
+  patch(
     oldVNode,
     rootVNode,
     cycle
