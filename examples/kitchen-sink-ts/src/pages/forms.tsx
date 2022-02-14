@@ -2,35 +2,28 @@ import { Action } from "@pulsor/core";
 import { Form, Input, Textarea, Checkbox, Radio, Select } from "../../../../pkg/form/index";
 
 
-const SetValuesA: Action = (state) => ({
-  ...state,
-  coolForm: {
-    ...state.coolForm,
-    firstName: 'Foo',
-    lastName: 'Bar',
-    description: 'Descriptionnnne',
-    checkbox1: true,
-    checkbox2: false,
-    picked: 'One',
-    dropdown: 'dog',
-  }
-})
-const SetValuesB: Action = (state) => ({
-  ...state,
-  coolForm: {
-    ...state.coolForm,
-    firstName: '',
-    lastName: '',
-    description: '',
-    checkbox1: false,
-    checkbox2: true,
-    picked: 'Three',
-    dropdown: 'hamster',
-  }
+const SetValuesA: Action = ({
+  firstName: 'Foo',
+  lastName: 'Bar',
+  description: 'Descriptionnnne',
+  checkbox1: true,
+  checkbox2: false,
+  picked: 'One',
+  dropdown: 'dog',
 })
 
-const HandleForm: Action = (state, ev) => {
-  alert(JSON.stringify(state.coolForm, null, 2))
+const SetValuesB: Action = ({
+  firstName: '',
+  lastName: '',
+  description: '',
+  checkbox1: false,
+  checkbox2: true,
+  picked: 'Three',
+  dropdown: 'hamster',
+})
+
+const HandleForm: Action = (state) => {
+  alert(JSON.stringify(state, null, 2))
 }
 
 const app = (
@@ -97,10 +90,12 @@ const app = (
         />
       </fieldset>
       <button type="submit">Submit</button>
+
+      <br />
+      <button type="button" onclick={SetValuesA}>SetValuesA</button>
+      <button type="button" onclick={SetValuesB}>SetValuesB</button>
     </Form>
 
-    <button onclick={SetValuesA}>SetValuesA</button>
-    <button onclick={SetValuesB}>SetValuesB</button>
 
     <details open>
       <summary>State</summary>

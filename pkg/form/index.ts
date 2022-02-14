@@ -4,23 +4,11 @@ import { Action, h, VChildNode } from "../core/src";
 
 // ======== Shared =========
 
-const SetField = (name: string, value: any, scope?: string): Action => {
-  const update = {
-    [name]: value
-  }
-  return scope ? { [scope]: update } : update
-}
-
 const PreventDefault = (_: any, ev: any) => ({
   effect: () => ev.preventDefault()
 })
 
-const selectField = (name: string, scope?: string) => (state: any) => {
-  if (scope) {
-    return state[scope][name];
-  }
-  return state[name];
-}
+const selectField = (name: string) => (state: any) => state[name]
 
 // ======== Form =========
 
@@ -34,8 +22,8 @@ export const Form = (props: FormProps, children: VChildNode) => {
     method: 'post',
   }
   if (props.name) {
-    propsOverrides.ctx = (ctx: any) => ({ ...ctx, scope: props.name })
-    propsOverrides.init = SetField(props.name, props.defaultValue ?? {})
+    propsOverrides.scope = props.name;
+    propsOverrides.init = props.defaultValue ?? {}
   }
   propsOverrides.onsubmit = [
     PreventDefault,
@@ -60,15 +48,16 @@ type InputProps = Omit<JSX.IntrinsicElements['input'], 'init' | 'value' | 'oninp
   format?: (value: string) => any;
 }
 
-const HandleInput = (name: string, scope?: any, format?: any) => (_: any, ev: any): Action =>
-  SetField(name, format ? format(ev.target.value) : ev.target.value, scope)
+const HandleInput = (name: string, format?: any) => (_: any, ev: any): Action => ({
+  [name]: format ? format(ev.target.value) : ev.target.value
+});
 
 export const Input = ({
   defaultValue = '',
   format,
   parse,
   ...props
-}: InputProps) => (_: any, { scope }: any) => {
+}: InputProps) => {
   const type = props.type ?? 'text';
 
   return h(
@@ -76,15 +65,15 @@ export const Input = ({
     {
       ...props,
       type,
-      init: SetField(props.name, defaultValue, scope),
+      init: ({ [props.name]: defaultValue }),
       value: (state: any) => {
-        let value = selectField(props.name, scope)(state);
+        let value = selectField(props.name)(state);
         if (parse) {
           value = parse(value)
         }
         return value
       },
-      oninput: HandleInput(props.name, scope, format),
+      oninput: HandleInput(props.name, format),
     }
   )
 }
@@ -93,8 +82,8 @@ export const Input = ({
 
 // ======== Textarea =========
 
-export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
-  const vNode = Input(props)(state, ctx);
+export const Textarea = (props: InputProps) => {
+  const vNode = Input(props);
   vNode.tag = 'textarea';
   delete vNode.props?.type;
   return vNode;
@@ -104,22 +93,22 @@ export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
 
 // ======== Checkbox =========
 
-const HandleCheckbox = (name: string, scope?: any) => (_: any, ev: any): Action =>
-  SetField(name, ev.target.checked, scope)
+const HandleCheckbox = (name: string) => (_: any, ev: any): Action =>
+  ({ [name]: ev.target.checked })
 
 type CheckboxProps = Omit<JSX.IntrinsicElements['input'], 'type' | 'init' | 'checked' | 'oninput'> & {
   name: string;
 }
 
-export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => (_: any, { scope }: any) => {
+export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => {
   return h(
     'input',
     {
       ...props,
       type: 'checkbox',
-      init: SetField(props.name, Boolean(defaultChecked), scope),
-      checked: (state: any) => Boolean(selectField(props.name, scope)(state)),
-      oninput: HandleCheckbox(props.name, scope),
+      init: ({ [props.name]: Boolean(defaultChecked) }),
+      checked: (state: any) => Boolean(selectField(props.name)(state)),
+      oninput: HandleCheckbox(props.name),
     }
   )
 }
@@ -128,22 +117,23 @@ export const Checkbox = ({ defaultChecked, ...props }: CheckboxProps) => (_: any
 
 // ======== Radio =========
 
-const HandleRadio = (name: string, scope?: any) => (_: any, ev: any): Action =>
-  SetField(name, ev.target.value, scope)
+const HandleRadio = (name: string) => (_: any, ev: any): Action => ({
+  [name]: ev.target.value
+});
 
 type RadioProps = Omit<JSX.IntrinsicElements['input'], 'type' | 'init' | 'checked' | 'oninput'> & {
   name: string;
 }
 
-export const Radio = ({ defaultChecked, ...props }: RadioProps) => (_: any, { scope }: any) => {
+export const Radio = ({ defaultChecked, ...props }: RadioProps) => {
   return h(
     'input',
     {
       ...props,
       type: 'radio',
-      init: defaultChecked ? SetField(props.name, props.value, scope) : undefined,
-      checked: (state: any) => selectField(props.name, scope)(state) === props.value,
-      oninput: HandleRadio(props.name, scope),
+      init: defaultChecked ? ({ [props.name]: props.value }) : undefined,
+      checked: (state: any) => selectField(props.name)(state) === props.value,
+      oninput: HandleRadio(props.name),
     }
   )
 }
@@ -153,8 +143,9 @@ export const Radio = ({ defaultChecked, ...props }: RadioProps) => (_: any, { sc
 // ======== Select =========
 
 
-const HandleSelect = (name: string, scope?: any) => (_: any, ev: any): Action =>
-  SetField(name, ev.target.value, scope)
+const HandleSelect = (name: string) => (_: any, ev: any): Action => ({
+  [name]: ev.target.value
+});
 
 type OptionProps = JSX.IntrinsicElements['option'] & {
 
@@ -170,17 +161,17 @@ export const Select = ({
   options = [],
   defaultValue = '',
   ...props
-}: SelectProps) => (_: any, { scope }: any) => {
+}: SelectProps) => {
   return h(
     'select',
     {
       ...props,
-      init: SetField(props.name, defaultValue, scope),
-      oninput: HandleSelect(props.name, scope),
-      value: selectField(props.name, scope),
+      init: ({ [props.name]: defaultValue }),
+      oninput: HandleSelect(props.name),
+      value: selectField(props.name),
     },
     (state) => {
-      const selectedValue = selectField(props.name, scope)(state);
+      const selectedValue = selectField(props.name)(state);
       return options.map((option) => h(
         'option',
         {

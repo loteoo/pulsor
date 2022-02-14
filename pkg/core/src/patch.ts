@@ -80,7 +80,7 @@ const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle:
 
 
 
-const patchNodeProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, cycle: Cycle, isSvg: boolean, scope?: Lens) => {
+const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, cycle: Cycle, isSvg: boolean, ctx: Context, scope?: Lens) => {
   if (key.startsWith("on")) {
     const eventName = key.slice(2);
     //@ts-ignore
@@ -96,7 +96,10 @@ const patchNodeProp = (el: HTMLElement, key: string, oldValue: any, newValue: an
   }
 
   if (typeof newValue === 'function') {
-    newValue = newValue(cycle.state);
+    newValue = newValue(
+      scope ? scope.get(cycle.state) : cycle.state,
+      ctx
+    );
   }
 
   if (key === 'class' && typeof newValue === "object") {
@@ -194,7 +197,7 @@ const patchNode = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx
     for (const key in { ...oldVNode.props, ...newVNode.props }) {
       const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode.props?.[key];
       if (oldVal !== newVNode.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
-        patchNodeProp(el as HTMLElement, key, oldVNode.props?.[key], newVNode.props?.[key], cycle, isSvg, scope);
+        patchProp(el as HTMLElement, key, oldVNode.props?.[key], newVNode.props?.[key], cycle, isSvg, ctx, scope);
       }
     }
   }
