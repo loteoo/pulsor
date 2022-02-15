@@ -10,6 +10,6 @@
     "@pulsor/core": "0.0.1-rc.18"
   },
   "devDependencies": {
-    "@pulsor/dev": "0.0.1-rc.1"
+    "@pulsor/cli": "0.0.1-rc.1"
   }
 }

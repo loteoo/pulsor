@@ -1,4 +1,4 @@
-# @puslor/dev
+# @pulsor/cli
 
 Vite-based development environment to facilitate running and building pulsor apps.
 
@@ -10,10 +10,10 @@ For documentation on how to write pulsor apps, checkout the [main repo!](https:/
 
 ## Quick start
 
-Install the `@pulsor/dev` CLI
+Install the `@pulsor/cli` CLI
 
 ```sh
-npm i -g @pulsor/dev
+npm i -g @pulsor/cli
 ```
 
 Create a new app and run it:

@@ -1,5 +1,5 @@
 {
-  "name": "@pulsor/dev",
+  "name": "@pulsor/cli",
   "version": "0.0.1-rc.1",
   "description": "Vite-based development environment for building pulsor apps.",
   "author": "Alexandre Lotte <dev@alexlotte.ca>",
@@ -7,7 +7,8 @@
   "keywords": [
     "pulsor",
     "vite",
-    "cli"
+    "cli",
+    "ssr"
   ],
   "bin": {
     "pulsor": "cli.js"

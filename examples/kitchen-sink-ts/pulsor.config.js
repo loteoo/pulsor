@@ -1,7 +1,7 @@
 import path from 'path'
 
-/** @type {import('@pulsor/dev').Config} */
-/** @type {import('../../pkg/dev').Config} */
+/** @type {import('@pulsor/cli').Config} */
+/** @type {import('../../pkg/cli').Config} */
 const config = {
   // Config goes here
   resolve: {
