@@ -8,9 +8,8 @@ interface Args extends RequestInit {
 
 const Http = (args: Args): Action => [
   {
-    [args.name]: {
-      loading: true
-    }
+    scope: args.name,
+    loading: true,
   },
   {
     effect: async (dispatch) => {
@@ -18,21 +17,17 @@ const Http = (args: Args): Action => [
         const response = await fetch(args.url);
         const data = await response[args.resolve ?? 'json']();
         dispatch({
-          [args.name]: {
-            loading: false,
-            data,
-          }
+          loading: false,
+          data,
         });
       } catch (error) {
         dispatch({
-          [args.name]: {
-            loading: false,
-            error,
-          }
+          loading: false,
+          error,
         });
       }
     },
   }
-]
+];
 
 export default Http;

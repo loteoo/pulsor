@@ -1,0 +1,22 @@
+{
+  "name": "@pulsor/http",
+  "version": "0.0.1-rc.1",
+  "description": "Fetching utility for pulsor",
+  "author": "Alexandre Lotte <dev@alexlotte.ca>",
+  "license": "ISC",
+  "module": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "tsc",
+    "test": "echo \"No test specified\""
+  },
+  "peerDependencies": {
+    "@pulsor/core": "*"
+  },
+  "devDependencies": {
+    "@pulsor/core": "0.0.1-rc.18",
+    "typescript": "^4.5.2"
+  }
+}

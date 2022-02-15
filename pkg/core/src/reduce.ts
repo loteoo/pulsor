@@ -1,3 +1,4 @@
+import createLens from './createLens';
 import deepAssign from './deepAssign';
 import { Action, Cycle, VNode, ActionFunction, Effect, Lens } from './types';
 import { isEffect } from './utils';
@@ -15,6 +16,10 @@ const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?
   // Recurse on arrays
   if (Array.isArray(action)) {
     for (const sub of action) {
+      if ((sub as any).scope) {
+        scope = createLens((sub as any).scope);
+        delete (sub as any)['scope'];
+      }
       reduce(sub, payload, cycle, scope, vNode, parentAction);
     }
     return;
@@ -54,6 +59,11 @@ const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?
 
     cycle.effects.push(sideEffect);
     return;
+  }
+
+  if ((action as any).scope) {
+    scope = createLens((action as any).scope);
+    delete action['scope'];
   }
 
   if (scope) {

@@ -1,8 +1,14 @@
-const createLens = (path: string) => {
+import { Scope, Lens } from './types';
+
+const createLens = (scope: Scope): Lens => {
+
+  if (typeof scope !== 'string') {
+    return scope;
+  }
 
   const get = (state: State) => {
 
-    const parts = path.split('.')
+    const parts = scope.split('.')
     let ref = state;
     let curr;
 
@@ -19,7 +25,7 @@ const createLens = (path: string) => {
 
   const set = (value: any) => {
 
-    const parts = path.split('.')
+    const parts = scope.split('.')
 
     let update = {} as any;
     let ref = update;

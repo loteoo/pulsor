@@ -168,11 +168,7 @@ const patchNode = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx
   }
 
   if (newVNode.scope) {
-    if (typeof newVNode.scope === 'string') {
-      scope = createLens(newVNode.scope);
-    } else {
-      scope = newVNode.scope;
-    }
+    scope = createLens(newVNode.scope);
   }
 
   if (newVNode.init && oldVNode.init == null) {
