@@ -2,7 +2,7 @@ import reduce from './reduce';
 import patch from './patch';
 import { VNode, Action, Dispatch, Cycle, NormalizedVNode } from './types';
 
-import './debug';
+// import './debug';
 
 const run = (app: VNode, mount: HTMLElement | NormalizedVNode) => {
 

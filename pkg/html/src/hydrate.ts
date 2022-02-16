@@ -2,6 +2,9 @@ import { NormalizedVNode } from '../../core/src'
 
 const nodeTypesToHydrate = [1, 3];
 
+/**
+ * Turns a DOM tree into a VNode Tree
+ */
 const hydrate = (_el: Node): NormalizedVNode => {
   if (_el.nodeType === 3) {
     return {

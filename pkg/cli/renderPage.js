@@ -1,17 +1,17 @@
 const stringify = require('../html/dist/html/src/stringify').default;
 
-const renderPage = (url, rootVNode, headImports) => {
+const renderPage = async (url, rootVNode, headImports) => {
 
-  const renderedHtml = stringify(rootVNode, {
+  const renderedHtml = await stringify(rootVNode, {
     ssr: {
       url
     }
   });
 
-  const headHtmlImports = stringify({
+  const headHtmlImports = (await stringify({
     tag: 'head',
     children: headImports
-  })
+  }))
   .slice(6, -7)
   .replaceAll(' data-pulsorhydrate="true"', '');
 

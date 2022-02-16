@@ -1,6 +1,6 @@
 import createLens from './createLens';
 import deepAssign from './deepAssign';
-import { Action, Cycle, VNode, ActionFunction, Effect, Lens } from './types';
+import { Action, Cycle, VNode, ActionFunction, Effect, Lens, Dispatch } from './types';
 import { isEffect } from './utils';
 
 /**
@@ -38,12 +38,15 @@ const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?
     effect.payload = payload;
     effect.vNode = vNode;
 
-    const sideEffect = () => {
-      const cleanup = effect.effect((_action, _payload, _eventName, _scope) => {
+    const sideEffect = async () => {
+      const dispatcher: Dispatch = (_action, _payload, _eventName, _scope) => {
         setTimeout(() => {
           cycle.dispatch?.(_action, _payload, _eventName, _scope ?? scope)
         })
-      }, effect.payload)
+      };
+
+      const cleanup = await effect.effect(dispatcher, effect.payload);
+
       if (cleanup && effect.vNode) {
         if (effect.vNode.el) {
           // @ts-ignore
@@ -56,6 +59,8 @@ const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?
         }
       }
     }
+
+    Object.defineProperty(sideEffect, "name", { value: parentAction });
 
     cycle.effects.push(sideEffect);
     return;

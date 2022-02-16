@@ -80,7 +80,7 @@ const pulsorDevPlugin = () => {
 
           const rootVNode = (await server.ssrLoadModule('@pulsor-combined-root')).default;
 
-          const renderedHtml = stringify(rootVNode, {
+          const renderedHtml = await stringify(rootVNode, {
             ssr: {
               url: req.url
             }
@@ -318,7 +318,7 @@ run(rootApp, hydrate(document));`;
 
         const rootVNode = require(path.resolve(process.cwd(), 'dist/.pulsor/document.js')).default();
 
-        const html = renderPage('/', { ...rootVNode }, headImports);
+        const html = await renderPage('/', { ...rootVNode }, headImports);
 
         fs.writeFileSync(
           path.resolve(path.resolve(process.cwd(), 'dist/index.html')),
@@ -362,7 +362,7 @@ run(rootApp, hydrate(document));`;
 
         for (const url of pathQueue) {
 
-          const html = renderPage(url, { ...rootVNode }, headImports);
+          const html = await renderPage(url, { ...rootVNode }, headImports);
 
           const pattern = /href="(.*?)"/g;
 

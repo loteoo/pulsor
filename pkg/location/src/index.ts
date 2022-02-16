@@ -1,5 +1,6 @@
 import { match, MatchFunction } from "path-to-regexp";
-import { h, Action, VChildNode, VNode, Component, Effect, VProps } from '../../core/src'
+import { h, Action, VChildNode, VNode, Component, Effect, VProps, Dispatch } from '../../core/src'
+import { hydrate } from '../../html/src'
 
 export type State = {
   ssr?: {
@@ -59,6 +60,12 @@ interface Options {
   routes: Record<string, VNode | Promise<VNode>>;
 }
 
+interface RouterProps {
+  props: VProps;
+  loader: VNode;
+  notFound: VNode;
+}
+
 export const createRouter = ({ routes }: Options) => {
   const matchers: Record<string, MatchFunction> = {};
 
@@ -78,7 +85,7 @@ export const createRouter = ({ routes }: Options) => {
     let params = {};
     let route: string | undefined;
     for (const _route of Object.keys(routes)) {
-      const maybeMatch = matchers[_route](path)
+      const maybeMatch = matchers[_route](path);
       if (maybeMatch) {
         params = maybeMatch.params;
         route = _route;
@@ -134,27 +141,61 @@ export const createRouter = ({ routes }: Options) => {
     ];
   }
 
-  const Router: Component<State> = () => (state) => {
-    if (state.location.route) {
-      const currRoute = routes[state.location.route];
+  const Router: Component<State> = ({ props, loader, notFound }: RouterProps) => (state) => {
+
+    let init;
+    let children;
+
+    if (!state.location.route) {
+      children = notFound ?? 'Page not found.'
+    } else {
 
       // @ts-ignore
-      if (typeof currRoute.then === 'function') {
-        if (typeof window !== 'undefined') {
-          // @ts-ignore
-          currRoute.then((bundle) => {
+      const currRoute = routes[state.location.route];
+      const routeNeedsLoading = (currRoute as any).lazy;
+
+      if (routeNeedsLoading) {
+
+        const SSRLoadPageBundle = () => ({
+          effect: async (dispatch: Dispatch) => {
+
+            // @ts-ignore
+            const bundle = await currRoute.lazy();
+
             // @ts-ignore
             routes[state.location.route] = bundle.default;
-            Navigate(state.location.path).effect(() => {});
-          })
+            dispatch(Navigate(state.location.path));
+          }
+        });
+
+        init = SSRLoadPageBundle;
+        children = loader ?? 'Loading...';
+
+        if (typeof window !== 'undefined') {
+          const router = document.querySelector(`[data-path="${state.location.path}"]`);
+          if (router) {
+            const old = hydrate(router);
+            children = old.children;
+          }
         }
-        return 'loading...';
       } else {
-        return routes[state.location.route] as VNode;
+        children = currRoute as VNode<State>;
       }
     }
-    return '404';
-  }
+
+
+
+    return {
+      tag: 'div',
+      key: state.location.path,
+      init,
+      props: {
+        ...props,
+        'data-path': state.location.path,
+      },
+      children: [children],
+    }
+  };
 
   return {
     TrackLocation,

@@ -152,7 +152,7 @@ cli
 
         app.use(async (req, res) => {
           try {
-            const html = renderPage(req.originalUrl, rootVNode, headImports);
+            const html = await renderPage(req.originalUrl, rootVNode, headImports);
             res.end(html);
           } catch (e) {
             console.error(e.stack);

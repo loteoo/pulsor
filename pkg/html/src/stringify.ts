@@ -139,10 +139,13 @@ const stringifyNode = (vNode: NormalizedVNode, cycle: Cycle, addHydrationFlags?:
   return html.join('');
 }
 
-const stringify = (rootVNode: VNode, initialState?: State) => {
+/**
+ * Turns a vNode into a HTML string
+ */
+const stringify = async (rootVNode: VNode, initialState?: State) => {
   const cycle = {
     state: initialState ?? {},
-    effects: [],
+    effects: [] as Array<() => void>,
     needsRerender: true,
     dryRun: true,
   };
@@ -151,12 +154,24 @@ const stringify = (rootVNode: VNode, initialState?: State) => {
     ...rootVNode,
     children: [],
   };
-  
-  patch(
-    oldVNode,
-    rootVNode,
-    cycle
-  );
+
+  while (cycle.needsRerender) {
+
+    patch(
+      oldVNode,
+      rootVNode,
+      cycle
+    );
+
+    const ssrFXs = cycle.effects.filter(fx => fx.name.startsWith('SSR')).map(promise => promise());
+
+    if (ssrFXs.length) {
+      await Promise.all(ssrFXs);
+      cycle.effects = [];
+      cycle.needsRerender = true;
+    }
+  }
+
 
   const html = stringifyNode(oldVNode, cycle);
 

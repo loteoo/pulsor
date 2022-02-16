@@ -36,9 +36,9 @@ const app = (
 
 Option 1
 ```jsx
-import { navigate } from '@pulsor/location'
+import { Navigate } from '@pulsor/location'
 
-const GoToAboutPage = navigate('/')
+const GoToAboutPage = Navigate('/')
 
 const app = (
   <button onclick={GoToAboutPage}>Go to About page</button>
@@ -58,10 +58,10 @@ const app = (
 
 Option 3
 ```jsx
-import { EnhanceLinkClicks } from '@pulsor/location'
+import { CaptureLinkClicks } from '@pulsor/location'
 
 const app = (
-  <main id="root" onclick={EnhanceLinkClicks}>
+  <main id="root" onclick={CaptureLinkClicks}>
     <nav>
       <a href="/about">About page</a>
     </nav>
