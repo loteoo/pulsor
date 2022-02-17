@@ -2,6 +2,8 @@ import { match, MatchFunction } from "path-to-regexp";
 import { h, Action, VChildNode, VNode, Component, Effect, VProps, Dispatch } from '../../core/src'
 import { hydrate } from '../../html/src'
 
+export type RouteStatus = 'loading' | 'loaded' | 'notfound';
+
 export type State = {
   ssr?: {
     url?: string;
@@ -12,6 +14,7 @@ export type State = {
     params: Record<string, string>;
     hash: string;
     route?: string;
+    status?: RouteStatus;
   }
 }
 
@@ -92,6 +95,41 @@ export const createRouter = ({ routes }: Options) => {
       }
     }
 
+    let status: RouteStatus = 'loaded';
+
+    let extraFx;
+    if (route) {
+
+      const currRoute = routes[route];
+      const routeNeedsLoading = (currRoute as any).lazy;
+
+      if (routeNeedsLoading) {
+        if (typeof window !== 'undefined') {
+          status = 'loading';
+        }
+        const SSRLoadPageBundle = () => ({
+          effect: async (dispatch: Dispatch) => {
+
+            // @ts-ignore
+            const bundle = await currRoute.lazy();
+
+            // @ts-ignore
+            routes[route] = bundle.default;
+            dispatch({
+              location: {
+                status: 'loaded'
+              }
+            });
+          }
+        });
+
+        extraFx = SSRLoadPageBundle;
+      }
+    } else {
+      status = 'notfound';
+    }
+
+
     return [
       {
         location: () => ({
@@ -100,6 +138,7 @@ export const createRouter = ({ routes }: Options) => {
           params,
           hash,
           route,
+          status,
         })
       },
       Boolean(hash) && {
@@ -111,7 +150,10 @@ export const createRouter = ({ routes }: Options) => {
             }
           })
         },
-      }
+      },
+
+      // @ts-ignore
+      extraFx
     ]
   };
 
@@ -143,57 +185,43 @@ export const createRouter = ({ routes }: Options) => {
 
   const Router: Component<State> = ({ props, loader, notFound }: RouterProps) => (state) => {
 
-    let init;
     let children;
 
-    if (!state.location.route) {
-      children = notFound ?? 'Page not found.'
-    } else {
+    switch (state.location.status) {
+      case 'notfound':
+        children = notFound ?? 'Page not found.'
+        break;
 
-      // @ts-ignore
-      const currRoute = routes[state.location.route];
-      const routeNeedsLoading = (currRoute as any).lazy;
-
-      if (routeNeedsLoading) {
-
-        const SSRLoadPageBundle = () => ({
-          effect: async (dispatch: Dispatch) => {
-
-            // @ts-ignore
-            const bundle = await currRoute.lazy();
-
-            // @ts-ignore
-            routes[state.location.route] = bundle.default;
-            dispatch(Navigate(state.location.path));
-          }
-        });
-
-        init = SSRLoadPageBundle;
+      case 'loading':
         children = loader ?? 'Loading...';
-
         if (typeof window !== 'undefined') {
           const router = document.querySelector(`[data-path="${state.location.path}"]`);
           if (router) {
-            const old = hydrate(router);
-            children = old.children;
+            // @ts-ignore
+            if (router.vnode && router.vnode.children) {
+              // @ts-ignore
+              children = router.vnode.children;
+            } else {
+              children = hydrate(router).children;
+            }
           }
         }
-      } else {
+        break;
+
+      case 'loaded':
+        const currRoute = routes[state.location.route!];
         children = currRoute as VNode<State>;
-      }
+        break;
     }
-
-
 
     return {
       tag: 'div',
       key: state.location.path,
-      init,
       props: {
         ...props,
         'data-path': state.location.path,
       },
-      children: [children],
+      children,
     }
   };
 
