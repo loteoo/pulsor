@@ -49,6 +49,9 @@ const hydrate = (_el: Node): NormalizedVNode => {
     el,
   };
 
+  // @ts-ignore
+  el.vnode = vNode;
+
   return vNode;
 };
 

@@ -374,7 +374,7 @@ run(rootApp, hydrate(document));`;
               .match(pattern)
               .map(hrefAttr => hrefAttr.slice(6, -1))
               .filter(href => {
-                if (!href.startsWith('/') || href.includes('.') || href.startsWith('#')) {
+                if (!href.startsWith('/') || href.includes('.') || href.startsWith('#') || href.startsWith('/#')) {
                   return false;
                 }
                 return true;
