@@ -39,16 +39,15 @@ const hydrate = (_el: Node): NormalizedVNode => {
     }
   }
 
+  let key = el.dataset?.pulsorkey ? el.dataset.pulsorkey : undefined;
+
   const vNode: NormalizedVNode = {
     tag,
     props,
     children,
+    key,
     el,
   };
-
-  if (el.dataset?.pulsorkey) {
-    vNode.key = el.dataset.pulsorkey;
-  }
 
   return vNode;
 };

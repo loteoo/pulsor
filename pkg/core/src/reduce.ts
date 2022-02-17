@@ -16,7 +16,7 @@ const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?
   // Recurse on arrays
   if (Array.isArray(action)) {
     for (const sub of action) {
-      if ((sub as any).scope) {
+      if (typeof sub === 'object' && (sub as any).scope) {
         scope = createLens((sub as any).scope);
         delete (sub as any)['scope'];
       }
@@ -66,7 +66,7 @@ const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?
     return;
   }
 
-  if ((action as any).scope) {
+  if (typeof action === 'object' && (action as any).scope) {
     scope = createLens((action as any).scope);
     delete action['scope'];
   }

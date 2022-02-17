@@ -1,4 +1,5 @@
 import { patch, Cycle, VNode, NormalizedVNode } from '../../core/src';
+import escapeHtml from './escapeHtml';
 
 const voidElements = [
   'area',
@@ -27,7 +28,7 @@ const stringifyNode = (vNode: NormalizedVNode, cycle: Cycle, addHydrationFlags?:
 
   if (!vNode.tag) {
     if (vNode.text != null) {
-      return String(vNode.text);
+      return escapeHtml(String(vNode.text));
     } else {
       return '';
     }
@@ -89,7 +90,7 @@ const stringifyNode = (vNode: NormalizedVNode, cycle: Cycle, addHydrationFlags?:
           continue
         }
 
-        html.push(` ${prop}="${String(vNode.props[prop])}"`);
+        html.push(` ${prop}="${escapeHtml(String(vNode.props[prop]))}"`);
       }
     }
 
