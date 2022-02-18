@@ -185,6 +185,10 @@ export const createRouter = ({ routes }: Options) => {
 
   const Router: Component<State> = ({ props, loader, notFound }: RouterProps) => (state) => {
 
+    if (!state.location) {
+      throw new Error('Missing location state. Please add the "TrackLocation" action to the "init" of a top-level node in your app.')
+    }
+
     let children;
 
     switch (state.location.status) {

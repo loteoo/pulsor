@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "dev": "pulsor src",
+    "build": "pulsor build src --buildTarget=static",
+    "serve": "pulsor serve"
+  },
+  "dependencies": {
+    "@pulsor/core": "^0.0.2-rc.2",
+    "@pulsor/location": "^0.0.2-rc.1"
+  },
+  "devDependencies": {
+    "@pulsor/cli": "^0.0.2-rc.3",
+    "@types/node": "^17.0.18"
+  }
+}
