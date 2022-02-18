@@ -1,4 +1,4 @@
-const stringify = require('../html/dist/html/src/stringify').default;
+const { stringify } = require('@pulsor/html');
 
 const renderPage = async (url, rootVNode, headImports) => {
 

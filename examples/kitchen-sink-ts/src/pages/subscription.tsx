@@ -1,4 +1,4 @@
-import { Action, Effect, VNode } from "../../../../pkg/core/src"
+import { Action, Effect, VNode } from "@pulsor/core"
 
 const Init: Action = {
   count: 0

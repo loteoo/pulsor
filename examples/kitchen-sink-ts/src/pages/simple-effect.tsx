@@ -1,4 +1,4 @@
-import { Action } from "/../../pkg/core/src"
+import { Action } from "@pulsor/core";
 
 const promtTask: Action = {
   effect: (dispatch) => {

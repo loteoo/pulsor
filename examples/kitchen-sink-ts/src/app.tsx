@@ -1,4 +1,4 @@
-import { CaptureLinkClicks } from '../../../pkg/location/src'
+import { CaptureLinkClicks } from '@pulsor/location'
 import Header from '/src/components/Header'
 import Footer from '/src/components/Footer'
 import { TrackLocation, Router } from './utils/location'

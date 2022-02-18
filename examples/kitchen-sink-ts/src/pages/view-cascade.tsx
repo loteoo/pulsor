@@ -1,4 +1,4 @@
-import { State, VChildNode } from '../../../../pkg/core/src';
+import { State, VChildNode } from '../@pulsor/core/src';
 
 export default (state: State): VChildNode => (
   <div>

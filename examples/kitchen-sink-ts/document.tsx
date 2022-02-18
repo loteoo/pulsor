@@ -3,7 +3,7 @@ import { VNode } from "@pulsor/core"
 const document = (root: VNode) => (
   <html>
     <head>
-      <title>Test {(state: any) => state.location?.path}</title>
+      <title>Page {(state: any) => state.location?.path}</title>
     </head>
     <body>
       {root}

@@ -1,5 +1,5 @@
 import { Action } from "@pulsor/core";
-import { Form, Input, Textarea, Checkbox, Radio, Select } from "../../../../pkg/form/index";
+import { Form, Input, Textarea, Checkbox, Radio, Select } from "@pulsor/form";
 
 
 const SetValuesA: Action = ({

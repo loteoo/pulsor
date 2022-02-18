@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import { defineConfig, mergeConfig, normalizePath, transformWithEsbuild, build } from "vite";
-import { stringify } from '../html/src';
+import { stringify } from '@pulsor/html';
 import { renderPage } from './renderPage';
 
 // ====
@@ -54,8 +54,7 @@ const customLogger = {
 const projectPulsor = '@pulsor/core';
 const cliPulsor = normalizePath(path.resolve(__dirname, 'node_modules/@pulsor/core/src'));
 
-// const pulsorPath = pulsorIsInstalled() ? projectPulsor : cliPulsor;
-const pulsorPath = normalizePath(path.resolve(__dirname, '../core/src'));
+const pulsorPath = pulsorIsInstalled() ? projectPulsor : cliPulsor;
 
 // ===
 const pulsorDevPlugin = () => {
@@ -108,11 +107,6 @@ const pulsorDevPlugin = () => {
           jsxFragment: 'Fragment',
           jsxInject: `import { h, Fragment } from '${pulsorPath}'`
         },
-        resolve: {
-          alias: {
-            '@pulsor/html': path.resolve(__dirname, '../html/src')
-          }
-        }
       })));
 
 

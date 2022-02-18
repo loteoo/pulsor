@@ -10,8 +10,11 @@
     "serve:ssr": "pulsor serve --ssr"
   },
   "dependencies": {
-    "@pulsor/core": "0.0.1-rc.18",
-    "@pulsor/form": "^0.0.1-rc.4",
-    "@pulsor/location": "^0.0.1-rc.2"
+    "@pulsor/core": "^0.0.2-rc.2",
+    "@pulsor/form": "^0.0.2-rc.2",
+    "@pulsor/location": "^0.0.2-rc.1"
+  },
+  "devDependencies": {
+    "@pulsor/cli": "^0.0.2-rc.3"
   }
 }

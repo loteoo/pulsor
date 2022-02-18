@@ -1,13 +1,12 @@
 import path from 'path'
 
 /** @type {import('@pulsor/cli').Config} */
-/** @type {import('../../pkg/cli').Config} */
 const config = {
   // Config goes here
   resolve: {
     alias: {
-      '@pulsor/core': path.resolve(__dirname, '../../pkg/core/src'),
-      '@pulsor/location': path.resolve(__dirname, '../../pkg/location'),
+      // '@pulsor/core': path.resolve(__dirname, '../../pkg/core/src'),
+      // '@pulsor/location': path.resolve(__dirname, '../../pkg/location'),
     }
   }
 };

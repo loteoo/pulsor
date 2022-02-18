@@ -1,4 +1,4 @@
-import { createRouter } from "/../../pkg/location/src";
+import { createRouter } from "@pulsor/location";
 
 const modules = import.meta.globEager('/src/pages/**/*.tsx')
 
