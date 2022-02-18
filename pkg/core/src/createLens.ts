@@ -1,4 +1,4 @@
-import { Scope, Lens } from './types';
+import { State, Scope, Lens } from './types';
 
 const createLens = (scope: Scope): Lens => {
 

@@ -1,6 +1,6 @@
 {
   "name": "@pulsor/core",
-  "version": "0.0.1-rc.18",
+  "version": "0.0.2-rc.2",
   "description": "Virtual DOM unleashed",
   "author": "Alexandre Lotte <dev@alexlotte.ca>",
   "license": "ISC",

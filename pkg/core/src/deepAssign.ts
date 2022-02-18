@@ -1,4 +1,4 @@
-import { Update } from './types'
+import { State, Update } from './types'
 import { isObj } from './utils'
 
 const deepAssign = (source: State, update: Update) => {

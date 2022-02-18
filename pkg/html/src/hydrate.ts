@@ -1,4 +1,4 @@
-import { NormalizedVNode } from '../../core/src'
+import { NormalizedVNode } from '@pulsor/core'
 
 const nodeTypesToHydrate = [1, 3];
 

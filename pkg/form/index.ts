@@ -1,6 +1,6 @@
 /// <reference types="@pulsor/core/jsx" />
 
-import { Action, h, VChildNode } from "../core/src";
+import { Action, h, VChildNode } from "@pulsor/core";
 
 // ======== Shared =========
 

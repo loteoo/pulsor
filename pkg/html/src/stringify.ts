@@ -1,4 +1,4 @@
-import { patch, Cycle, VNode, NormalizedVNode } from '../../core/src';
+import { patch, State, Cycle, VNode, NormalizedVNode } from '@pulsor/core';
 import escapeHtml from './escapeHtml';
 
 const voidElements = [

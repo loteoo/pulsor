@@ -1,6 +1,6 @@
 import { match, MatchFunction } from "path-to-regexp";
-import { h, Action, VChildNode, VNode, Component, Effect, VProps, Dispatch } from '../../core/src'
-import { hydrate } from '../../html/src'
+import { h, Action, VChildNode, VNode, Component, Effect, VProps, Dispatch } from '@pulsor/core'
+import { hydrate } from '@pulsor/html'
 
 export type RouteStatus = 'loading' | 'loaded' | 'notfound';
 

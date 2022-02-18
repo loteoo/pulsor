@@ -5,6 +5,8 @@ export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
 
+export type State = any;
+
 export type Scope = string | Lens;
 
 export type Lens = {
