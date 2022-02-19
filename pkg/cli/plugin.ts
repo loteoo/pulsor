@@ -86,7 +86,7 @@ const pulsorDevPlugin = () => {
           });
 
           const html = await server.transformIndexHtml(req.url, renderedHtml);
-
+          res.setHeader('Content-Type', 'text/html;charset=utf-8');
           res.end(`<!DOCTYPE html>\n${html}`);
 
           next();

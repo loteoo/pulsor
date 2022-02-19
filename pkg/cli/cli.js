@@ -153,6 +153,7 @@ cli
         app.use(async (req, res) => {
           try {
             const html = await renderPage(req.originalUrl, rootVNode, headImports);
+            res.setHeader('Content-Type', 'text/html;charset=utf-8');
             res.end(html);
           } catch (e) {
             console.error(e.stack);
