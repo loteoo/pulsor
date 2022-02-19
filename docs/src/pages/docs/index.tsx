@@ -1,5 +1,5 @@
+import { html } from './docs.md';
+
 export default (
-  <div>
-    <h1>Docs</h1>
-  </div>
+  <div innerHTML={html} />
 )

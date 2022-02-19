@@ -27,10 +27,10 @@ import { run } from '@pulsor/core';
 
 // App definition
 const app = {
-  type: 'div',
+  tag: 'div',
   children: [
     {
-      type: 'h1',
+      tag: 'h1',
       children: 'Hello world'
     }
   ]
