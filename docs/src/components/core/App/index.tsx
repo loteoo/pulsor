@@ -5,14 +5,14 @@ import Footer from "/src/components/core/Footer";
 import NotFoundPage from "/src/components/core/404";
 
 export default (
-  <>
+  <div
+    init={TrackLocation}
+    onclick={CaptureLinkClicks}
+  >
     {Header}
-    <main
-      init={TrackLocation}
-      onclick={CaptureLinkClicks}
-    >
+    <main>
       <Router notFound={NotFoundPage} />
     </main>
     {Footer}
-  </>
+  </div>
 )

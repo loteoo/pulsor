@@ -51,7 +51,8 @@ const customLogger = {
   error: console.error,
 }
 
-const projectPulsor = '@pulsor/core';
+// const projectPulsor = '@pulsor/core';
+const projectPulsor = normalizePath(path.resolve(process.cwd(), 'node_modules/@pulsor/core/src'));
 const cliPulsor = normalizePath(path.resolve(__dirname, 'node_modules/@pulsor/core/src'));
 
 const pulsorPath = pulsorIsInstalled() ? projectPulsor : cliPulsor;
@@ -154,6 +155,7 @@ const pulsorDevPlugin = () => {
         tag: 'style',
         attrs: {
           type: 'text/css',
+          'data-pulsorssrcss': true,
         },
         children: code,
         injectTo: 'head',
@@ -188,7 +190,7 @@ const pulsorDevPlugin = () => {
 
         return `
 import initialAppModule from '${rootNodePath}'
-import document from '@pulsor-document'
+import doc from '@pulsor-document'
 
 export let fresh = initialAppModule;
 
@@ -211,9 +213,13 @@ if (typeof window !== 'undefined' && import.meta.hot) {
     window.__hrm_vnode = newModule.fresh;
     dispatchEvent(new CustomEvent("hmr"));
   });
+  const ssrStyles = document.querySelectorAll('head > [data-pulsorssrcss]');
+  for (const ssrStyle of ssrStyles) {
+    document.head.removeChild(ssrStyle);
+  }
 }
 
-const root = document(app);
+const root = doc(app);
 
 export default root`;
       }
