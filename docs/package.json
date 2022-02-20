@@ -6,7 +6,8 @@
   },
   "dependencies": {
     "@pulsor/core": "^0.0.2-rc.2",
-    "@pulsor/location": "^0.0.2-rc.1"
+    "@pulsor/location": "^0.0.2-rc.1",
+    "highlight.js": "^11.4.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.18",

@@ -4,15 +4,21 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-  background-color: #060606;
-  color: #d0d6e0;
   padding: 1.5rem 3rem;
   line-height: 1.4;
   margin: 0;
+  color: rgba(8, 13, 48, 1);
+  background-color: #ffffff;
 }
 
 a {
   text-decoration: none;
+  color: rgba(8, 13, 48, 0.8);
+}
+
+a:hover {
+  text-decoration: underline;
+  color: rgba(8, 13, 48, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,15 +29,6 @@ a {
   h1, h2, h3, h4, h5, h6 {
     color: #F7F8F8;
   }
-  a {
-    color: #D0D6E0;
-  }
-  a:hover {
-    color: #fff;
-  }
-}
-
-@media (prefers-color-scheme: light) {
 }
 
 
@@ -47,11 +44,9 @@ a {
   gap: 1rem;
 }
 
-
 .hero {
   margin: 4rem 0 3rem 0;
 }
-
 
 .hero h1 {
   font-size: 4.25rem;
@@ -73,13 +68,56 @@ a {
 
 .docs-fork a {
   padding: 1.5rem 1.5rem 6rem 1.5rem;
-  background-color: #28292c;
+  background-color: #eeeeee;
 }
 
 .docs-fork a:hover {
-  background-color: #414247;
+  background-color: #dddddd;
+}
+
+@media (prefers-color-scheme: dark) {
+  .docs-fork a {
+    background-color: #28292c;
+  }
+  .docs-fork a:hover {
+    background-color: #414247;
+  }
 }
 
 .docs-fork a code {
   font-size: 2rem;
+}
+
+
+.packages-list ul {
+  list-style: none;
+  padding: 0;
+}
+.packages-list li {
+  border-top: 1px solid currentColor;
+}
+.packages-list li:last-child {
+  border-bottom: 1px solid currentColor;
+}
+.packages-list li a {
+  display: block;
+  padding: 0.75rem 0;
+}
+.packages-list li strong {
+  margin: 0 0.5rem 0 0;
+}
+.packages-list li p {
+  margin: 0;
+}
+
+.markdown-content code  {
+  padding: 3px 5px;
+  background-color: #f6f8fa !important;
+}
+
+.markdown-content pre code  {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  background-color: #f6f8fa !important;
 }

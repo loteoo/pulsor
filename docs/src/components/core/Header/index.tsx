@@ -1,9 +1,7 @@
 export default (
   <header>
     <a href="/">
-      <strong>
-        p
-      </strong>
+      pulsor
     </a>
     <nav>
       <a href="/docs">Docs</a>

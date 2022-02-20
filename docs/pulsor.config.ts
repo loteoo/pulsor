@@ -10,6 +10,11 @@ const config: Config = {
     alias: {
       '@pulsor/location': path.resolve(__dirname, '../pkg/location/src')
     }
+  },
+  server: {
+    fs: {
+      strict: false
+    }
   }
 };
 

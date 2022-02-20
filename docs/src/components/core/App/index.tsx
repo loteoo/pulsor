@@ -4,6 +4,23 @@ import Header from "/src/components/core/Header";
 import Footer from "/src/components/core/Footer";
 import NotFoundPage from "/src/components/core/404";
 
+
+import hljs from 'highlight.js/lib/core';
+import xml from 'highlight.js/lib/languages/xml';
+import typescript from 'highlight.js/lib/languages/typescript';
+
+hljs.registerLanguage('xml', xml);
+hljs.registerLanguage('typescript', typescript);
+
+const HighlightPage = ({
+  effect: () => {
+    document.querySelectorAll('.markdown-content code').forEach(el => {
+      //@ts-ignore
+      hljs.highlightElement(el);
+    });
+  }
+});
+
 export default (
   <div
     init={TrackLocation}
@@ -14,5 +31,9 @@ export default (
       <Router notFound={NotFoundPage} />
     </main>
     {Footer}
+    {state => ({
+      key: `${state.location.path}${state.location.status}`,
+      init: HighlightPage,
+    })}
   </div>
 )

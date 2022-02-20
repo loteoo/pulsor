@@ -100,7 +100,6 @@ export interface VNode<S = State> extends Partial<LogicalProps> {
   tag?: string;
   props?: VProps;
   children?: VChildNode<S>;
-  text?: TextElement;
 
   // TODO: Maybe move to "LogicalProps" type
   el?: Node;
@@ -108,6 +107,7 @@ export interface VNode<S = State> extends Partial<LogicalProps> {
 
 export interface NormalizedVNode<S = State> extends VNode<S> {
   children?: Array<NormalizedVNode<S>>;
+  text?: TextElement;
 };
 
 export type Component<S = State> = (...args: any[]) => VChildNode<S>;
