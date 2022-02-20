@@ -40,7 +40,7 @@ pulsor build App.tsx
 Preview prod build:
 
 ```sh
-pulsor preview
+pulsor serve
 ```
 
 #### Notes on usage:

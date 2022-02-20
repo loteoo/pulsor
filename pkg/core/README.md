@@ -1,13 +1,13 @@
-# @puslor/core
+# @pulsor/core
 
 Core runtime for the pulsor framework
 
-## Installation
+### Installation
 ```
 npm install @pulsor/core
 ```
 
-## Basic usage
+### Basic usage
 
 In pulsor, your app is a single tree of vNodes that describes your whole app. You pass this "definition" to the `run` function, along with a `mount` node to start off the client runtime.
 
@@ -57,7 +57,7 @@ const app: VNode = {
 run(app, document.body);
 ```
 
-#### Using the `h` helper
+#### Using the h helper
 
 ```typescript
 const app = (
@@ -82,7 +82,7 @@ const app = (
 );
 ```
 
-### Dynamic rendering based on the state
+### Dynamic rendering
 
 So far, above examples were only displaying static data, but the real power of pulsor comes from dynamically rendering the UI based on some current state.
 

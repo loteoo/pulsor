@@ -1,4 +1,4 @@
-# @puslor/form
+# @pulsor/form
 
 State-bound form handling primitives for pulsor
 
@@ -9,7 +9,7 @@ npm install @pulsor/form
 
 ## Usage
 
-```jsx
+```tsx
 import { Form, Input, Textarea, Checkbox, Radio, Select } from '@pulsor/form'
 
 const SubmitSignupForm = (state) => ({

@@ -1,10 +1,4 @@
-const packagesModules = import.meta.globEager('../../../pkg/*/package.json');
-
-const allPkgs = Object.values(packagesModules).map(m => m.default);
-
-const uiPkgs = ['form', 'http', 'location'];
-
-const pkgs = allPkgs.filter(pkg => uiPkgs.includes(pkg.name.slice(8)));
+import pkgs from "/src/utils/pkgs";
 
 export default (
   <>
@@ -44,7 +38,7 @@ export default (
       <ul>
         {pkgs.map(pkg => (
           <li key={pkg.name}>
-            <a href={`/docs#${pkg.name}`}>
+            <a href={`/docs/${pkg.id}`}>
               <strong>
                 {pkg.name}
               </strong>

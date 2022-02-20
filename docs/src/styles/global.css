@@ -23,11 +23,19 @@ a:hover {
 
 @media (prefers-color-scheme: dark) {
   body {
-    color: #d0d6e0;
+    color: rgb(208, 214, 224);
     background-color: #060606;
   }
   h1, h2, h3, h4, h5, h6 {
     color: #F7F8F8;
+  }
+  a {
+    color: rgba(208, 214, 224, 0.8);
+  }
+
+  a:hover {
+    text-decoration: underline;
+    color: rgba(208, 214, 224, 1);
   }
 }
 
@@ -113,11 +121,35 @@ a:hover {
 .markdown-content code  {
   padding: 3px 5px;
   background-color: #f6f8fa !important;
+  overflow: auto;
 }
 
 .markdown-content pre code  {
   display: block;
   overflow-x: auto;
   padding: 1em;
-  background-color: #f6f8fa !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .markdown-content code  {
+    background-color: #161b22 !important;
+    color: rgb(173, 186, 199);
+  }
+}
+
+.docs-layout {
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: 18rem 1fr;
+  gap: 2rem;
+}
+
+.docs-layout aside ul {
+  list-style: none;
+  padding: 0;
+}
+
+.docs-layout aside .sticky {
+  position: sticky;
+  top: 2rem;
 }
