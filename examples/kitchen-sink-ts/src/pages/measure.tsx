@@ -1,10 +1,9 @@
-const promtTask = {
-  run: (emit, el) => {
-    emit('width', el.clientWidth)
+import { Action } from "@pulsor/core";
+
+const promtTask: Action = {
+  effect: (dispatch, el) => {
+    dispatch({ width: el.clientWidth})
   },
-  onwidth: (state, width) => ({
-    width
-  })
 }
 
 const app = (

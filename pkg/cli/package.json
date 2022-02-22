@@ -1,0 +1,27 @@
+{
+  "name": "@pulsor/cli",
+  "version": "0.0.2-rc.3",
+  "description": "Vite-based development environment for building pulsor apps.",
+  "author": "Alexandre Lotte <dev@alexlotte.ca>",
+  "license": "ISC",
+  "keywords": [
+    "pulsor",
+    "vite",
+    "cli",
+    "ssr"
+  ],
+  "bin": {
+    "pulsor": "cli.js"
+  },
+  "dependencies": {
+    "@pulsor/core": "0.0.2-rc.2",
+    "@pulsor/html": "0.0.2-rc.3",
+    "cac": "^6.7.12",
+    "connect": "^3.7.0",
+    "sirv": "^2.0.2",
+    "vite": "^2.7.13"
+  },
+  "devDependencies": {
+    "@types/connect": "^3.4.35"
+  }
+}

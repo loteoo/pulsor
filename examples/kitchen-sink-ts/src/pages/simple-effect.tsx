@@ -1,11 +1,9 @@
-const promtTask = {
-  run: (emit) => {
-    const answer = prompt('What\'s your name?')
-    emit('answer', answer)
-  },
-  onanswer: (state, answer) => ({
-    answer
-  })
+import { Action } from "@pulsor/core";
+
+const promtTask: Action = {
+  effect: (dispatch) => {
+    dispatch({ answer: prompt('What\'s your name?') })
+  }
 }
 
 const app = (

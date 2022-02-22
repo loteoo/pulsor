@@ -1,7 +1,8 @@
-import { Cycle, VChildNode, VChildNodeFunction, VNode } from './types';
+import { Lens } from '.';
+import { Context, Cycle, NormalizedVNode, VChildNode, VChildNodeFunction, VNode } from './types';
 import { isVChildNodeFunction, isRenderable, isString } from './utils';
 
-const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] => {
+const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: Context, scope?: Lens): NormalizedVNode[] => {
   const vNodes = Array.isArray(_vNodes) ? [..._vNodes] : [_vNodes];
 
   let i = 0;
@@ -20,7 +21,10 @@ const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] =>
     }
 
     if (isVChildNodeFunction(vNodes[i])) {
-      vNodes[i] = (vNodes[i] as VChildNodeFunction)(cycle.state, ctx)
+      vNodes[i] = (vNodes[i] as VChildNodeFunction)(
+        scope ? scope.get(cycle.state) : cycle.state,
+        ctx
+      );
       continue;
     }
 
@@ -32,6 +36,7 @@ const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] =>
     const vNode = vNodes[i] as VNode;
     vNodes[i] = {
       key: vNode.props?.key,
+      scope: vNode.props?.scope,
       init: vNode.props?.init,
       clear: vNode.props?.clear,
       ctx: vNode.props?.ctx,
@@ -41,7 +46,7 @@ const normalize = (_vNodes: VChildNode = [], cycle: Cycle, ctx: any): VNode[] =>
     i++;
   }
 
-  return vNodes as VNode[];
+  return vNodes as NormalizedVNode[];
 }
 
 export default normalize

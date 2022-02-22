@@ -1,134 +1,48 @@
-import hydrate from './hydrate'
 import reduce from './reduce';
 import patch from './patch';
-import runTasks from './runTasks';
-import { VNode, Task, Emitter, Action, EventData, Cycle } from './types';
+import { VNode, Action, Dispatch, Cycle, NormalizedVNode } from './types';
 
-// function stato(path: string | string[], value?: any) {
+const run = (app: VNode, mount: HTMLElement | NormalizedVNode) => {
 
-//   if (typeof path == 'string') {
-//     path = path.split('.');
-//   }
-
-//   if (!Array.isArray(path)) {
-//     throw new Error('path must be a string or an array');
-//   }
-
-//   let ref = stato;
-//   let curr;
-
-//   while (path.length) {
-//     curr = path.shift();
-//     ref = (ref as any)[(curr as string)];
-//     if (ref === undefined) {
-//       return ref;
-//     }
-//   }
-
-//   if (value) {
-//     ref = value
-//     return stato
-//   }
-
-//   return ref;
-// }
-
-
-// const stato2 = {}
-
-// const handler = {
-//   get: function (target: any, prop: any, receiver: any) {
-//     if (typeof target[prop] === "function") {
-//       return target[prop](target)
-//     }
-//     // @ts-ignore
-//     return Reflect.get(...arguments);
-//   },
-// };
-
-// const stateWithSelectors = new Proxy(stato2, handler);
-
-const run = (app: VNode, root: Node) => {
-
-  function domEmitter(event: any) {
+  function domEmitter(ev: Event) {
     // @ts-ignore
-    dispatch(event.type, (this[event.type] as Action), event);
+    dispatch((this[ev.type] as Action), ev, ev.type, this.__scope);
   }
 
-  const createEmitter = (eventsObject: Task & VNode): Emitter =>
-    (eventName, payload) => {
-      const handlerKey = `on${eventName}`;
+  const oldVNode = mount instanceof HTMLElement
+    ? { tag: mount.tagName, el: mount }
+    : mount;
 
-      //@ts-ignore
-      if (eventsObject[handlerKey]) {
-        //@ts-ignore
-
-        setTimeout(() => {
-          dispatch(eventName, eventsObject[handlerKey] as Action, payload)
-        })
-      }
-    }
-
-  const oldVNode = hydrate(root);
-
-  const dispatch = (eventName: string, action: Action, payload?: EventData) => {
-
-    // console.groupCollapsed(`Dispatch: ${eventName}`)
+  const dispatch: Dispatch = (action, payload, eventName, scope) => {
 
     // Apply state updates
-    reduce(action, payload, cycle, undefined, eventName);
+    reduce(action, payload, cycle, scope, undefined, eventName);
 
-    if (cycle.needsRerender) {
-      // console.group(`render`);
+    const nextVNode = {
+      ...oldVNode,
+      children: app
+    };
 
-      while (cycle.needsRerender) {
-        cycle.needsRerender = false;
+    patch(oldVNode, nextVNode, cycle);
 
-        const nextVNode = {
-          ...oldVNode,
-          children: app
-        }
-        patch(oldVNode, nextVNode, cycle, {}, false);
-      }
-
-      // console.groupEnd();
-
-      // console.log('Resulting state', cycle.state)
-    } else {
-      // console.log('No state updates')
+    // Run Effects
+    if (cycle.effects.length > 0) {
+      cycle.effects.forEach((effect) => effect());
+      cycle.effects = [];
     }
 
-    // Run Tasks
-    if (cycle.tasks.length > 0) {
-      // console.log(`Running ${cycle.tasks.length} tasks`)
-      runTasks(cycle.tasks, cycle);
-      cycle.tasks = [];
-    } else {
-      // console.log('No tasks')
-    }
-
-    // console.groupEnd();
   }
-
-  // if (!el) {
-  //   const root = document.createElement('div')
-  //   document.body.appendChild(root);
-  //   el = root;
-  // }
-
-  // const oldVNode = hydrate(mount ?? document.body) as VNode;
-
-  // window.oldVNode = oldVNode
 
   const cycle: Cycle = {
     state: {},
+    effects: [],
     needsRerender: false,
+    dryRun: false,
     domEmitter,
-    createEmitter,
-    tasks: [],
+    dispatch,
   }
 
-  dispatch('root init', {})
+  dispatch({}, undefined, 'root init');
 }
 
 

@@ -68,7 +68,7 @@ const ReplaceWithUserB: Action<UpdateState> = {
 }
 
 const Test: Action<UpdateState> = ({
-  run: (emit) => {
+  effect: (emit) => {
 
   },
   onaction: () => ({

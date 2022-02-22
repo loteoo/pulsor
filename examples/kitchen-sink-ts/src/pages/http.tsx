@@ -20,7 +20,10 @@ function FetchCharacters() {
 }
 
 export default (
-  <main init={[InitStuff, FetchCharacters]}>
+  <main
+    init={FetchCharacters}
+    // init={[InitStuff, FetchCharacters]}
+  >
     <h1>Characters</h1>
     <ul>
       {({ characters }: any) => characters?.data?.results?.map((character: any) => (
@@ -29,5 +32,10 @@ export default (
         </li>
       ))}
     </ul>
+    <pre>
+      <code>
+        {s => JSON.stringify(s, null, 2)}
+      </code>
+    </pre>
   </main>
 )

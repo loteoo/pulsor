@@ -1,3 +1,5 @@
+import { Action } from '../core/src'
+
 interface Args extends RequestInit {
   name: string;
   url: string;
@@ -6,33 +8,26 @@ interface Args extends RequestInit {
 
 const Http = (args: Args): Action => [
   {
-    [args.name]: {
-      loading: true
-    }
+    scope: args.name,
+    loading: true,
   },
   {
-    run: async (emit) => {
+    effect: async (dispatch) => {
       try {
         const response = await fetch(args.url);
         const data = await response[args.resolve ?? 'json']();
-        emit('complete', data);
+        dispatch({
+          loading: false,
+          data,
+        });
       } catch (error) {
-        emit('error', error);
+        dispatch({
+          loading: false,
+          error,
+        });
       }
     },
-    oncomplete: (_, data) => ({
-      [args.name]: {
-        loading: false,
-        data,
-      }
-    }),
-    onerror: (_, error) => ({
-      [args.name]: {
-        loading: false,
-        error,
-      }
-    }),
   }
-]
+];
 
 export default Http;

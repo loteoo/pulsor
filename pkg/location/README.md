@@ -1,4 +1,4 @@
-# @puslor/location
+# @pulsor/location
 
 Routing utilities for pulsor
 
@@ -9,12 +9,14 @@ npm install @pulsor/location
 
 ## Usage
 
+Use the `createRouter` function to setup your routes. It will return a `TrackLocation` Action that you need to hook-up near the top of your app (above the router), then use the `Router` component where you want the routes to be rendered.
+
 ### Routing
 
 ```jsx
 import { createRouter } from '@pulsor/location'
 
-const Router = createRouter({
+const { Router, TrackLocation } = createRouter({
   routes: {
     '/': <h1>Home page</h1>,
     '/about': <h1>About page</h1>,
@@ -23,7 +25,7 @@ const Router = createRouter({
 })
 
 const app = (
-  <main>
+  <main init={TrackLocation}>
     <header>App header</header>
     <Router />
     <footer>App footer</footer>
@@ -36,9 +38,9 @@ const app = (
 
 Option 1
 ```jsx
-import { navigate } from '@pulsor/location'
+import { Navigate } from '@pulsor/location'
 
-const GoToAboutPage = navigate('/')
+const GoToAboutPage = Navigate('/')
 
 const app = (
   <button onclick={GoToAboutPage}>Go to About page</button>
@@ -58,10 +60,10 @@ const app = (
 
 Option 3
 ```jsx
-import { EnhanceLinkClicks } from '@pulsor/location'
+import { CaptureLinkClicks } from '@pulsor/location'
 
 const app = (
-  <main id="root" onclick={EnhanceLinkClicks}>
+  <main id="root" onclick={CaptureLinkClicks}>
     <nav>
       <a href="/about">About page</a>
     </nav>

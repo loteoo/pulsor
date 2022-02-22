@@ -1,5 +1,5 @@
-/** @type {import('@pulsor/dev').Config} */
-/** @type {import('../../dev').Config} */
+/** @type {import('@pulsor/cli').Config} */
+/** @type {import('../../cli').Config} */
 const config = {
   // Config goes here
 };

@@ -1,6 +1,7 @@
+import { State, Update } from './types'
 import { isObj } from './utils'
 
-const deepAssign = (source: any, update: any) => {
+const deepAssign = (source: State, update: Update) => {
   for (const key of Object.keys(update)) {
 
     // Delete "undefined" keys

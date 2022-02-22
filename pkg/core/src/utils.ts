@@ -1,4 +1,4 @@
-import { VChildNode, VChildNodeFunction, Action, Task } from './types';
+import { VNode, VChildNode, VChildNodeFunction, Action, Effect } from './types';
 
 export const isVChildNodeFunction = (vnode: VChildNode): vnode is VChildNodeFunction => typeof vnode === 'function';
 
@@ -6,12 +6,10 @@ export const isString = (value?: any): boolean => ['string', 'number', 'bigint']
 
 export const isModuleNode = (vnode: VChildNode) => typeof vnode === 'object' && !!vnode && !Array.isArray(vnode) && (vnode as any).type === undefined;
 
-export const isRenderable = (value: any) => ![true, false, null, undefined].includes(value)
+export const isRenderable = (value: any) => ![true, false, null, undefined].includes(value);
 
-export const isTask = (action: Action): action is Task => typeof action === 'object' && !!action && typeof (action as Task).run === 'function';
+export const isEffect = (action: Action): action is Effect => typeof action === 'object' && !!action && typeof (action as Effect).effect === 'function';
 
-export const isSame = (a: any, b: any) => {
-  return a?.type === b?.type && a?.key === b?.key;
-}
+export const isSame = (a: VNode, b: VNode) => a.tag === b.tag && a.key === b.key;
 
 export const isObj = (val: any) => typeof val === 'object' && !Array.isArray(val) && val !== null;

@@ -5,20 +5,28 @@ export type DeepPartial<T> = {
   [P in keyof T]?: DeepPartial<T[P]>;
 };
 
+export type State = any;
+
+export type Scope = string | Lens;
+
+export type Lens = {
+  get: (state: State) => any;
+  set: (value: any) => Update;
+};
+
 // === Actions
 
 export type EventData = any;
+export type Dispatch = (action: Action, payload?: EventData, eventName?: string, scope?: Lens) => void;
 
-// Task
-export type Emitter = (eventName: string, payload?: EventData) => void;
-export type TaskCleanupFunction = () => void | Promise<void>;
-export type TaskRunner = (emit: Emitter, payload?: EventData) => TaskCleanupFunction | void;
+// Effect
+export type EffectCleanup = () => void | Promise<void>;
+export type Effector = (dispatch: Dispatch, payload?: EventData) => EffectCleanup | void;
 
-export interface Task {
+export interface Effect {
   vNode?: VNode;
   payload?: EventData;
-  run: TaskRunner;
-  [x: string]: any; // in reality, EventHandler;
+  effect: Effector;
 }
 
 // Update
@@ -29,7 +37,7 @@ export type Update<S = State> = {
 // Action
 export type ActionFunction<S = State> = (state: S, payload?: EventData) => Action<S>;
 
-export type ActionItem<S = State> = Update<S> | Task;
+export type ActionItem<S = State> = Update<S> | Effect;
 
 export type Action<S = State> =
   | ActionItem<S>
@@ -48,6 +56,7 @@ export type Key = any;
 // Props you can set on both props and vNode directly
 export interface LogicalProps {
   key: Key;
+  scope: Scope;
   init: Action | Action<unknown>;
   clear: Action | Action<unknown>;
   ctx: ContextProp;
@@ -88,29 +97,30 @@ export type VChildNode<S = State> =
 // VNode
 
 export interface VNode<S = State> extends Partial<LogicalProps> {
-  type?: string;
+  tag?: string;
   props?: VProps;
   children?: VChildNode<S>;
-  text?: TextElement;
 
-  // Maybe move somewhere else
-  clearTasks?: TaskCleanupFunction[];
-
-  // TODO: maybe only 1 is needed, maybe move to "LogicalProps" type
+  // TODO: Maybe move to "LogicalProps" type
   el?: Node;
-  mount?: Node; /* Node on which to mount child elements onto */
+};
+
+export interface NormalizedVNode<S = State> extends VNode<S> {
+  children?: Array<NormalizedVNode<S>>;
+  text?: TextElement;
 };
 
 export type Component<S = State> = (...args: any[]) => VChildNode<S>;
 
-export type HyperScript = <T = string | Component>(type: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode;
+export type HyperScript = <T = string | Component>(tag: T, props: VProps, ...children: VChildNode[]) => T extends Function ? VChildNode : VNode;
 
 // Internals
 
 export interface Cycle {
   state: State,
+  effects: (() => void)[];
   needsRerender: boolean;
-  domEmitter: any;
-  createEmitter: any;
-  tasks: Task[];
+  dryRun: boolean;
+  domEmitter?: (ev: Event) => void;
+  dispatch?: Dispatch;
 };

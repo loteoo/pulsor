@@ -1,7 +1,12 @@
 {
-  "extends": "../core/tsconfig.json",
-  "include": [
-    "index.ts",
-    "pulsor.d.ts",
-  ],
+  "compilerOptions": {
+    "strict": true,
+    "target": "es6",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "commonjs",
+    "declaration": true,
+    "esModuleInterop": true,
+    "outDir": "dist"
+  },
+  "include": ["index.ts"],
 }

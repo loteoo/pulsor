@@ -2,64 +2,19 @@
 import { isSame } from './utils'
 import normalize from './normalize';
 import reduce from './reduce';
-import { Action, Cycle, VNode } from './types';
+import { Context, Cycle, VNode, Lens, NormalizedVNode } from './types';
+import createLens from './createLens';
 
 // ====
 
-function handleInlineAction(action: Action, payload: any, cycle: Cycle, vNode: VNode, eventName: string) {
-  if (action) {
-    // console.group(eventName);
-    reduce(action, payload, cycle, vNode, eventName);
-    // console.groupEnd();
-  }
-}
+function removeNode(vNode: NormalizedVNode, parent: Node | undefined, cycle: Cycle, scope?: Lens) {
 
-function moveVNode(parent: Node, vNode: VNode, before?: Node) {
-  if (vNode.type || vNode.text != null) {
-    parent.insertBefore(vNode.el!, before!);
-    // @ts-ignore
-  } else if (vNode.children?.length) {
-    for (const ch of (vNode.children as VNode[])) {
-      moveVNode(parent, ch, before)
-    }
-  }
-}
-
-function getFragmentEl(chArray: VNode[], initialIdx: number, parent: Node): Node | null {
-  const endIdx = chArray.length - 1;
-  let idx = initialIdx;
-  let el = null;
-  while (idx <= endIdx) {
-    const vNode = chArray[idx];
-    if (vNode.type || vNode.text != null) {
-      el = vNode.el;
-      break;
-    }
-    // @ts-ignore
-    if (vNode.children?.length) {
-      const checkInside = getFragmentEl((vNode.children as VNode[]), 0, parent);
-      if (checkInside) {
-        if (checkInside.parentNode === parent) {
-          el = checkInside;
-          break;
-        }
-      }
-    }
-
-    idx++;
-  }
-
-  return el as Node | null;
-}
-
-function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
-
-  handleInlineAction(vNode.clear, vNode.el, cycle, vNode, 'clear');
+  reduce(vNode.clear, vNode.el, cycle, scope, vNode, 'clear');
 
   // @ts-ignore
-  if (vNode.el.clearTasks) {
+  if (vNode.el?.clearEffects) {
     // @ts-ignore
-    vNode.el.clearTasks.forEach(cleanup => {
+    vNode.el?.clearEffects.forEach(cleanup => {
       if (typeof cleanup === 'function') {
         cleanup()
       }
@@ -68,64 +23,55 @@ function recurseRemove(vNode: VNode, parent: Node, cycle: Cycle) {
 
   //@ts-ignore
   if (vNode.children?.length) {
-    for (const ch of (vNode.children as VNode[])) {
-      recurseRemove(ch, vNode.type ? vNode.el! : parent, cycle);
+    for (const ch of vNode.children) {
+      removeNode(ch, vNode.el, cycle, scope);
     }
   }
 
-  if (vNode.type) {
-    if (vNode.el!.parentNode === parent) {
-      parent.removeChild(vNode.el!);
-    }
+  if (vNode.el?.parentNode === parent && vNode.el) {
+    parent?.removeChild(vNode.el);
   }
+
 }
 
 
 // ===
 
-const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx: any, isSvg: boolean) => {
+const createNode = (vNode: VNode, parent: Node | undefined, before: Node, cycle: Cycle, ctx: any, isSvg: boolean, scope?: Lens) => {
 
-  if (vNode.text != null) {
-    vNode.el = document.createTextNode(String(vNode.text));
-  } else if (!vNode.type) {
-    vNode.el = document.createDocumentFragment();
-  } else {
-    if (vNode.type === 'svg') {
-      isSvg = true;
-    }
-    if (isSvg) {
-      vNode.el = document.createElementNS('http://www.w3.org/2000/svg', vNode.type!);
+  if (!cycle.dryRun) {
+    if (vNode.text != null) {
+      vNode.el = document.createTextNode(String(vNode.text));
+    } else if (vNode.tag) {
+      if (vNode.tag === 'svg') {
+        isSvg = true;
+      }
+      if (isSvg) {
+        vNode.el = document.createElementNS('http://www.w3.org/2000/svg', vNode.tag!);
+      } else {
+        vNode.el = document.createElement(vNode.tag!);
+      }
     } else {
-      vNode.el = document.createElement(vNode.type!);
+      vNode.el = document.createComment('');
     }
   }
-  
 
-  patch(
+  patchNode(
     {
-      type: vNode.type,
+      tag: vNode.tag,
       text: vNode.text,
       el: vNode.el,
-      mount: vNode.mount,
       children: [],
     },
     vNode,
     cycle,
     ctx,
     isSvg,
+    scope,
   );
 
-  // console.log('insertBefore', {
-  //   parent,
-  //   el: vNode.el,
-  //   before
-  // })
-  
-  parent.insertBefore(vNode.el, before);
-
-  // For fragments
-  if (vNode.type == null && vNode.text == null && !vNode.mount) {
-    vNode.mount = parent;
+  if (!cycle.dryRun) {
+    parent?.insertBefore(vNode.el!, before);
   }
 };
 
@@ -134,21 +80,26 @@ const createNode = (vNode: VNode, parent: Node, before: Node, cycle: Cycle, ctx:
 
 
 
-const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, oldVNode: VNode, newVNode: VNode, cycle: Cycle, isSvg: boolean) => {
+const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, cycle: Cycle, isSvg: boolean, ctx: Context, scope?: Lens) => {
   if (key.startsWith("on")) {
     const eventName = key.slice(2);
     //@ts-ignore
+    el.__scope = scope;
+    //@ts-ignore
     el[eventName] = newValue;
     if (!newValue) {
-      el.removeEventListener(eventName, cycle.domEmitter);
+      el.removeEventListener(eventName, cycle.domEmitter!);
     } else if (!oldValue) {
-      el.addEventListener(eventName, cycle.domEmitter);
+      el.addEventListener(eventName, cycle.domEmitter!);
     }
     return;
   }
 
   if (typeof newValue === 'function') {
-    newValue = newValue(cycle.state)
+    newValue = newValue(
+      scope ? scope.get(cycle.state) : cycle.state,
+      ctx
+    );
   }
 
   if (key === 'class' && typeof newValue === "object") {
@@ -170,7 +121,7 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
   }
 
   if (key === 'style' && typeof newValue === "object") {
-    for (const k in { ...oldValue, ...newValue }) {
+    for (const k in { ...(typeof oldValue === 'object' ? oldValue : {}), ...newValue }) {
       const val = newValue[k] ?? '';
       if (k.startsWith('--')) {
         el[key].setProperty(k, val)
@@ -203,23 +154,29 @@ const patchProp = (el: HTMLElement, key: string, oldValue: any, newValue: any, o
 };
 
 
-const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: boolean) => {
+const patchNode = (oldVNode: NormalizedVNode, newVNode: VNode, cycle: Cycle, ctx: Context, isSvg: boolean, scope?: Lens) => {
 
   // ?? why are these needed?!!
-  newVNode.el = oldVNode.el!;
-  newVNode.mount = oldVNode.mount!;
+  newVNode.el = oldVNode.el;
 
   const el = oldVNode.el;
 
-  if (newVNode?.init && oldVNode?.init == null) {
-    handleInlineAction(newVNode?.init, el, cycle, oldVNode, 'init');
-  }
-  newVNode.clearTasks = oldVNode.clearTasks;
-
-  if (newVNode?.ctx) {
+  if (newVNode.ctx) {
     ctx = typeof newVNode.ctx === 'function'
       ? newVNode.ctx(oldVNode.ctx!)
       : newVNode.ctx
+  }
+
+  if (newVNode.scope) {
+    scope = createLens(newVNode.scope);
+  }
+
+  if (newVNode.init && oldVNode.init == null) {
+    reduce(newVNode.init, el, cycle, scope, oldVNode, 'init');
+  }
+
+  if (!newVNode.tag && newVNode.text == null) {
+    return;
   }
 
   if (el) {
@@ -229,22 +186,21 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
       return;
     }
 
-
-    if (newVNode.type === 'svg') {
+    if (newVNode.tag === 'svg') {
       isSvg = true;
     }
 
-    for (const key in { ...oldVNode?.props, ...newVNode?.props }) {
-      const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode?.props?.[key];
-      if (oldVal !== newVNode?.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
-        patchProp(el as HTMLElement, key, oldVNode?.props?.[key], newVNode?.props?.[key], oldVNode, newVNode, cycle, isSvg);
+    for (const key in { ...oldVNode.props, ...newVNode.props }) {
+      const oldVal = ['value', 'selected', 'checked'].includes(key) ? (el as any)[key] : oldVNode.props?.[key];
+      if (oldVal !== newVNode.props?.[key] && !['key', 'init', 'clear', 'ctx'].includes(key)) {
+        patchProp(el as HTMLElement, key, oldVNode.props?.[key], newVNode.props?.[key], cycle, isSvg, ctx, scope);
       }
     }
   }
 
-  const parent = oldVNode.mount ?? oldVNode.el!;
-  const oldCh: VNode[] = ((oldVNode.children as VNode[]) ?? []);
-  const newCh = normalize(newVNode.children, cycle, ctx);
+  const parent = oldVNode.el;
+  const oldCh: NormalizedVNode[] = (oldVNode.children ?? []);
+  const newCh = normalize(newVNode.children, cycle, ctx, scope);
 
   oldVNode.children = newVNode.children = newCh;
 
@@ -258,7 +214,7 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
   let newEndVNode = newCh[newEndIdx];
   let oldKeyToIdx: Record<string, number> | undefined;
   let idxInOld: number;
-  let elmToMove: VNode;
+  let elmToMove: NormalizedVNode;
   let before: any;
 
   while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
@@ -271,21 +227,21 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
     } else if (newEndVNode == null) {
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newStartVNode)) {
-      patch(oldStartVNode, newStartVNode, cycle, ctx, isSvg);
+      patchNode(oldStartVNode, newStartVNode, cycle, ctx, isSvg, scope);
       oldStartVNode = oldCh[++oldStartIdx];
       newStartVNode = newCh[++newStartIdx];
     } else if (isSame(oldEndVNode, newEndVNode)) {
-      patch(oldEndVNode, newEndVNode, cycle, ctx, isSvg);
+      patchNode(oldEndVNode, newEndVNode, cycle, ctx, isSvg, scope);
       oldEndVNode = oldCh[--oldEndIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldStartVNode, newEndVNode)) {
-      patch(oldStartVNode, newEndVNode, cycle, ctx, isSvg);
-      moveVNode(parent, oldStartVNode, getFragmentEl(oldCh, oldEndIdx, parent)?.nextSibling!);
+      patchNode(oldStartVNode, newEndVNode, cycle, ctx, isSvg, scope);
+      parent?.insertBefore(oldStartVNode.el!, oldEndVNode.el!.nextSibling!);
       oldStartVNode = oldCh[++oldStartIdx];
       newEndVNode = newCh[--newEndIdx];
     } else if (isSame(oldEndVNode, newStartVNode)) {
-      patch(oldEndVNode, newStartVNode, cycle, ctx, isSvg);
-      moveVNode(parent, oldEndVNode, getFragmentEl(oldCh, oldStartIdx, parent)!);
+      patchNode(oldEndVNode, newStartVNode, cycle, ctx, isSvg, scope);
+      parent?.insertBefore(oldEndVNode.el!, oldStartVNode.el!);
       oldEndVNode = oldCh[--oldEndIdx];
       newStartVNode = newCh[++newStartIdx];
     } else {
@@ -300,15 +256,15 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
       }
       idxInOld = oldKeyToIdx[newStartVNode.key as string];
       if (idxInOld === undefined) {
-        createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, isSvg);
+        createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg, scope);
       } else {
         elmToMove = oldCh[idxInOld];
-        if (elmToMove.type !== newStartVNode.type) {
-          createNode(newStartVNode, parent, getFragmentEl(oldCh, oldStartIdx, parent)!, cycle, ctx, isSvg);
+        if (elmToMove.tag !== newStartVNode.tag) {
+          createNode(newStartVNode, parent, oldStartVNode.el!, cycle, ctx, isSvg, scope);
         } else {
-          patch(elmToMove, newStartVNode, cycle, ctx, isSvg);
+          patchNode(elmToMove, newStartVNode, cycle, ctx, isSvg, scope);
           oldCh[idxInOld] = undefined as any;
-          moveVNode(parent, elmToMove, getFragmentEl(oldCh, oldStartIdx, parent)!);
+          parent?.insertBefore(elmToMove.el!, oldStartVNode.el!);
         }
       }
       newStartVNode = newCh[++newStartIdx];
@@ -316,23 +272,31 @@ const patch = (oldVNode: VNode, newVNode: VNode, cycle: Cycle, ctx: any, isSvg: 
   }
   if (oldStartIdx <= oldEndIdx || newStartIdx <= newEndIdx) {
     if (oldStartIdx > oldEndIdx) {
-      before = newCh[newEndIdx + 1] == null ? null : getFragmentEl(newCh, newEndIdx + 1, parent);
+      before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].el;
       for (let i = newStartIdx; i <= newEndIdx; i++) {
         const ch = newCh[i];
         if (ch != null) {
-          createNode(ch, parent, before, cycle, ctx, isSvg);
+          createNode(ch, parent, before, cycle, ctx, isSvg, scope);
         }
       }
     } else {
       for (let i = oldStartIdx; i <= oldEndIdx; i++) {
         const ch = oldCh[i];
         if (ch != null) {
-          recurseRemove(ch, parent, cycle);
+          removeNode(ch, parent!, cycle, scope);
         }
       }
     }
   }
 };
 
+const patch = (a: NormalizedVNode, b: VNode, cycle: Cycle) => {
+  if (cycle.needsRerender) {
+    while (cycle.needsRerender) {
+      cycle.needsRerender = false;
+      patchNode(a, { ...b }, cycle, {}, false);
+    }
+  }
+}
 
 export default patch

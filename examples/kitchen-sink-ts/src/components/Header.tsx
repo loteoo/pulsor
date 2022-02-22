@@ -1,4 +1,4 @@
-import routes from '/src/utils/routes';
+import { routes } from '../utils/location';
 
 const css = {
   nav: {

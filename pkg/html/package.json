@@ -1,0 +1,20 @@
+{
+  "name": "@pulsor/html",
+  "version": "0.0.2-rc.3",
+  "description": "HTML / VNode convertion utilities for pulsor",
+  "author": "Alexandre Lotte <dev@alexlotte.ca>",
+  "license": "ISC",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "tsc",
+    "test": "echo \"No test specified\""
+  },
+  "dependencies": {
+    "@pulsor/core": "0.0.2-rc.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.2"
+  }
+}

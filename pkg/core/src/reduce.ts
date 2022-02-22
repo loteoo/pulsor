@@ -1,11 +1,12 @@
+import createLens from './createLens';
 import deepAssign from './deepAssign';
-import { Action, Cycle, VNode, ActionFunction, Task } from './types';
-import { isTask } from './utils';
+import { Action, Cycle, VNode, ActionFunction, Effect, Lens, Dispatch } from './types';
+import { isEffect } from './utils';
 
 /**
- * Reduces an action object into a single update "result" and an array of tasks
+ * Reduces an action object into a single update "result" and an array of effects
  */
-const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, parentAction?: string) => {
+const reduce = (action: Action, payload: any, cycle: Cycle, scope?: Lens, vNode?: VNode, parentAction?: string) => {
 
   // Ignore falsy values
   if (!action) {
@@ -15,36 +16,65 @@ const reduce = (action: Action, payload: any, cycle: Cycle, vNode?: VNode, paren
   // Recurse on arrays
   if (Array.isArray(action)) {
     for (const sub of action) {
-      reduce(sub, payload, cycle, vNode, parentAction);
+      if (typeof sub === 'object' && (sub as any).scope) {
+        scope = createLens((sub as any).scope);
+        delete (sub as any)['scope'];
+      }
+      reduce(sub, payload, cycle, scope, vNode, parentAction);
     }
     return;
   }
 
   // Handle subactions
   if (typeof action === "function") {
-
-    // @ts-ignore
-    // console.group(action.name || parentAction);
-
     const sub = (action as ActionFunction)(cycle.state, payload);
-
-    // @ts-ignore
-    reduce(sub, payload, cycle, vNode, action.name);
-    // console.groupEnd();
+    reduce(sub, payload, cycle, scope, vNode, action.name);
     return;
   }
 
-  // Push tasks in task array
-  if (isTask(action)) {
-    const task = action as Task;
-    task.payload = payload;
-    task.vNode = vNode;
-    cycle.tasks.push(task);
-    // console.log(`enqueued task`, task)
+  // Push effects in effect array
+  if (isEffect(action)) {
+    const effect = action as Effect;
+    effect.payload = payload;
+    effect.vNode = vNode;
+
+    const sideEffect = async () => {
+      const dispatcher: Dispatch = (_action, _payload, _eventName, _scope) => {
+        setTimeout(() => {
+          cycle.dispatch?.(_action, _payload, _eventName, _scope ?? scope)
+        })
+      };
+
+      const cleanup = await effect.effect(dispatcher, effect.payload);
+
+      if (cleanup && effect.vNode) {
+        if (effect.vNode.el) {
+          // @ts-ignore
+          if (!effect.vNode.el?.clearEffects) {
+            // @ts-ignore
+            effect.vNode.el.clearEffects = [];
+          }
+          // @ts-ignore
+          effect.vNode.el.clearEffects.push(cleanup)
+        }
+      }
+    }
+
+    Object.defineProperty(sideEffect, "name", { value: parentAction });
+
+    cycle.effects.push(sideEffect);
     return;
   }
 
-  // console.log(action)
+  if (typeof action === 'object' && (action as any).scope) {
+    scope = createLens((action as any).scope);
+    delete action['scope'];
+  }
+
+  if (scope) {
+    action = scope.set(action)
+  }
+
   deepAssign(cycle.state, action);
   cycle.needsRerender = true;
 };

@@ -11,9 +11,9 @@ const SetField = (name: string, value: any, scope?: string): Action => {
   return scope ? { [scope]: update } : update
 }
 
-const PreventDefault = {
-  run: (_: any, ev: any) => ev.preventDefault()
-}
+const PreventDefault = (_: any, ev: any) => ({
+  effect: () => ev.preventDefault()
+})
 
 const selectField = (name: string, scope?: string) => (state: any) => {
   if (scope) {
@@ -95,7 +95,7 @@ export const Input = ({
 
 export const Textarea = (props: InputProps) => (state: any, ctx: any) => {
   const vNode = Input(props)(state, ctx);
-  vNode.type = 'textarea';
+  vNode.tag = 'textarea';
   delete vNode.props?.type;
   return vNode;
 }
