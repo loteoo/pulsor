@@ -373,8 +373,9 @@ run(rootApp, hydrate(document));`;
             const internalLinks = html
               .match(pattern)
               .map(hrefAttr => hrefAttr.slice(6, -1))
+              .map(href => href.includes('#') ? href.split('#')[0] : href)
               .filter(href => {
-                if (!href.startsWith('/') || href.includes('.') || href.startsWith('#') || href.startsWith('/#')) {
+                if (!href.startsWith('/') || href.includes('.')) {
                   return false;
                 }
                 return true;

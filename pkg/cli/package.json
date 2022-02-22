@@ -1,6 +1,6 @@
 {
   "name": "@pulsor/cli",
-  "version": "0.0.2-rc.3",
+  "version": "0.0.2-rc.6",
   "description": "Vite-based development environment for building pulsor apps.",
   "author": "Alexandre Lotte <dev@alexlotte.ca>",
   "license": "ISC",

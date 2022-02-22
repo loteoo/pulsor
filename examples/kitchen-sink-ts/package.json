@@ -15,6 +15,6 @@
     "@pulsor/location": "^0.0.2-rc.1"
   },
   "devDependencies": {
-    "@pulsor/cli": "^0.0.2-rc.3"
+    "@pulsor/cli": "^0.0.2-rc.6"
   }
 }
