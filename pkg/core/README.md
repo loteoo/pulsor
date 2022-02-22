@@ -6,7 +6,7 @@ Core runtime for the pulsor framework
 ## Getting started
 
 ### Installation
-```
+```bash
 npm install @pulsor/core
 ```
 

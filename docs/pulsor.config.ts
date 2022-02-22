@@ -4,20 +4,21 @@ import mdPlugin, { Mode } from 'vite-plugin-markdown';
 import mdItConstruct from 'markdown-it';
 import mdAnchors from 'markdown-it-anchor';
 
+// import hljs from 'highlight.js/lib/core';
+
 const mdIt = mdItConstruct({
   html: true,
-  highlight: function (str, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return hljs.highlight(str, { language: lang }).value;
-      } catch (__) { }
-    }
+  // highlight: function (str, lang) {
+  //   if (lang && hljs.getLanguage(lang)) {
+  //     try {
+  //       return hljs.highlight(str, { language: lang }).value;
+  //     } catch (__) { }
+  //   }
 
-    return ''; // use external default escaping
-  },
+  //   return ''; // use external default escaping
+  // },
 }).use(mdAnchors)
 
-import hljs from 'highlight.js/lib/core';
 
 const markdownPlugin = mdPlugin({
   mode: [Mode.HTML, Mode.TOC],

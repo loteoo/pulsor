@@ -3,7 +3,7 @@
 Routing utilities for pulsor
 
 ## Installation
-```
+```bash
 npm install @pulsor/location
 ```
 

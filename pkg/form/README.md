@@ -3,7 +3,7 @@
 State-bound form handling primitives for pulsor
 
 ## Installation
-```
+```bash
 npm install @pulsor/form
 ```
 

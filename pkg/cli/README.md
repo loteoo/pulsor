@@ -10,15 +10,15 @@ For documentation on how to write pulsor apps, checkout the [main repo!](https:/
 
 ## Quick start
 
-Install the `@pulsor/cli` CLI
+Install the CLI
 
-```sh
+```bash
 npm i -g @pulsor/cli
 ```
 
 Create a new app and run it:
 
-```sh
+```bash
 # Create new app
 echo "export default (
   <h1>Hi! 👋</h1>
@@ -33,13 +33,13 @@ Second line starts the dev server with the "App.tsx" file as the "Root vNode".
 
 Build for prod:
 
-```sh
+```bash
 pulsor build App.tsx
 ```
 
 Preview prod build:
 
-```sh
+```bash
 pulsor serve
 ```
 
