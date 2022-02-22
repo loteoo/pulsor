@@ -28,7 +28,7 @@ const config: Config = {
   plugins: [markdownPlugin],
   resolve: {
     alias: {
-      '@pulsor/location': path.resolve(__dirname, '../pkg/location/src')
+      // '@pulsor/location': path.resolve(__dirname, '../pkg/location/src')
     }
   },
   server: {
