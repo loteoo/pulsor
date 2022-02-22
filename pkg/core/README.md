@@ -2,6 +2,9 @@
 
 Core runtime for the pulsor framework
 
+
+## Getting started
+
 ### Installation
 ```
 npm install @pulsor/core
@@ -27,6 +30,8 @@ You write pulsor apps using these 2 building blocks:
 - [Actions](#actions)
 
 ## VNodes
+
+### Syntax
 
 You could checkout the type definition of the `VNode` object [here](https://github.com/loteoo/pulsor/blob/main/pkg/core/src/types.ts), but we think code examples are a better way to give you an idea of what vNodes look like. Below are some examples using different syntaxes that you can choose from.
 

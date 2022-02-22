@@ -20,25 +20,45 @@ const links: any[] = [];
   
 // }
 
+const HandleClicks = (_: any, ev: any) => ({
+  effect: () => {
+    // If is an anchor link with an ID
+    if (ev.target.matches(':is(h1, h2, h3, h4, h5, h6)[id]')) {
+      location.hash = `#${ev.target.id}`
+    }
+  }
+})
 
-export default (toc: any, html: string) => (
+
+export default (pkg: any) => (
   <div class="docs-layout">
     <aside>
-      <ul>
-        {pkgs.map(pkg => (
-          <li key={pkg.id}><a href={`/docs/${pkg.id}`}>{pkg.name}</a></li>
-        ))}
-      </ul>
       <ul class="sticky">
-        {toc.map((heading: any) => (
-          <li>
-            <a href={`#${slugify(heading.content)}`}>
-              <span innerHTML={heading.content} />
+        {pkgs.map(p => (
+          <li key={p.id}>
+            <a
+              href={`/docs/${p.id}`}
+              class={{
+                'sidebar-active': p.id === pkg.id
+              }}
+            >
+              {p.name}
             </a>
+            {p.id === pkg.id && (
+              <ul>
+                {pkg.readme.toc.filter((h: any) => h.content !== pkg.name).map((heading: any) => (
+                  <li style={{ paddingLeft: `${Math.max(heading.level - 1, 0)}rem`}}>
+                    <a href={`#${slugify(heading.content)}`}>
+                      <span innerHTML={heading.content} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
         ))}
       </ul>
     </aside>
-    <div class="markdown-content" innerHTML={html} />
+    <div onclick={HandleClicks} class="markdown-content" innerHTML={pkg.readme.html} />
   </div>
 )

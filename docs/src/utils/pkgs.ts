@@ -3,7 +3,6 @@ const readmes = import.meta.globEager('../../../pkg/*/README.md');
 
 const allPkgs = Object.values(packagesModules).map(m => m.default);
 
-
 const pkgs = allPkgs
   .map(pkg => {
     pkg.id = pkg.name.slice(8);

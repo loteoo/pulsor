@@ -2,13 +2,28 @@
   color-scheme: light dark;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-  padding: 1.5rem 3rem;
+  padding: 0 3rem;
   line-height: 1.4;
   margin: 0;
   color: rgba(8, 13, 48, 1);
   background-color: #ffffff;
+}
+@media (max-width: 780px) {
+  body {
+    padding: 0 1.5rem;
+  }
 }
 
 a {
@@ -44,6 +59,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: 3rem 0;
 }
 
 :is(header, footer) nav {
@@ -57,14 +73,31 @@ a:hover {
 }
 
 .hero h1 {
-  font-size: 4.25rem;
+  font-size: 4rem;
   line-height: 1.1;
   margin: 0;
-  max-width: 78rem;
+  max-width: 74rem;
 }
-
 .text-section p {
   font-size: 1.5rem;
+}
+
+@media (max-width: 1280px) {
+  .hero h1 {
+    font-size: 3rem;
+  }
+}
+@media (max-width: 780px) {
+  .hero {
+    margin: 2rem 0;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  .text-section p {
+    font-size: 1.25rem;
+  }
 }
 
 .docs-fork {
@@ -83,6 +116,10 @@ a:hover {
   background-color: #dddddd;
 }
 
+.docs-fork a code {
+  font-size: 2rem;
+}
+
 @media (prefers-color-scheme: dark) {
   .docs-fork a {
     background-color: #28292c;
@@ -92,10 +129,12 @@ a:hover {
   }
 }
 
-.docs-fork a code {
-  font-size: 2rem;
-}
 
+@media (max-width: 780px) {
+  .docs-fork {
+    grid-template-columns: 1fr;
+  }
+}
 
 .packages-list ul {
   list-style: none;
@@ -118,7 +157,13 @@ a:hover {
   margin: 0;
 }
 
+
+.markdown-content {
+  font-size: 1.125rem;
+}
+
 .markdown-content code  {
+  font-size: 0.875rem;
   padding: 3px 5px;
   background-color: #f6f8fa !important;
   overflow: auto;
@@ -129,6 +174,35 @@ a:hover {
   overflow-x: auto;
   padding: 1em;
 }
+
+.markdown-content h1:first-child {
+  margin-top: 0;
+}
+
+.markdown-content :is(h1, h2, h3, h4, h5, h6)[id] {
+  position: relative;
+}
+
+.markdown-content :is(h1, h2, h3, h4, h5, h6)[id]::before {
+  content: "";
+  cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>');
+  background-position: center;
+  background-size: 50%;
+  background-repeat: no-repeat;
+  width: 2rem;
+  height: 2rem;
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+}
+.markdown-content :is(h1, h2, h3, h4, h5, h6)[id]:hover::before {
+  opacity: 1;
+}
+
+
 
 @media (prefers-color-scheme: dark) {
   .markdown-content code  {
@@ -152,4 +226,41 @@ a:hover {
 .docs-layout aside .sticky {
   position: sticky;
   top: 2rem;
+}
+
+.docs-layout aside a {
+  display: block;
+  padding: 0.25rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.docs-layout aside a:hover {
+  background-color: rgba(110, 118, 129, 0.2);
+  text-decoration: none;
+}
+
+@media (max-width: 1280px) {
+  .docs-layout {
+    display: block;
+  }
+}
+
+.sidebar-active {
+  background-color: #1f6feb;
+}
+.sidebar-active:hover {
+  background-color: #1f6feb !important;
+}
+
+.docs-layout aside > ul > li {
+  margin: 0.5rem 0;
+}
+
+.docs-layout aside > ul > li > a {
+  color: inherit;
+}
+
+
+.docs-layout aside > ul > li > ul {
+  margin: 1rem 0 2rem 0;
 }

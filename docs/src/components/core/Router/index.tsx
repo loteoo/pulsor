@@ -28,11 +28,8 @@ const routes = Object.entries(modules).reduce((acc, [path, module]) => {
 }, {});
 
 for (const pkg of pkgs) {
-
-  console.log(pkg)
   // @ts-ignore
-  routes[`/docs/${pkg.id}`] = DocsPage(pkg.readme.toc, pkg.readme.html);
+  routes[`/docs/${pkg.id}`] = DocsPage(pkg);
 }
-console.log(routes)
 
 export const { Router, TrackLocation } = createRouter({ routes });
