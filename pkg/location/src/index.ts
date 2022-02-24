@@ -20,8 +20,8 @@ export type State = {
 
 export const Navigate = (href: string): Effect => ({
   effect: () => {
-    history.pushState(null, '', href)
-    dispatchEvent(new CustomEvent("pushstate"))
+    history.pushState(null, '', href);
+    dispatchEvent(new CustomEvent("pushstate"));
   }
 })
 
@@ -39,8 +39,8 @@ export const Link = ({ href, ...rest }: LinkProps, children: VChildNode) =>
     children
   )
 
-export const CaptureLinkClicks: Action<State> = (_, ev) => ({
-  effect: () => {
+export const CaptureLinkClicks: Action<State> = (CustomNavigateAction: any = Navigate) => (_, ev) => ({
+  effect: (dispatch) => {
     let clicked: HTMLElement | null = ev.target as HTMLElement;
 
     // Crawl up dom tree, look if click landed inside a <a /> tag
@@ -52,8 +52,7 @@ export const CaptureLinkClicks: Action<State> = (_, ev) => ({
 
       if (href && (href.startsWith('/') || href.startsWith('#'))) {
         ev.preventDefault();
-        history.pushState(null, '', href)
-        dispatchEvent(new CustomEvent("pushstate"))
+        dispatch(CustomNavigateAction(href));
       }
     }
   },
