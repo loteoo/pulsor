@@ -76,12 +76,12 @@ export const createRouter = ({ routes }: Options) => {
   }
 
   const HandleRouteChange = (url: string): Action<State> => {
-    // Remove trailing slashes
-    url = (url !== '/' && url.endsWith('/')) ? url.slice(0, -1) : url;
-
     // Decompose path
     const [rest, hash] = url.split('#');
-    const [path, queryString] = rest.split('?');
+    let [path, queryString] = rest.split('?');
+
+    // Remove trailing slashes
+    path = (path !== '/' && path.endsWith('/')) ? path.slice(0, -1) : path;
 
     let query = {};
     if (queryString) {
@@ -132,7 +132,6 @@ export const createRouter = ({ routes }: Options) => {
       status = 'notfound';
     }
 
-
     return [
       {
         location: () => ({
@@ -163,7 +162,7 @@ export const createRouter = ({ routes }: Options) => {
   const TrackRouteChange: Action<State> = {
     effect: (dispatch) => {
       const handleLocationChange = () => {
-        dispatch(HandleRouteChange(window.location.pathname + window.location.search + window.location.hash))
+        dispatch(HandleRouteChange(`${window.location.pathname}${window.location.search}${window.location.hash}`))
       }
 
       addEventListener('pushstate', handleLocationChange)
