@@ -76,6 +76,10 @@ export const createRouter = ({ routes }: Options) => {
   }
 
   const HandleRouteChange = (url: string): Action<State> => {
+    // Remove trailing slashes
+    url = url.endsWith('/') ? url.slice(0, -1) : url;
+
+    // Decompose path
     const [rest, hash] = url.split('#');
     const [path, queryString] = rest.split('?');
 
