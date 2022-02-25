@@ -1,6 +1,6 @@
 {
   "name": "@pulsor/location",
-  "version": "0.0.2-rc.2",
+  "version": "0.0.2-rc.4",
   "description": "Routing utilities for pulsor",
   "author": "Alexandre Lotte <dev@alexlotte.ca>",
   "license": "ISC",

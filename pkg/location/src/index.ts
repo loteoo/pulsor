@@ -39,7 +39,7 @@ export const Link = ({ href, ...rest }: LinkProps, children: VChildNode) =>
     children
   )
 
-export const CaptureLinkClicks: Action<State> = (CustomNavigateAction: any = Navigate) => (_, ev) => ({
+export const CaptureLinkClicks = (CustomNavigateAction: any = Navigate): Action<State> => (_, ev) => ({
   effect: (dispatch) => {
     let clicked: HTMLElement | null = ev.target as HTMLElement;
 
@@ -77,7 +77,7 @@ export const createRouter = ({ routes }: Options) => {
 
   const HandleRouteChange = (url: string): Action<State> => {
     // Remove trailing slashes
-    url = url.endsWith('/') ? url.slice(0, -1) : url;
+    url = (url !== '/' && url.endsWith('/')) ? url.slice(0, -1) : url;
 
     // Decompose path
     const [rest, hash] = url.split('#');
