@@ -63,8 +63,7 @@ const pulsorDevPlugin = () => {
   let config;
   let configEnv;
   let rootNodePath;
-  let styleSheets = [];
-
+  let styleSheets = {};
 
   return {
     name: "pulsor-dev",
@@ -139,8 +138,8 @@ const pulsorDevPlugin = () => {
       config = _config;
     },
     async transform(code, id, ssr) {
-      if (ssr && id.endsWith('.css') && !styleSheets.includes(code)) {
-        styleSheets.push(code);
+      if (ssr && id.endsWith('.css')) {
+        styleSheets[id] = code;
       }
       if (id === '\0@pulsor-document') {
         const result = await transformWithEsbuild(code, 'document.tsx', config.esbuild);
@@ -151,7 +150,7 @@ const pulsorDevPlugin = () => {
       }
     },
     transformIndexHtml() {
-      const styleScripts = styleSheets.map((code) => ({
+      const styleScripts = Object.values(styleSheets).map((code) => ({
         tag: 'style',
         attrs: {
           type: 'text/css',
